@@ -76,28 +76,35 @@ const HomePage = () => {
     }
   };
 
+    const handleBookingClick = () => {
+      navigate("/booking"); // 👉 Chuyển sang trang booking
+    };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ====== THANH MENU ====== */}
-      <header className="w-full bg-white shadow-md fixed top-0 left-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+      <header className="w-full bg-white/80 backdrop-blur-md shadow-md fixed top-0 left-0 z-50">
+        <div className="max-w-7xl mx-auto px-3 py-3 flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center space-x-3 cursor-pointer">
             <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-2.5 rounded-xl shadow-md hover:scale-105 transition-transform">
-              <Car className="w-6 h-6 text-white" />
+              <Car className="w-11 h-11 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-gray-800 leading-tight">
+              <h1 className="font-bold text-2xl text-gray-800 leading-tight">
                 EV Care Pro
               </h1>
-              <p className="text-xs text-gray-500 -mt-1">Bảo dưỡng xe điện</p>
+              <p className="text-sm text-gray-500 -mt-1">
+                Bảo dưỡng xe điện
+              </p>
+
             </div>
           </div>
 
           {/* Menu */}
           <nav>
-            <ul className="flex space-x-8 text-gray-700 font-medium">
+            <ul className="flex space-x-8 text-gray-700 font-semibold text-2xl">
               <li
                 onClick={() => scrollToSection("gioi-thieu")}
                 className="hover:text-blue-600 cursor-pointer"
@@ -117,16 +124,16 @@ const HomePage = () => {
                 Bảng giá
               </li>
               <li
-                onClick={() => scrollToSection("dat-lich")}
-                className="hover:text-blue-600 cursor-pointer"
-              >
-                Đặt lịch
-              </li>
-              <li
                 onClick={() => scrollToSection("lien-he")}
                 className="hover:text-blue-600 cursor-pointer"
               >
                 Liên hệ
+              </li>
+              <li
+                onClick={() => scrollToSection("dat-lich")}
+                className="hover:text-blue-600 cursor-pointer"
+              >
+                Đặt lịch
               </li>
             </ul>
           </nav>
@@ -138,7 +145,7 @@ const HomePage = () => {
                 <img
                   src={user.avatar}
                   alt="User Avatar"
-                  className="w-8 h-8 rounded-full border border-gray-300"
+                  className="w-9 h-9 rounded-full border border-gray-300"
                 />
                 <span className="font-semibold text-gray-800">{user.name}</span>
                 <button
@@ -151,7 +158,7 @@ const HomePage = () => {
             ) : (
               <button
                 onClick={() => navigate("/login")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-5 py-4 rounded-lg hover:bg-blue-700 transition"
               >
                 Đăng nhập
               </button>
@@ -286,7 +293,7 @@ const HomePage = () => {
           </h2>
 
           {/* Grid card */}
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+          <div className="ma  x-w-6xl mx-auto grid md:grid-cols-2 gap-6">
             {/* Cột trái */}
             <div
               className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer"
@@ -370,7 +377,7 @@ const HomePage = () => {
         </section>
 
         {/* 4. Lợi ích */}
-        <section className="py-20 px-6 bg-white">
+        <section className="bg-gray-50 w-full min-h-screen py-20 px-6 relativepy-20 px-6 bg-gray">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Tại sao chọn EV Care Pro?
           </h2>
@@ -393,15 +400,15 @@ const HomePage = () => {
         </section>
 
         {/* 5. Quy trình */}
-        <section className="bg-gray-50 py-20 px-6">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+        <section className="bg-gray-50 min-h-screen py-20 px-6 flex flex-col justify-center">
+          <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
             Quy trình dịch vụ
           </h2>
           <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto text-center">
             {["Đặt lịch", "Tiếp nhận", "Kiểm tra", "Hoàn tất"].map((step, i) => (
-              <div key={i} className="p-6 bg-white rounded-lg shadow">
-                <h3 className="text-xl font-semibold mb-2">{step}</h3>
-                <p className="text-gray-600">
+              <div key={i} className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <h3 className="text-2xl font-semibold mb-3">{step}</h3>
+                <p className="text-gray-600 text-base">
                   Nhanh chóng, minh bạch và hiệu quả.
                 </p>
               </div>
@@ -409,8 +416,9 @@ const HomePage = () => {
           </div>
         </section>
 
+
         {/* 6. Bảng giá */}
-        <section id="bang-gia" className="py-20 px-6 bg-white">
+        <section id="bang-gia" className="py-20 px-6 bg-gray">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Bảng giá dịch vụ
           </h2>
@@ -437,16 +445,16 @@ const HomePage = () => {
         </section>
 
         {/* 7. Ưu đãi */}
-        <section className="bg-gradient-to-r from-green-400 to-blue-500 text-white py-20 text-center">
+        {/* <section className="bg-gradient-to-r from-green-400 to-blue-500 text-white py-20 text-center">
           <h2 className="text-3xl font-bold mb-6">Ưu đãi tháng này</h2>
           <p className="mb-6">Giảm 20% cho khách hàng đặt lịch online lần đầu.</p>
           <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
             Nhận ưu đãi
           </button>
-        </section>
+        </section> */}
 
         {/* 8. Gallery */}
-        <section className="py-20 px-6 bg-white">
+        <section className="py-20 px-6 bg-gray">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Hình ảnh trung tâm
           </h2>
@@ -486,7 +494,7 @@ const HomePage = () => {
         </section>
 
         {/* 10. Testimonials */}
-        <section className="py-20 px-6 bg-white">
+        <section className="py-20 px-6 bg-gray  ">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Khách hàng nói gì?
           </h2>
@@ -507,7 +515,7 @@ const HomePage = () => {
         </section>
 
         {/* 11. Blog */}
-        <section className="bg-gray-50 py-20 px-6">
+        {/* <section className="bg-gray-50 py-20 px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Tin tức & Blog
           </h2>
@@ -528,10 +536,10 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* 12. Đối tác */}
-        <section className="py-20 px-6 bg-white text-center">
+        {/* <section className="py-20 px-6 bg-white text-center">
           <h2 className="text-3xl font-bold mb-12 text-gray-800">
             Đối tác & Chứng nhận
           </h2>
@@ -542,10 +550,10 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* 15. FAQ */}
-        <section className="bg-gray-50 py-20 px-6">
+        {/* <section className="bg-gray-50 py-20 px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Câu hỏi thường gặp
           </h2>
@@ -570,7 +578,7 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* 16. Contact */}
         <section
@@ -585,7 +593,7 @@ const HomePage = () => {
         </section>
 
         {/* 17. Thống kê */}
-        <section className="py-20 px-6 bg-white text-center">
+        <section className="py-20 px-6 bg-gray text-center">
           <h2 className="text-3xl font-bold mb-12 text-gray-800">
             Thống kê nổi bật
           </h2>
@@ -663,7 +671,7 @@ const HomePage = () => {
         </section>
 
         {/* 22. Loyalty */}
-        <section className="py-20 px-6 bg-white text-center">
+        {/* <section className="py-20 px-6 bg-white text-center">
           <h2 className="text-3xl font-bold mb-6 text-gray-800">
             Khách hàng thân thiết
           </h2>
@@ -673,10 +681,10 @@ const HomePage = () => {
           <button className="bg-blue-600 text-white px-6 py-3 rounded-lg">
             Tham gia ngay
           </button>
-        </section>
+        </section> */}
 
         {/* 23. Chatbot hỗ trợ */}
-        <section className="bg-gray-50 py-20 px-6 text-center">
+        {/* <section className="bg-gray-50 py-20 px-6 text-center">
           <h2 className="text-3xl font-bold mb-6 text-gray-800">
             Hỗ trợ trực tuyến
           </h2>
@@ -686,7 +694,7 @@ const HomePage = () => {
           <button className="bg-green-600 text-white px-6 py-3 rounded-lg">
             Bắt đầu trò chuyện
           </button>
-        </section>
+        </section> */}
 
         {/* 24. CTA cuối (Đặt lịch) */}
         <section
@@ -697,7 +705,10 @@ const HomePage = () => {
           <p className="mb-8">
             Đặt lịch bảo dưỡng để xe của bạn luôn hoạt động tốt nhất.
           </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">
+          <button
+            onClick={handleBookingClick}
+            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+          >
             Đặt lịch ngay
           </button>
         </section>

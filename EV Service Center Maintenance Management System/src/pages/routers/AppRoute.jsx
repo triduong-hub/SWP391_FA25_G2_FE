@@ -1,6 +1,9 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
+// ✅ Import LanguageProvider
+import { LanguageProvider } from "../../contexts/LanguageContext.jsx";
+
 // Trang login & password
 import LoginPage from "../login/LoginPage.jsx";
 import ForgotPasswordPage from "../password/ForgotPasswordPage.jsx";
@@ -19,30 +22,38 @@ import RevenueManagement from "../home/RevenueManagement.jsx";
 
 // Trang chủ (HomePage)
 import HomePage from "../home/users/HomePage.jsx";
+// Trang đặt lịch (Booking Page)
+import BookingPage from "../booking/BookingPage.jsx";
 
 function AppRoute() {
   return (
-    <Routes>
-      {/* Trang chủ */}
-      <Route path="/" element={<HomePage />} />
+    // ✅ Toàn bộ Route được bao trong LanguageProvider
+    <LanguageProvider>
+      <Routes>
+        {/* Trang chủ */}
+        <Route path="/" element={<HomePage />} />
 
-      {/* Trang đăng nhập */}
-      <Route path="/login" element={<LoginPage />} />
+        {/* Trang đăng nhập */}
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Trang quên mật khẩu */}
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        {/* Trang quên mật khẩu */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-      {/* Các route trong Admin */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route path="home" element={<HomeAdmin />} />
-        <Route path="users" element={<UserManagement />} />
-        <Route path="staff" element={<HomeStaff />} />
-        <Route path="cars" element={<CarManagement />} />
-        <Route path="schedule" element={<ScheduleManagement />} />
-        <Route path="revenue" element={<RevenueManagement />} />
-        <Route path="settings" element={<SystemManagement />} />
-      </Route>
-    </Routes>
+        {/* Trang đặt lịch bảo dưỡng */}
+        <Route path="/booking" element={<BookingPage />} />
+
+        {/* Các route trong Admin */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="home" element={<HomeAdmin />} />
+          <Route path="users" element={<UserManagement />} />
+          <Route path="staff" element={<HomeStaff />} />
+          <Route path="cars" element={<CarManagement />} />
+          <Route path="schedule" element={<ScheduleManagement />} />
+          <Route path="revenue" element={<RevenueManagement />} />
+          <Route path="settings" element={<SystemManagement />} />
+        </Route>
+      </Routes>
+    </LanguageProvider>
   );
 }
 
