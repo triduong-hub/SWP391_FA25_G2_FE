@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Target, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Car,
   Wrench,
@@ -10,7 +12,6 @@ import {
   Award,
   Battery,
   MapPin,
-  Smartphone,
   Globe,
   Briefcase,
   MessageCircle,
@@ -18,11 +19,14 @@ import {
   CheckCircle,
   Volume2,
   VolumeX,
+  Eye,
+
 } from "lucide-react";
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // trạng thái mute/unmute
+  const [selected, setSelected] = useState(null);
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
@@ -38,6 +42,32 @@ const HomePage = () => {
       section.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+
+  const services = [
+    {
+      title: "Bảo dưỡng định kỳ",
+      icon: <Wrench className="w-12 h-12" />,
+      img: "/images/bao-duong.gif",
+      desc: "Kiểm tra định kỳ, thay dầu, lọc gió và các linh kiện quan trọng giúp xe hoạt động ổn định lâu dài.",
+      direction: "right",
+    },
+    {
+      title: "Kiểm tra pin",
+      icon: <Battery className="w-12 h-12" />,
+      img: "/images/pin-animation.gif",
+      desc: "Đo dung lượng, kiểm tra hiệu suất sạc/xả và đảm bảo pin luôn an toàn khi vận hành.",
+      direction: "left",
+    },
+    {
+      title: "Sửa chữa động cơ",
+      icon: <Car className="w-12 h-12" />,
+      img: "/images/sua-chua.gif",
+      desc: "Sửa chữa, bảo trì và tối ưu động cơ điện giúp xe vận hành mạnh mẽ và tiết kiệm năng lượng.",
+      direction: "left",
+    },
+  ];
+
   // Toggle mute/unmute
   const toggleMute = () => {
     if (videoRef.current) {
@@ -45,6 +75,7 @@ const HomePage = () => {
       setIsMuted(videoRef.current.muted);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,43 +186,187 @@ const HomePage = () => {
 
 
         {/* 2. Giới thiệu */}
-        <section id="gioi-thieu" className="py-20 px-6 max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">Về chúng tôi</h2>
-          <p className="text-gray-600 leading-relaxed">
-            EV Care Pro là đơn vị tiên phong tại Việt Nam trong lĩnh vực bảo
-            dưỡng và chăm sóc xe điện, với hệ thống trung tâm hiện đại trải dài
-            khắp cả nước.
-          </p>
+        <section id="gioi-thieu" className="py-20 px-6 max-w-6xl mx-auto space-y-32">
+          {/* Phần 1: Giới thiệu */}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Hình ảnh */}
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="flex justify-center"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1621570077346-82d49f683e4f"
+                alt="EV Care Pro"
+                className="rounded-2xl shadow-lg max-h-[400px] object-cover"
+              />
+            </motion.div>
+
+            {/* Nội dung */}
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="text-center md:text-left"
+            >
+              <h2 className="text-4xl font-bold mb-6 text-gray-800">
+                Về Chúng Tôi
+              </h2>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                <strong>EV Care Pro</strong> là đơn vị tiên phong tại Việt Nam trong
+                lĩnh vực bảo dưỡng và chăm sóc xe điện. Với hệ thống trung tâm hiện
+                đại trải dài khắp cả nước, chúng tôi mang đến dịch vụ chuyên nghiệp,
+                uy tín và tận tâm.
+              </p>
+              <p className="text-gray-600 leading-relaxed">
+                Đội ngũ kỹ thuật viên được đào tạo bài bản, kết hợp cùng công nghệ
+                tiên tiến giúp xe điện của bạn luôn hoạt động bền bỉ, an toàn và hiệu
+                quả.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Phần 2: Sứ mệnh & Tầm nhìn */}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Nội dung */}
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <Target className="w-8 h-8 text-blue-600" />
+                  <h3 className="text-2xl font-semibold text-gray-800">Sứ mệnh</h3>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  Mang đến dịch vụ bảo dưỡng xe điện toàn diện, đảm bảo an toàn, bền
+                  bỉ và thân thiện với môi trường.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <Eye className="w-8 h-8 text-green-600" />
+                  <h3 className="text-2xl font-semibold text-gray-800">Tầm nhìn</h3>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  Trở thành thương hiệu số 1 tại Việt Nam trong lĩnh vực chăm sóc xe
+                  điện, hướng tới chuẩn quốc tế.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Hình ảnh */}
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="flex justify-center"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1619018388851-9e1e8b44a78d"
+                alt="Sứ mệnh & Tầm nhìn"
+                className="rounded-2xl shadow-lg max-h-[400px] object-cover"
+              />
+            </motion.div>
+          </div>
         </section>
 
         {/* 3. Dịch vụ */}
-        <section id="dich-vu" className="bg-gray-50 py-20 px-6">
+        <section id="dich-vu" className="bg-gray-50 w-full min-h-screen py-20 px-6 relative">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Dịch vụ của chúng tôi
           </h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              { title: "Bảo dưỡng định kỳ", icon: <Wrench /> },
-              { title: "Kiểm tra pin", icon: <Battery /> },
-              { title: "Hỗ trợ 24/7", icon: <Phone /> },
-              { title: "Sửa chữa động cơ", icon: <Car /> },
-              { title: "Nâng cấp phần mềm", icon: <Star /> },
-              { title: "Đào tạo lái xe", icon: <Users /> },
-            ].map((s, i) => (
-              <div
-                key={i}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg text-center"
-              >
-                <div className="flex justify-center text-blue-600 mb-4">
-                  {s.icon}
-                </div>
-                <h3 className="font-semibold text-xl mb-3">{s.title}</h3>
-                <p className="text-gray-600">
-                  Giúp chiếc xe của bạn luôn trong tình trạng tốt nhất.
-                </p>
+
+          {/* Grid card */}
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+            {/* Cột trái */}
+            <div
+              className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer"
+              onClick={() => setSelected(services[0])}
+            >
+              <img
+                src={services[0].img}
+                alt={services[0].title}
+                className="w-full h-[500px] object-cover"
+              />
+              <div className="absolute bottom-4 left-4 bg-black/60 text-white px-4 py-2 rounded-lg">
+                {services[0].title}
               </div>
-            ))}
+            </div>
+
+            {/* Cột phải */}
+            <div className="grid grid-rows-2 gap-6">
+              {services.slice(1).map((s, i) => (
+                <div
+                  key={i}
+                  className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer"
+                  onClick={() => setSelected(s)}
+                >
+                  <img
+                    src={s.img}
+                    alt={s.title}
+                    className="w-full h-[240px] object-cover"
+                  />
+                  <div className="absolute bottom-4 left-4 bg-black/60 text-white px-4 py-2 rounded-lg">
+                    {s.title}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Overlay info khi click */}
+          <AnimatePresence>
+            {selected && (
+              <motion.div
+                initial={{
+                  x: selected.direction === "right" ? "-100%" : "100%",
+                }}
+                animate={{ x: 0 }}
+                exit={{
+                  x: selected.direction === "right" ? "-100%" : "100%",
+                }}
+                transition={{ duration: 0.5 }}
+                className="absolute inset-0 flex items-center justify-center z-50"
+                onClick={() => setSelected(null)} // click ngoài overlay để đóng
+              >
+                {/* Nội dung chính của overlay */}
+                <motion.div
+                  onClick={(e) => e.stopPropagation()} // ngăn click bên trong bị đóng
+                  className="bg-white flex flex-col md:flex-row items-center justify-center text-center p-10 shadow-2xl rounded-xl relative max-w-4xl"
+                >
+                  {/* Nút Back */}
+                  <button
+                    type="button"
+                    onClick={() => setSelected(null)}
+                    className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-black transition"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Quay lại
+                  </button>
+
+                  {/* Nội dung dịch vụ */}
+                  <img
+                    src={selected.img}
+                    alt={selected.title}
+                    className="w-72 h-72 object-contain mb-6 md:mb-0 md:mr-8"
+                  />
+                  <div>
+                    <h3 className="text-2xl font-bold mb-4">{selected.title}</h3>
+                    <p className="text-gray-700 max-w-xl">{selected.desc}</p>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
 
         {/* 4. Lợi ích */}
@@ -369,39 +544,6 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* 13. Ứng dụng */}
-        <section className="bg-gray-50 py-20 px-6 text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">
-            Ứng dụng EV Care
-          </h2>
-          <p className="mb-6 text-gray-600">
-            Quản lý xe điện ngay trên điện thoại.
-          </p>
-          <div className="flex justify-center space-x-4">
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg">
-              Tải App Store
-            </button>
-            <button className="bg-green-600 text-white px-6 py-3 rounded-lg">
-              Tải Google Play
-            </button>
-          </div>
-        </section>
-
-        {/* 14. Video */}
-        <section className="py-20 px-6 bg-white text-center">
-          <h2 className="text-3xl font-bold mb-12 text-gray-800">
-            Video giới thiệu
-          </h2>
-          <div className="max-w-4xl mx-auto">
-            <iframe
-              className="w-full h-96 rounded-lg shadow"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              title="Video giới thiệu"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </section>
-
         {/* 15. FAQ */}
         <section className="bg-gray-50 py-20 px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
@@ -493,7 +635,7 @@ const HomePage = () => {
           </p>
         </section>
 
-        {/* 20. Tuyển dụng */}
+        {/* 20. Tuyển dụng
         <section className="bg-gray-50 py-20 px-6 text-center">
           <h2 className="text-3xl font-bold mb-6 text-gray-800">Tuyển dụng</h2>
           <p className="text-gray-600 mb-8">
@@ -502,7 +644,7 @@ const HomePage = () => {
           <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
             Ứng tuyển ngay
           </button>
-        </section>
+        </section> */}
 
         {/* 21. Newsletter */}
         <section className="py-20 px-6 bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-center">
