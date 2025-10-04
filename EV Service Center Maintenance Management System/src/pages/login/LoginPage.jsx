@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GoogleIcon from "./GoogleIcon.jsx";
+import useFetch from "../../hook/useFetch.jsx";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loginMethod, setLoginMethod] = useState("email"); // email | phone
   const [showPassword, setShowPassword] = useState(false);
+  const { post } = useFetch();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -36,13 +38,56 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     console.log("Form submitted:", {
       mode: isLogin ? "login" : "register",
       ...formData,
     });
-    // TODO: xử lý login / register
+
+    try {
+      // Xác định URL và body tùy theo chế độ login / register
+      const url = isLogin
+        ? "http://localhost:8080/api/auth/login"
+        : "http://localhost:8080/api/customer/register";
+
+      const body = isLogin
+        ? {
+          phone: formData.phone,
+          password: formData.password,
+        }
+        : {
+          name: formData.fullName,   // ✅ Đổi fullName -> name
+          email: formData.email,
+          phone: formData.phone,     // ✅ Thêm phone
+          password: formData.password,
+        };
+
+      console.log("Body gửi lên:", body);
+
+      // Gọi API bằng hook useFetch
+      const response = await post(body, {}, url);
+
+      console.log("API response:", response);
+
+      if (isLogin) {
+        // alert("Đăng nhập thành công!");
+        // Lưu token và thông tin user nếu backend trả về
+        if (response.token) {
+          localStorage.setItem("token", response.token);
+        }
+        localStorage.setItem("user", JSON.stringify(response));
+      } else {
+        // alert("Đăng ký thành công! Vui lòng đăng nhập.");
+        // Sau khi đăng ký, chuyển sang chế độ login
+        setIsLogin(true);
+      }
+      navigate("/");
+    } catch (err) {
+      console.error("Error during submit:", err);
+      alert(err.messageFromServer || "Đã xảy ra lỗi. Vui lòng thử lại!");
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -125,21 +170,19 @@ const LoginPage = () => {
             <div className="flex rounded-2xl bg-gray-100 p-1 mb-6">
               <button
                 onClick={() => setIsLogin(true)}
-                className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
-                  isLogin
-                    ? "bg-white text-gray-800 shadow-sm"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
+                className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${isLogin
+                  ? "bg-white text-gray-800 shadow-sm"
+                  : "text-gray-600 hover:text-gray-800"
+                  }`}
               >
                 Đăng nhập
               </button>
               <button
                 onClick={() => setIsLogin(false)}
-                className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
-                  !isLogin
-                    ? "bg-white text-gray-800 shadow-sm"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
+                className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${!isLogin
+                  ? "bg-white text-gray-800 shadow-sm"
+                  : "text-gray-600 hover:text-gray-800"
+                  }`}
               >
                 Đăng ký
               </button>
@@ -188,22 +231,20 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setLoginMethod("email")}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium ${
-                        loginMethod === "email"
-                          ? "bg-white shadow text-gray-800"
-                          : "text-gray-600 hover:text-gray-800"
-                      }`}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium ${loginMethod === "email"
+                        ? "bg-white shadow text-gray-800"
+                        : "text-gray-600 hover:text-gray-800"
+                        }`}
                     >
                       Email
                     </button>
                     <button
                       type="button"
                       onClick={() => setLoginMethod("phone")}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium ${
-                        loginMethod === "phone"
-                          ? "bg-white shadow text-gray-800"
-                          : "text-gray-600 hover:text-gray-800"
-                      }`}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium ${loginMethod === "phone"
+                        ? "bg-white shadow text-gray-800"
+                        : "text-gray-600 hover:text-gray-800"
+                        }`}
                     >
                       SĐT
                     </button>

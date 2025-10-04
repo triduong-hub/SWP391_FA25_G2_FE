@@ -25,6 +25,7 @@ const AdminLayout = () => {
     { path: "cars", label: "Xe điện", icon: <Car className="w-5 h-5 mr-2" /> },
     { path: "schedule", label: "Lịch bảo dưỡng", icon: <Calendar className="w-5 h-5 mr-2" /> },
     { path: "staff", label: "Nhân viên", icon: <Users className="w-5 h-5 mr-2" /> },
+    { path: "technician", label: "Phân công bảo dưỡng", icon: <Calendar className="w-5 h-5 mr-2" /> },
     { path: "settings", label: "Cài đặt", icon: <Settings className="w-5 h-5 mr-2" /> },
   ];
 
