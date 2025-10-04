@@ -19,6 +19,7 @@ import ScheduleManagement from "../home/ScheduleManagement.jsx";
 import CarManagement from "../home/CarManagement.jsx";
 import SystemManagement from "../home/SystemManagement.jsx";
 import RevenueManagement from "../home/RevenueManagement.jsx";
+import TechnicianManagement from "../home/TechnicianManagement.jsx"
 
 // Trang chủ (HomePage)
 import HomePage from "../home/users/HomePage.jsx";
@@ -51,6 +52,9 @@ function AppRoute() {
           <Route path="schedule" element={<ScheduleManagement />} />
           <Route path="revenue" element={<RevenueManagement />} />
           <Route path="settings" element={<SystemManagement />} />
+          <Route path="technician" element={<TechnicianManagement/>} />
+          {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
+
         </Route>
       </Routes>
     </LanguageProvider>

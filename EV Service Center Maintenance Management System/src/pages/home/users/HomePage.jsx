@@ -47,21 +47,24 @@ const HomePage = () => {
   const services = [
     {
       title: "Bảo dưỡng định kỳ",
-      icon: <Wrench className="w-12 h-12 text-gray-200" />,
-      img: "/baoduong.gif",
+      icon: <Wrench className="w-12 h-12" />,
+      img: "/images/bao-duong.gif",
       desc: "Kiểm tra định kỳ, thay dầu, lọc gió và các linh kiện quan trọng giúp xe hoạt động ổn định lâu dài.",
+      direction: "right",
     },
     {
       title: "Kiểm tra pin",
-      icon: <Battery className="w-12 h-12 text-gray-200" />,
-      img: "/battery.gif",
+      icon: <Battery className="w-12 h-12" />,
+      img: "/images/pin-animation.gif",
       desc: "Đo dung lượng, kiểm tra hiệu suất sạc/xả và đảm bảo pin luôn an toàn khi vận hành.",
+      direction: "left",
     },
     {
       title: "Sửa chữa động cơ",
-      icon: <Car className="w-12 h-12 text-gray-200" />,
-      img: "/fixing.gif",
+      icon: <Car className="w-12 h-12" />,
+      img: "/images/sua-chua.gif",
       desc: "Sửa chữa, bảo trì và tối ưu động cơ điện giúp xe vận hành mạnh mẽ và tiết kiệm năng lượng.",
+      direction: "left",
     },
   ];
 
@@ -202,7 +205,7 @@ const HomePage = () => {
               className="flex justify-center"
             >
               <img
-                src="ev.jpg"
+                src="https://images.unsplash.com/photo-1621570077346-82d49f683e4f"
                 alt="EV Care Pro"
                 className="rounded-2xl shadow-lg max-h-[400px] object-cover"
               />
@@ -234,43 +237,53 @@ const HomePage = () => {
           </div>
 
           {/* Phần 2: Sứ mệnh & Tầm nhìn */}
-          <section className="py-20 px-6 bg-gray-50">
-            <div className="flex flex-col md:flex-row justify-between w-full max-w-6xl mx-auto gap-12">
-              {/* Sứ mệnh */}
-              <motion.div
-                initial={{ opacity: 0, x: -100 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="md:w-1/2"
-              >
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Nội dung */}
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div>
                 <div className="flex items-center gap-3 mb-3">
                   <Target className="w-8 h-8 text-blue-600" />
                   <h3 className="text-2xl font-semibold text-gray-800">Sứ mệnh</h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  Mang đến dịch vụ bảo dưỡng xe điện toàn diện, đảm bảo an toàn, bền bỉ và thân thiện với môi trường.
+                  Mang đến dịch vụ bảo dưỡng xe điện toàn diện, đảm bảo an toàn, bền
+                  bỉ và thân thiện với môi trường.
                 </p>
-              </motion.div>
+              </div>
 
-              {/* Tầm nhìn */}
-              <motion.div
-                initial={{ opacity: 0, x: 100 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="md:w-1/2"
-              >
+              <div>
                 <div className="flex items-center gap-3 mb-3">
                   <Eye className="w-8 h-8 text-green-600" />
                   <h3 className="text-2xl font-semibold text-gray-800">Tầm nhìn</h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  Trở thành thương hiệu số 1 tại Việt Nam trong lĩnh vực chăm sóc xe điện, hướng tới chuẩn quốc tế.
+                  Trở thành thương hiệu số 1 tại Việt Nam trong lĩnh vực chăm sóc xe
+                  điện, hướng tới chuẩn quốc tế.
                 </p>
-              </motion.div>
-            </div>
-          </section>
+              </div>
+            </motion.div>
+
+            {/* Hình ảnh */}
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="flex justify-center"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1619018388851-9e1e8b44a78d"
+                alt="Sứ mệnh & Tầm nhìn"
+                className="rounded-2xl shadow-lg max-h-[400px] object-cover"
+              />
+            </motion.div>
+          </div>
         </section>
 
         {/* 3. Dịch vụ */}
@@ -280,7 +293,7 @@ const HomePage = () => {
           </h2>
 
           {/* Grid card */}
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+          <div className="ma  x-w-6xl mx-auto grid md:grid-cols-2 gap-6">
             {/* Cột trái */}
             <div
               className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer"
@@ -364,7 +377,7 @@ const HomePage = () => {
         </section>
 
         {/* 4. Lợi ích */}
-        <section className="bg-gray-50 w-full py-20 px-6 relativepy-20 px-6 bg-gray">
+        <section className="bg-gray-50 w-full min-h-screen py-20 px-6 relativepy-20 px-6 bg-gray">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Tại sao chọn EV Care Pro?
           </h2>
@@ -387,7 +400,7 @@ const HomePage = () => {
         </section>
 
         {/* 5. Quy trình */}
-        <section className="bg-gray-50 py-20 px-6 flex flex-col justify-center">
+        <section className="bg-gray-50 min-h-screen py-20 px-6 flex flex-col justify-center">
           <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
             Quy trình dịch vụ
           </h2>
@@ -446,7 +459,7 @@ const HomePage = () => {
             Hình ảnh trung tâm
           </h2>
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {["/coso.jpg", "/coso1.jpg", "/coso2.jpg"].map((img, i) => (
+            {["/garage1.jpg", "/garage2.jpg", "/garage3.jpg"].map((img, i) => (
               <img
                 key={i}
                 src={img}
@@ -457,7 +470,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* 9. Đội ngũ 
+        {/* 9. Đội ngũ */}
         <section className="bg-gray-50 py-20 px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Đội ngũ kỹ thuật viên
@@ -478,7 +491,7 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-        </section> */}
+        </section>
 
         {/* 10. Testimonials */}
         <section className="py-20 px-6 bg-gray  ">
@@ -641,8 +654,8 @@ const HomePage = () => {
           </button>
         </section> */}
 
-        {/* 21. Newsletter
-          <section className="py-20 px-6 bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-center">
+        {/* 21. Newsletter */}
+        <section className="py-20 px-6 bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-center">
           <h2 className="text-3xl font-bold mb-6">Đăng ký nhận tin</h2>
           <p className="mb-6">Nhận ngay ưu đãi và tin tức mới nhất từ EV Care.</p>
           <div className="flex justify-center">
@@ -655,7 +668,7 @@ const HomePage = () => {
               Đăng ký
             </button>
           </div>
-        </section>*/}
+        </section>
 
         {/* 22. Loyalty */}
         {/* <section className="py-20 px-6 bg-white text-center">
@@ -709,6 +722,5 @@ const HomePage = () => {
     </div>
   );
 };
-
 
 export default HomePage;
