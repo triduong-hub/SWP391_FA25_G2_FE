@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Target, ArrowLeft,User } from "lucide-react";
-import Navbar from "./Navbar";
+import { Target, ArrowLeft,} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Car,
@@ -88,11 +87,6 @@ const HomePage = () => {
   return (
     
     <div className="min-h-screen bg-gray-50">
-
-      <div>
-      <Navbar />
-      {/* các section khác của homepage */}
-    </div>
 
       {/* ====== THANH MENU ====== */}
       <header className="w-full bg-white/80 backdrop-blur-md shadow-md fixed top-0 left-0 z-50">
