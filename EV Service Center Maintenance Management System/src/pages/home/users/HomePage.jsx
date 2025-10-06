@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Target, ArrowLeft,} from "lucide-react";
+import { Target, ArrowLeft, } from "lucide-react";
+import API from "../../../../api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Car,
@@ -29,14 +30,29 @@ import {
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // trạng thái mute/unmute
+  const [user, setUser] = useState(null);
   const [selected, setSelected] = useState(null);
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
-  const user = {
-    name: "Nguyễn Văn A",
-    avatar: "/user-avatar.png",
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    API.get("http://localhost:8080/api/auth/getUserInfo") // vì baseURL đã là /api/auth/getUserInfo
+      .then((res) => {
+        const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
+        setUser(userData);
+        setIsLoggedIn(true);
+      })
+      .catch((err) => {
+        console.error("Lỗi lấy thông tin người dùng:", err);
+        localStorage.removeItem("token");
+        setIsLoggedIn(false);
+      });
+  }, []);
+
+
 
   // Hàm scroll đến section
   const scrollToSection = (id) => {
@@ -85,7 +101,7 @@ const HomePage = () => {
 
 
   return (
-    
+
     <div className="min-h-screen bg-gray-50">
 
       {/* ====== THANH MENU ====== */}
@@ -145,17 +161,24 @@ const HomePage = () => {
 
           {/* Góc phải */}
           <div className="flex items-center space-x-3">
-            {isLoggedIn ? (
+            {isLoggedIn && user ? (
               <>
                 <img
-                  src={user.avatar}
+                  src={user.avatar || "/default-avatar.png"}
                   alt="User Avatar"
-                  className="w-8 h-8 rounded-full border border-gray-300"
+                  className="w-9 h-9 rounded-full border border-gray-300"
                 />
-                <span className="font-semibold text-gray-800">{user.name}</span>
+                <span className="font-semibold text-gray-800">
+                  {user.name || user.fullName || "Người dùng"}
+                </span>
                 <button
-                  onClick={() => setIsLoggedIn(false)}
-                  className="text-red-500 hover:underline text-sm ml-2"
+                  onClick={() => {
+                    setIsLoggedIn(false);
+                    setUser(null);
+                    localStorage.removeItem("token");
+                    navigate("/login");
+                  }}
+                  className="text-red-500 hover:text-red-700 text-sm"
                 >
                   Đăng xuất
                 </button>
@@ -163,7 +186,7 @@ const HomePage = () => {
             ) : (
               <button
                 onClick={() => navigate("/login")}
-                className="bg-blue-600 text-white px-5 py-4 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
                 Đăng nhập
               </button>
