@@ -166,7 +166,8 @@ const HomePage = () => {
                 <img
                   src={user.avatar || "/default-avatar.png"}
                   alt="User Avatar"
-                  className="w-9 h-9 rounded-full border border-gray-300"
+                  className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer"
+                  onClick={() => navigate("/profile")}
                 />
                 <span className="font-semibold text-gray-800">
                   {user.name || user.fullName || "Người dùng"}
