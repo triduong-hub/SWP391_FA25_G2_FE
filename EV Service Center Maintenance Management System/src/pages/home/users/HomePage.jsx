@@ -32,6 +32,7 @@ const HomePage = () => {
   const [isMuted, setIsMuted] = useState(true); // trạng thái mute/unmute
   const [user, setUser] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
@@ -160,29 +161,46 @@ const HomePage = () => {
           </nav>
 
           {/* Góc phải */}
-          <div className="flex items-center space-x-3">
+          {/* Góc phải */}
+          <div className="flex items-center space-x-3 relative">
             {isLoggedIn && user ? (
               <>
-                <img
-                  src={user.avatar || "/default-avatar.png"}
-                  alt="User Avatar"
-                  className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer"
-                  onClick={() => navigate("/profile")}
-                />
-                <span className="font-semibold text-gray-800">
+                <span className="font-semibold text-gray-800 order-1">
                   {user.name || user.fullName || "Người dùng"}
                 </span>
-                <button
-                  onClick={() => {
-                    setIsLoggedIn(false);
-                    setUser(null);
-                    localStorage.removeItem("token");
-                    navigate("/login");
-                  }}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  Đăng xuất
-                </button>
+                <img
+                  src={user.avatar || "avatar.jpg"}
+                  alt="User Avatar"
+                  className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer order-2 "
+                  onClick={() => setShowMenu((prev) => !prev)}
+                />
+
+
+                {showMenu && (
+                  <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-md shadow-md w-32 py-2 z-50">
+                    <button
+                      onClick={() => {
+                        navigate("/profile");
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Hồ sơ
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsLoggedIn(false);
+                        setUser(null);
+                        localStorage.removeItem("token");
+                        navigate("/login");
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <button
@@ -193,6 +211,7 @@ const HomePage = () => {
               </button>
             )}
           </div>
+
         </div>
       </header>
 
