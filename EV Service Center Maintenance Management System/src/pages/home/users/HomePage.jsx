@@ -169,10 +169,7 @@ const HomePage = () => {
                   className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer"
                   onClick={() => navigate("/profile")}
                 />
-                <span
-                  onClick={() => navigate("/profile")}
-                  className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600"
-                >
+                <span className="font-semibold text-gray-800">
                   {user.name || user.fullName || "Người dùng"}
                 </span>
                 <button
