@@ -21,8 +21,9 @@ import SystemManagement from "../home/SystemManagement.jsx";
 import RevenueManagement from "../home/RevenueManagement.jsx";
 import TechnicianManagement from "../home/TechnicianManagement.jsx"
 
-// Trang chủ (HomePage)
+// Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
+import Profile from "../home/users/Profile.jsx";
 // Trang đặt lịch (Booking Page)
 import BookingPage from "../booking/BookingPage.jsx";
 
@@ -33,6 +34,9 @@ function AppRoute() {
       <Routes>
         {/* Trang chủ */}
         <Route path="/" element={<HomePage />} />
+        
+        {/* Trang cá nhân */}
+        <Route path="/profile" element={<Profile />} />
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
