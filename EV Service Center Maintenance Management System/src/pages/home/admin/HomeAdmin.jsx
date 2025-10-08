@@ -216,7 +216,7 @@ const HomeAdmin = () => {
                   value={stats.pendingAssignments}
                   color="from-indigo-400 to-indigo-600"
                   icon={<ClipboardCheck className="w-8 h-8 text-white" />}
-                  onClick={() => navigate("/admin/assignments")}
+                  onClick={() => navigate("/admin/technician")}
                 />
               </div>
 

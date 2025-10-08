@@ -31,16 +31,29 @@ const LoginForm = ({ onSwitch }) => {
         password: formData.password,
       });
 
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
-        navigate("/");
-      } else alert("Đăng nhập thất bại!");
+      const data = response.data;
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data));
+
+        //  Kiểm tra role để điều hướng
+        if (data.role === "admin") {
+          navigate("/admin/home");
+        } else if (data.role === "customer") {
+          navigate("/");
+        } else {
+          navigate("/"); // fallback nếu không có role
+        }
+      } else {
+        alert("Đăng nhập thất bại!");
+      }
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Đã xảy ra lỗi!");
     }
   };
+
 
   const handleGoogleLogin = () => {
     console.log("Google login initiated");
