@@ -13,6 +13,7 @@ import AdminLayout from "../home/admin/AdminLayout.jsx";
 
 // Trang con của Admin
 import HomeAdmin from "../home/admin/HomeAdmin.jsx";
+import ProfileAdmin from "../home/admin/ProfileAdmin.jsx"; 
 import UserManagement from "../home/UserManagement.jsx";
 import HomeStaff from "../home/HomeStaff.jsx";
 import ScheduleManagement from "../home/ScheduleManagement.jsx";
@@ -50,6 +51,7 @@ function AppRoute() {
         {/* Các route trong Admin */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="home" element={<HomeAdmin />} />
+          <Route path="profile" element={<ProfileAdmin />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="staff" element={<HomeStaff />} />
           <Route path="cars" element={<CarManagement />} />

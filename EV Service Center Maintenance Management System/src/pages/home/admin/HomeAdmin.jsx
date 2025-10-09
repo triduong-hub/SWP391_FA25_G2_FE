@@ -149,6 +149,7 @@ const HomeAdmin = () => {
               className="px-3 py-1 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500"
             />
 
+            {/* Thông báo */}
             <div ref={notifRef} className="relative cursor-pointer">
               <Bell
                 className="w-6 h-6 text-gray-600 hover:text-emerald-600 transition-colors"
@@ -160,7 +161,9 @@ const HomeAdmin = () => {
               {showNotifications && (
                 <div className="absolute right-0 mt-8 w-64 max-h-72 overflow-y-auto bg-white/90 backdrop-blur-xl shadow-lg rounded-xl z-20 border border-gray-100">
                   {notifications.length === 0 ? (
-                    <p className="p-2 text-gray-500 text-sm">Không có thông báo</p>
+                    <p className="p-2 text-gray-500 text-sm">
+                      Không có thông báo
+                    </p>
                   ) : (
                     notifications.map((note, i) => (
                       <p
@@ -175,8 +178,10 @@ const HomeAdmin = () => {
               )}
             </div>
 
+            {/* Avatar / Profile Icon */}
             <div
-              className="w-9 h-9 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full cursor-pointer shadow-md"
+              onClick={() => navigate("/admin/profile")}
+              className="w-9 h-9 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full cursor-pointer shadow-md hover:scale-105 transition-transform"
               title="Profile"
             />
           </div>
@@ -222,13 +227,25 @@ const HomeAdmin = () => {
 
               {/* Biểu đồ */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ChartCard title="Biểu đồ doanh thu hàng tháng" data={revenueData} dataKey="revenue" color="#10b981" />
-                <ChartCard title="Biểu đồ bảo dưỡng xe theo tháng" data={maintenanceData} dataKey="jobs" color="#f59e0b" />
+                <ChartCard
+                  title="Biểu đồ doanh thu hàng tháng"
+                  data={revenueData}
+                  dataKey="revenue"
+                  color="#10b981"
+                />
+                <ChartCard
+                  title="Biểu đồ bảo dưỡng xe theo tháng"
+                  data={maintenanceData}
+                  dataKey="jobs"
+                  color="#f59e0b"
+                />
               </div>
 
               {/* Bảng công việc gần đây */}
               <div className="bg-white/80 backdrop-blur p-6 rounded-3xl shadow-xl mt-6">
-                <h2 className="text-xl font-bold mb-4 text-gray-700">Công việc bảo dưỡng gần đây</h2>
+                <h2 className="text-xl font-bold mb-4 text-gray-700">
+                  Công việc bảo dưỡng gần đây
+                </h2>
                 <table className="w-full text-sm">
                   <thead className="bg-emerald-500 text-white">
                     <tr>
@@ -240,10 +257,15 @@ const HomeAdmin = () => {
                   </thead>
                   <tbody>
                     {recentJobs.map((job) => (
-                      <tr key={job.id} className="border-b hover:bg-gray-50 transition">
+                      <tr
+                        key={job.id}
+                        className="border-b hover:bg-gray-50 transition"
+                      >
                         <td className="p-3">{job.car}</td>
                         <td className="p-3">{job.service}</td>
-                        <td className="p-3">{job.staff || "Chưa phân công"}</td>
+                        <td className="p-3">
+                          {job.staff || "Chưa phân công"}
+                        </td>
                         <td
                           className={`p-3 font-semibold ${
                             job.status === "Hoàn thành"
@@ -268,7 +290,7 @@ const HomeAdmin = () => {
   );
 };
 
-// 🔹 Component hiển thị card thống kê
+// 🔹 Card thống kê
 const StatCard = ({ title, value, icon, color, onClick }) => (
   <div
     onClick={onClick}
@@ -278,11 +300,13 @@ const StatCard = ({ title, value, icon, color, onClick }) => (
       <p className="text-sm text-gray-500">{title}</p>
       <p className="text-xl font-bold">{value}</p>
     </div>
-    <div className={`p-3 rounded-xl bg-gradient-to-r ${color} shadow-md`}>{icon}</div>
+    <div className={`p-3 rounded-xl bg-gradient-to-r ${color} shadow-md`}>
+      {icon}
+    </div>
   </div>
 );
 
-// 🔹 Component biểu đồ thực tế (Recharts)
+// 🔹 Component biểu đồ
 const ChartCard = ({ title, data, dataKey, color }) => (
   <div className="p-6 rounded-3xl shadow-xl bg-white/80 backdrop-blur">
     <h2 className="text-lg font-bold mb-4 text-gray-700">{title}</h2>
