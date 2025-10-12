@@ -19,6 +19,7 @@ const InputField = ({ label, value, onChange, placeholder, type = 'text' }) => (
 const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) => {
   const { language } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const formatPrice = (price) =>
@@ -49,48 +50,73 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
   };
 
   const handleNext = async () => {
-  const { vehicle, services, datetime, location, customerInfo } = bookingData;
+    const { vehicle, services, datetime, location, customerInfo } = bookingData;
 
-  if (!vehicle || !services?.length || !datetime || !location || !customerInfo?.id) {
-    alert("Vui lòng nhập đầy đủ thông tin đặt lịch!");
-    return;
-  }
-
-  setLoading(true);
-  setError('');
-
-  try {
-    const dateObj = new Date(datetime);
-    const appointmentDate = dateObj.toLocaleDateString('en-CA');
-    const appointmentTime = dateObj.toTimeString().slice(0, 5);
-
-    const payload = {
-      customerId: customerInfo.id,
-      vehicleId: vehicle.id,
-      serviceCenterId: location.id,
-      serviceIds: services.map(s => s.id || s.serviceID),
-      appointmentDate,
-      appointmentTime,
-      paymentMethod: bookingData.paymentMethod || 'cash',
-      notes: bookingData.notes || 'Booking from web app',
-    };
-
-    console.group('📤 Payload gửi đến server:');
-    console.table(payload);
-    console.groupEnd();
-
-    const res = await API.post('/bookings', payload);
-    if (res.status === 200 || res.status === 201) {
-      localStorage.setItem('bookingData', JSON.stringify(bookingData));
-      onNext();
+    if (!vehicle || !services?.length || !datetime || !location || !customerInfo?.id) {
+      alert("Vui lòng nhập đầy đủ thông tin đặt lịch!");
+      return;
     }
-  } catch (err) {
-    console.error('❌ Lỗi khi gửi booking:', err);
-    setError(err.response?.data?.message || err.message || 'Không thể gửi booking');
-  } finally {
-    setLoading(false);
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const dateObj = new Date(datetime);
+      const appointmentDate = dateObj.toLocaleDateString('en-CA');
+      const appointmentTime = dateObj.toTimeString().slice(0, 5);
+
+      const payload = {
+        customerId: customerInfo.id,
+        vehicleId: vehicle.id,
+        serviceCenterId: location.id,
+        serviceIds: services.map(s => s.id || s.serviceID),
+        appointmentDate,
+        appointmentTime,
+        paymentMethod: bookingData.paymentMethod || 'cash',
+        notes: bookingData.notes || 'Booking from web app',
+      };
+
+      console.group('📤 Payload gửi đến server:');
+      console.table(payload);
+      console.groupEnd();
+
+      const res = await API.post('/bookings', payload);
+      if (res.status === 200 || res.status === 201) {
+        setSuccess(true); // ✅ hiển thị trang thành công
+        localStorage.setItem('bookingData', JSON.stringify(bookingData));
+
+        // Sau 2.5s tự động gọi onNext (nếu có)
+      }
+    } catch (err) {
+      console.error('❌ Lỗi khi gửi booking:', err);
+      setError(err.response?.data?.message || err.message || 'Không thể gửi booking');
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center space-y-4 py-12">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-20 h-20 text-emerald-500 animate-bounce"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        <h2 className="text-3xl font-bold text-gray-900">
+          {language === 'vi' ? 'Đặt lịch thành công!' : 'Booking Successful!'}
+        </h2>
+        <p className="text-gray-600 max-w-md">
+          {language === 'vi'
+            ? 'Cảm ơn bạn đã đặt lịch bảo dưỡng. Chúng tôi sẽ sớm liên hệ xác nhận.'
+            : 'Thank you for booking! We will contact you soon.'}
+        </p>
+      </div>
+    );
   }
-};
 
 
   return (
@@ -283,8 +309,8 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
                 ? 'Đang xử lý...'
                 : 'Processing...'
               : language === 'vi'
-                ? 'Xác nhận đặt lịch'
-                : 'Confirm Booking'}
+                ? 'Hoàn tất đặt lịch'
+                : 'Complete Booking'}
           </span>
           <ArrowRight className="w-5 h-5" />
         </button>

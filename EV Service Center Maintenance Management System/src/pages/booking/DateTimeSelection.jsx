@@ -11,20 +11,36 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]);
 
-  const timeSlots = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
+  const timeSlots = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   // Fetch service centers từ API
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         const response = await API.get('/service-centers/getAll');
-        const data = (response.data || []).map((loc) => ({
-          key: loc.id != null ? loc.id : uuidv4(), // đảm bảo key duy nhất
-          id: loc.id,
-          name: language === 'vi' ? loc.name_vi || loc.name : loc.name_en || loc.name,
-          address: language === 'vi' ? loc.address_vi || loc.address : loc.address_en || loc.address,
-          phone: loc.phone,
-        }));
+        // const data = (response.data || []).map((loc) => ({
+        //   key: loc.id || loc.locationID || loc.serviceCenterID || uuidv4(),
+        //   id: loc.id || loc.locationID || loc.serviceCenterID,
+        //   name: language === 'vi' ? loc.name_vi || loc.name : loc.name_en || loc.name,
+        //   address: language === 'vi' ? loc.address_vi || loc.address : loc.address_en || loc.address,
+        //   phone: loc.phone,
+        // })); // giống logic ở dưới nhưng chưa đầy đủ
+        const data = (response.data || []).map((loc) => {
+          const locId = loc.id || loc.locationID || loc.serviceCenterID; // 🟢 lấy đúng ID dù tên khác nhau
+          return {
+            key: locId || uuidv4(), // fallback tạo key nếu không có
+            id: locId,
+            name:
+              language === 'vi'
+                ? loc.name_vi || loc.name
+                : loc.name_en || loc.name,
+            address:
+              language === 'vi'
+                ? loc.address_vi || loc.address
+                : loc.address_en || loc.address,
+            phone: loc.phone,
+          };
+        });
         setLocations(data);
       } catch (error) {
         console.error('Lỗi khi fetch locations:', error);
@@ -47,8 +63,8 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
       onDateTimeSelect(selectedDate, selectedTime, selectedLocation);
       onNext();
     } else {
-      alert(language === 'vi' 
-        ? 'Vui lòng chọn đầy đủ ngày, giờ và địa điểm!' 
+      alert(language === 'vi'
+        ? 'Vui lòng chọn đầy đủ ngày, giờ và địa điểm!'
         : 'Please select date, time, and location!');
     }
   };
@@ -61,7 +77,7 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
           {language === 'vi' ? 'Chọn thời gian & địa điểm' : 'Select Time & Location'}
         </h2>
         <p className="text-gray-600">
-          {language === 'vi' 
+          {language === 'vi'
             ? 'Chọn thời gian và địa điểm thuận tiện cho bạn'
             : 'Choose a convenient time and location for you'}
         </p>
@@ -97,13 +113,12 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
                     key={time}
                     onClick={() => !past && setSelectedTime(time)}
                     disabled={past}
-                    className={`py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
-                      selectedTime === time
-                        ? 'bg-emerald-500 text-white'
-                        : past
+                    className={`py-3 px-4 rounded-xl font-medium transition-all duration-200 ${selectedTime === time
+                      ? 'bg-emerald-500 text-white'
+                      : past
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     {time}
                   </button>
@@ -126,11 +141,10 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
                 <div
                   key={location.key}
                   onClick={() => setSelectedLocation(location)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                    selectedKey === location.key
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-gray-200 hover:border-emerald-200 bg-white'
-                  }`}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${selectedKey === location.key
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 hover:border-emerald-200 bg-white'
+                    }`}
                 >
                   <h4 className="font-bold text-gray-900 mb-1">{location.name}</h4>
                   <p className="text-gray-600 text-sm mb-2">{location.address}</p>

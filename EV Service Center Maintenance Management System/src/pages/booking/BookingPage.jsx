@@ -57,7 +57,7 @@ const BookingPage = ({ onBack }) => {
         console.log('vehList', vehicleList);
 
         const formattedVehicles = vehicleList.map((v) => ({
-          id: v.vehicleId,
+          id: v.vehicleId || v.vehicleID || v.id,
           brand: v.brand || (v.model?.modelName?.split(' ')[0] || 'Unknown'),
           model: v.model?.modelName || 'Unknown',
           year: v.year,
