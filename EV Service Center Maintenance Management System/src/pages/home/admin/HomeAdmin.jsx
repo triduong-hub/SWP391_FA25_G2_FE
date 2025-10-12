@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { AdminAPI } from "../../../api/apiAdmin";
 import {
   Users,
   DollarSign,
@@ -39,9 +39,9 @@ const HomeAdmin = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:8080/api/admin/dashboard");
-
+        const res = await AdminAPI.getDashboard();
         const data = res.data;
+
         setStats({
           users: data.users ?? 0,
           revenue: data.revenue ?? 0,
@@ -51,8 +51,7 @@ const HomeAdmin = () => {
         setNotifications(data.notifications || []);
       } catch (error) {
         console.error("Lỗi khi load dữ liệu:", error);
-
-        // Dữ liệu DEMO fallback
+        // fallback
         setStats({
           users: 1200,
           revenue: 45800,
@@ -70,6 +69,7 @@ const HomeAdmin = () => {
     };
     fetchData();
   }, []);
+
 
   // Ẩn thông báo khi click ra ngoài
   useEffect(() => {

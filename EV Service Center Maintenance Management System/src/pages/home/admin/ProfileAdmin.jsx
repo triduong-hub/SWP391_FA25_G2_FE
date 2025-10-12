@@ -1,25 +1,44 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< Updated upstream
 import axios from "axios";
+=======
+import { AdminAPI } from "../../../api/adminApi";
+>>>>>>> Stashed changes
 import { User, Mail, Phone, Shield, Edit3 } from "lucide-react";
 
 const AdminProfile = () => {
   const [admin, setAdmin] = useState({
+<<<<<<< Updated upstream
     name: "Nguyễn Quản Trị",
     email: "admin@evcenter.vn",
     phone: "0901 234 567",
+=======
+    name: "",
+    email: "",
+    phone: "",
+    phone: "",
+>>>>>>> Stashed changes
     role: "Quản trị viên",
     avatar: "/default-avatar.png",
   });
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
 
+<<<<<<< Updated upstream
   // Giả lập API call
+=======
+>>>>>>> Stashed changes
   useEffect(() => {
     const fetchAdmin = async () => {
       try {
         setLoading(true);
+<<<<<<< Updated upstream
         const res = await axios.get("http://localhost:8080/api/admin/profile");
         setAdmin(res.data || admin);
+=======
+        const res = await AdminAPI.getById(1);
+        setAdmin(res.data.data || admin);
+>>>>>>> Stashed changes
       } catch (err) {
         console.warn("⚠️ Không thể tải thông tin admin, dùng dữ liệu mẫu.");
       } finally {
@@ -33,10 +52,24 @@ const AdminProfile = () => {
     setAdmin({ ...admin, [e.target.name]: e.target.value });
   };
 
+<<<<<<< Updated upstream
   const handleSave = () => {
     // Gửi API cập nhật
     console.log("Lưu thông tin:", admin);
     setEditing(false);
+=======
+  const handleSave = async () => {
+    try {
+      const res = await AdminAPI.update(1, admin);
+      alert("✅ Thông tin đã được cập nhật!");
+      setAdmin(res.data.data || admin);
+    } catch (err) {
+      console.error("Lỗi khi cập nhật:", err);
+      alert("❌ Cập nhật thất bại!");
+    } finally {
+      setEditing(false);
+    }
+>>>>>>> Stashed changes
   };
 
   return (
