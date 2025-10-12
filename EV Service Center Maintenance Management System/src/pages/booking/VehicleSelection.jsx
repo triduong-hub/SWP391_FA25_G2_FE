@@ -4,6 +4,7 @@ import { useLanguage } from "../../contexts/LanguageContext";
 
 const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
   const { language } = useLanguage();
+  console.log('vehicles', vehicles);
 
   return (
     <div className="space-y-6">
@@ -47,10 +48,10 @@ const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
                 })()}
               </h3>
 
-              <p className="text-gray-600">
+              {/* <p className="text-gray-600">
                 {language === "vi" ? "Năm sản xuất" : "Year"}:{" "}
                 {vehicle.year || "—"}
-              </p>
+              </p> */}
               <p className="text-gray-600">
                 {language === "vi" ? "Biển số" : "License Plate"}:{" "}
                 {vehicle.licensePlate || "—"}

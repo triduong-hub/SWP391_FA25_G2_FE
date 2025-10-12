@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import API from "../../../api";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -6,30 +6,36 @@ import { useLanguage } from "../../contexts/LanguageContext";
 const AddVehicleForm = ({ onBack, onNext }) => {
   const { language } = useLanguage();
 
-  // Danh sách mẫu xe VinFast + năm sản xuất
-  const vinfastModels = {
-    "VF 3": [2024, 2025],
-    "VF 5 Plus": [2023, 2024, 2025],
-    "VF 6": [2024, 2025],
-    "VF 7": [2024, 2025],
-    "VF 8": [2022, 2023, 2024, 2025],
-    "VF 9": [2023, 2024, 2025],
-    "Lux A2.0": [2019, 2020, 2021, 2022],
-    "Lux SA2.0": [2019, 2020, 2021, 2022],
-    "Fadil": [2019, 2020, 2021, 2022],
-    "President": [2020, 2021],
-  };
-
   // State
-  const [model, setModel] = useState("");
-  const [year, setYear] = useState("");
+  const [models, setModels] = useState([]); // danh sách mẫu xe lấy từ API
+  const [selectedModel, setSelectedModel] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [vin, setVin] = useState("");
 
+  // Gọi API để lấy danh sách mẫu xe khi component mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await API.get("/model"); // ví dụ endpoint
+        setModels(res.data || []);
+      } catch (err) {
+        console.error("❌ Lỗi khi tải danh sách mẫu xe:", err);
+        alert(
+          language === "vi"
+            ? "Không tải được danh sách mẫu xe!"
+            : "Failed to load vehicle models!"
+        );
+      }
+    };
+
+    fetchModels();
+  }, [language]);
+
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!model || !year || !licensePlate || !vin) {
+    if (!selectedModel || !licensePlate || !vin) {
       alert(
         language === "vi"
           ? "Vui lòng điền đầy đủ thông tin!"
@@ -57,13 +63,13 @@ const AddVehicleForm = ({ onBack, onNext }) => {
         licensePlate,
         vin,
         type: "electric",
-        model,
-        year: parseInt(year),
+        modelID: selectedModel,
         mileage: 0,
         lastMaintenanceDate: new Date().toISOString().split("T")[0],
         lastMaintenanceMileage: 0,
         status: true,
       };
+      console.log('newVehicle', newVehicle);
 
       // Gọi API tạo xe
       const response = await API.post("/vehicle/create", newVehicle);
@@ -108,48 +114,21 @@ const AddVehicleForm = ({ onBack, onNext }) => {
               {language === "vi" ? "Mẫu xe VinFast" : "VinFast Model"}
             </label>
             <select
-              value={model}
-              onChange={(e) => {
-                setModel(e.target.value);
-                setYear("");
-              }}
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
               required
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">
                 {language === "vi" ? "Chọn mẫu xe" : "Select model"}
               </option>
-              {Object.keys(vinfastModels).map((m) => (
-                <option key={m} value={m}>
-                  {m}
+              {models.map((m) => (
+                <option key={m.modelID} value={m.modelID}>
+                  {m.modelName}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Năm sản xuất */}
-          {model && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === "vi" ? "Năm sản xuất" : "Year"}
-              </label>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="">
-                  {language === "vi" ? "Chọn năm sản xuất" : "Select year"}
-                </option>
-                {vinfastModels[model].map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           {/* Mã VIN */}
           <div>

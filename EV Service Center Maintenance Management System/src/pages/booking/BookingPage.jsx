@@ -14,24 +14,30 @@ import API from '../../../api.js';
 const BookingPage = ({ onBack }) => {
   const { language } = useLanguage();
 
-  //  Lấy thông tin khách hàng từ localStorage
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  // 🧍‍♂️ Lấy thông tin khách hàng từ localStorage
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const customerId = storedUser.userID || null;
-  const customerName = storedUser.name || "";
-  const customerPhone = storedUser.phone || "";
-  const customerEmail = storedUser.email || "";
+  const customerName = storedUser.name || '';
+  const customerPhone = storedUser.phone || '';
+  const customerEmail = storedUser.email || '';
 
   if (!customerId) {
-    console.warn(" Không tìm thấy customerId trong localStorage. Dữ liệu user:", storedUser);
+    console.warn('⚠️ Không tìm thấy customerId trong localStorage:', storedUser);
   }
 
+  // 🌟 State chính
   const [currentStep, setCurrentStep] = useState(1);
+  const [vehicles, setVehicles] = useState([]);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
+
+  // 📦 Dữ liệu booking tạm thời
   const [bookingData, setBookingData] = useState({
     vehicle: null,
     services: [],
     datetime: '',
     location: '',
     customerInfo: {
+      id: customerId,
       name: customerName,
       phone: customerPhone,
       email: customerEmail,
@@ -39,41 +45,30 @@ const BookingPage = ({ onBack }) => {
     paymentMethod: 'cash',
   });
 
-  const [vehicles, setVehicles] = useState([]);
-  const [loadingVehicles, setLoadingVehicles] = useState(true);
-
-  //  Lấy danh sách xe của khách hàng
+  // 🚗 Lấy danh sách xe của khách hàng
   useEffect(() => {
     if (!customerId) return;
 
     const fetchVehicles = async () => {
       try {
-        console.log("🧍‍♂️ CustomerId from localStorage:", customerId);
-        const response = await API.get(`/vehicle/getbyCustomerId/${customerId}`);
-        console.log(" API response:", response.data);
+        console.log('🧍‍♂️ Lấy xe theo CustomerId:', customerId);
+        const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
+        const vehicleList = response.data?.data || [];
+        console.log('vehList', vehicleList);
 
-        const vehicleList = response.data.data || [];
-
-        // Map dữ liệu về đúng format
-        const formattedVehicles = vehicleList.map(v => ({
-          id: v.vehicle_id,
-          brand: v.brand || (v.model ? v.model.split(' ')[0] : 'Unknown'),
-          model: v.model,
+        const formattedVehicles = vehicleList.map((v) => ({
+          id: v.vehicleId,
+          brand: v.brand || (v.model?.modelName?.split(' ')[0] || 'Unknown'),
+          model: v.model?.modelName || 'Unknown',
           year: v.year,
-          licensePlate: v.license_plate,
+          licensePlate: v.licensePlate,
           image: v.image || 'https://via.placeholder.com/300x200?text=Car',
         }));
+        console.log('formattedVehicles', formattedVehicles);
 
         setVehicles(formattedVehicles);
-
-        // Nếu chỉ có 1 xe → tự động chọn
-        if (formattedVehicles.length === 1) {
-          setBookingData(prev => ({ ...prev, vehicle: formattedVehicles[0] }));
-          setCurrentStep(3);
-        }
-
       } catch (error) {
-        console.error(' Lỗi khi lấy xe:', error);
+        console.error('❌ Lỗi khi lấy xe:', error);
       } finally {
         setLoadingVehicles(false);
       }
@@ -82,28 +77,37 @@ const BookingPage = ({ onBack }) => {
     fetchVehicles();
   }, [customerId]);
 
+  // 🚘 Chọn xe
   const handleVehicleSelect = (vehicle) => {
-    setBookingData({ ...bookingData, vehicle });
+    setBookingData((prev) => ({ ...prev, vehicle }));
     setCurrentStep(3);
   };
 
+  // 🧩 Chọn hoặc bỏ chọn dịch vụ
   const handleServiceToggle = (service) => {
-    const isSelected = bookingData.services.find(s => s.id === service.id);
-    const newServices = isSelected
-      ? bookingData.services.filter(s => s.id !== service.id)
-      : [...bookingData.services, service];
-    setBookingData({ ...bookingData, services: newServices });
-  };
+    setBookingData((prev) => {
+      const serviceId = service.serviceID || service.id;
+      const exists = prev.services.some((s) => (s.serviceID || s.id) === serviceId);
 
-  const handleDateTimeSelect = (date, time, location) => {
-    setBookingData({
-      ...bookingData,
-      datetime: `${date} ${time}`,
-      location,
+      const updatedServices = exists
+        ? prev.services.filter((s) => (s.serviceID || s.id) !== serviceId)
+        : [...prev.services, service];
+
+      return { ...prev, services: updatedServices };
     });
   };
 
-  console.log(" Vehicles to render:", vehicles);
+  // 📅 Chọn ngày giờ và địa điểm
+  const handleDateTimeSelect = (date, time, location) => {
+    setBookingData((prev) => ({
+      ...prev,
+      datetime: `${date} ${time}`,
+      location,
+    }));
+  };
+
+  console.log('🚗 Vehicles to render:', vehicles);
+  console.log('🧾 Booking Data:', bookingData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100">
@@ -171,8 +175,9 @@ const BookingPage = ({ onBack }) => {
               {currentStep === 3 && (
                 <ServiceSelection
                   bookingData={bookingData}
+                  setBookingData={setBookingData}
                   onServiceToggle={handleServiceToggle}
-                  onBack={() => setCurrentStep(vehicles.length === 1 ? 3 : 1)}
+                  onBack={() => setCurrentStep(1)}
                   onNext={() => setCurrentStep(4)}
                 />
               )}
