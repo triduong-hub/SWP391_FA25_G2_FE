@@ -13,13 +13,13 @@ import AdminLayout from "../home/admin/AdminLayout.jsx";
 
 // Trang con của Admin
 import HomeAdmin from "../home/admin/HomeAdmin.jsx";
-import UserManagement from "../home/admin/UserManagement.jsx";
-import HomeStaff from "../home/admin/HomeStaff.jsx";
-import ScheduleManagement from "../home/admin/ScheduleManagement.jsx";
-import CarManagement from "../home/admin/CarManagement.jsx";
-import SystemManagement from "../home/admin/SystemManagement.jsx";
-import RevenueManagement from "../home/admin/RevenueManagement.jsx";
-import TechnicianManagement from "../home/admin/TechnicianManagement.jsx";
+import UserManagement from "../home/UserManagement.jsx";
+import HomeStaff from "../home/HomeStaff.jsx";
+import ScheduleManagement from "../home/ScheduleManagement.jsx";
+import CarManagement from "../home/CarManagement.jsx";
+import SystemManagement from "../home/SystemManagement.jsx";
+import RevenueManagement from "../home/RevenueManagement.jsx";
+import TechnicianManagement from "../home/TechnicianManagement.jsx";
 
 // Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
