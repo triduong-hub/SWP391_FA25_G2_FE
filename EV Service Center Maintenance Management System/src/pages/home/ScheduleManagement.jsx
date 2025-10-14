@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../../../api";
 
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
@@ -13,39 +14,38 @@ const ScheduleManagement = () => {
   const fetchSchedules = async () => {
     setLoading(true);
     try {
-      // Demo data
-      const demoData = [
-        {
-          id: 1,
-          vehicle: "51H-12345",
-          customer: "Nguyễn Văn A",
-          type: "Bảo dưỡng định kỳ",
-          date: "2025-09-28",
-          status: "Đã đặt",
-        },
-        {
-          id: 2,
-          vehicle: "29A-67890",
-          customer: "Trần Thị B",
-          type: "Sửa chữa",
-          date: "2025-09-29",
-          status: "Đang xử lý",
-        },
-        {
-          id: 3,
-          vehicle: "EV-00123",
-          customer: "Lê Văn C",
-          type: "Kiểm tra tổng quát",
-          date: "2025-10-01",
-          status: "Hoàn thành",
-        },
-      ];
+      const response = await api.get("/bookings/all");
+      console.log("📦 Dữ liệu API trả về:", response.data);
 
-      let filtered = demoData.filter((item) => {
+      let data = [];
+
+      // 🧩 Kiểm tra cấu trúc dữ liệu trả về
+      if (Array.isArray(response.data.data)) {
+        data = response.data.data;
+      } else if (Array.isArray(response.data.bookings)) {
+        data = response.data.bookings;
+      } else if (Array.isArray(response.data.result)) {
+        data = response.data.result;
+      } else {
+        console.warn("⚠️ API không trả về mảng hợp lệ:", response.data);
+      }
+
+      // 🧭 Chuẩn hóa dữ liệu
+      data = data.map((item) => ({
+        id: item.id,
+        vehicle: item.vehiclePlate || item.vehicle || "",
+        customer: item.customerName || item.customer || "",
+        type: item.serviceType || item.type || "",
+        date: item.bookingDate || item.date || "",
+        status: item.status || "",
+      }));
+
+      // 🎯 Lọc dữ liệu theo filter
+      const filtered = data.filter((item) => {
         return (
           (filter.keyword === "" ||
-            item.vehicle.includes(filter.keyword) ||
-            item.customer.includes(filter.keyword)) &&
+            item.vehicle?.toLowerCase().includes(filter.keyword.toLowerCase()) ||
+            item.customer?.toLowerCase().includes(filter.keyword.toLowerCase())) &&
           (filter.status === "" || item.status === filter.status) &&
           (filter.date === "" || item.date === filter.date)
         );
@@ -53,13 +53,23 @@ const ScheduleManagement = () => {
 
       setSchedules(filtered);
     } catch (error) {
-      console.error("Lỗi khi tải lịch bảo dưỡng:", error);
+      console.error("❌ Lỗi khi tải lịch bảo dưỡng:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+
+
   useEffect(() => {
-    fetchSchedules();
+    let isMounted = true;
+    const load = async () => {
+      await fetchSchedules();
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
   }, [filter]);
 
   const handleAdd = () => {
@@ -79,7 +89,7 @@ const ScheduleManagement = () => {
   return (
     <div className="p-6 bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100 min-h-screen rounded-2xl space-y-6 shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800">
-         Quản lý Lịch bảo dưỡng
+        Quản lý Lịch bảo dưỡng
       </h2>
 
       {/* Bộ lọc */}
@@ -152,9 +162,9 @@ const ScheduleManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {schedules.map((s) => (
+              {schedules.map((s, index) => (
                 <tr
-                  key={s.id}
+                  key={s.id ?? `row-${index}`}
                   className="border-b hover:bg-emerald-50/50 transition"
                 >
                   <td className="p-3">{s.id}</td>
@@ -163,15 +173,14 @@ const ScheduleManagement = () => {
                   <td className="p-3">{s.type}</td>
                   <td className="p-3">{s.date}</td>
                   <td
-                    className={`p-3 font-medium ${
-                      s.status === "Hoàn thành"
-                        ? "text-green-600"
-                        : s.status === "Đang xử lý"
+                    className={`p-3 font-medium ${s.status === "Hoàn thành"
+                      ? "text-green-600"
+                      : s.status === "Đang xử lý"
                         ? "text-yellow-600"
                         : s.status === "Hủy"
-                        ? "text-red-500"
-                        : "text-blue-600"
-                    }`}
+                          ? "text-red-500"
+                          : "text-blue-600"
+                      }`}
                   >
                     {s.status}
                   </td>
