@@ -19,7 +19,7 @@ const AddVehicleForm = ({ onBack, onNext }) => {
         const res = await API.get("/model"); // ví dụ endpoint
         setModels(res.data || []);
       } catch (err) {
-        console.error("❌ Lỗi khi tải danh sách mẫu xe:", err);
+        console.error(" Lỗi khi tải danh sách mẫu xe:", err);
         alert(
           language === "vi"
             ? "Không tải được danh sách mẫu xe!"
@@ -73,7 +73,7 @@ const AddVehicleForm = ({ onBack, onNext }) => {
 
       // Gọi API tạo xe
       const response = await API.post("/vehicle/create", newVehicle);
-      console.log("✅ Tạo xe thành công:", response.data);
+      console.log(" Tạo xe thành công:", response.data);
 
       alert(
         language === "vi"

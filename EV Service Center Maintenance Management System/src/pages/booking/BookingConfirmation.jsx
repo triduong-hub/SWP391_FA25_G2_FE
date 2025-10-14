@@ -82,13 +82,13 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
 
       const res = await API.post('/bookings', payload);
       if (res.status === 200 || res.status === 201) {
-        setSuccess(true); // ✅ hiển thị trang thành công
+        setSuccess(true); //  hiển thị trang thành công
         localStorage.setItem('bookingData', JSON.stringify(bookingData));
 
         // Sau 2.5s tự động gọi onNext (nếu có)
       }
     } catch (err) {
-      console.error('❌ Lỗi khi gửi booking:', err);
+      console.error(' Lỗi khi gửi booking:', err);
       setError(err.response?.data?.message || err.message || 'Không thể gửi booking');
     } finally {
       setLoading(false);

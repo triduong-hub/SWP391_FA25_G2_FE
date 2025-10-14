@@ -8,6 +8,12 @@ import { LanguageProvider } from "../../contexts/LanguageContext.jsx";
 import LoginPage from "../login/LoginPage.jsx";
 import ForgotPasswordPage from "../password/ForgotPasswordPage.jsx";
 
+// Trang Technician
+import TechnicianDashboard from "../home/Technician/TechnicianDashboard.jsx";
+
+// Trang Staff
+import StaffDashboard from "../home/staff/StaffDashboard.jsx";
+
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
 
@@ -40,6 +46,12 @@ function AppRoute() {
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
+        
+         {/* Technician */}
+        <Route path="/techniciandash" element={<TechnicianDashboard />} />
+
+         {/* Staff */}
+        <Route path="/staffdash" element={<StaffDashboard />} />
 
         {/* Trang quên mật khẩu */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

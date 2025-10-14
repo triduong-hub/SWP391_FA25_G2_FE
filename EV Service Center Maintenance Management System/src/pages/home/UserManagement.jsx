@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
-import API from "../../../api.js"; // ✅ dùng API.js
+import API from "../../../api"; // ✅ dùng API.js
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -13,7 +13,7 @@ const UserManagement = () => {
     const fetchUsers = async () => {
       try {
         // 🔹 Gọi API bằng API.js
-        const res = await API.get("/auth/getUserInfo");
+        const res = await API.get("/customer/getAll");
         setUsers(Array.isArray(res.data) ? res.data : [res.data]);
       } catch (err) {
         console.error("❌ Lỗi khi load users:", err);

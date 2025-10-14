@@ -32,43 +32,43 @@ const LoginForm = ({ onSwitch }) => {
       });
 
       const data = response.data;
-      console.log("🚀 Login response:", data);
+      console.log(" Login response:", data);
 
       if (!data.token) {
         alert("Đăng nhập thất bại!");
         return;
       }
 
-      // ✅ Lưu token & user
+      //  Lưu token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-      // ✅ Phân loại theo role
+      //  Phân loại theo role
       if (data.role?.toLowerCase() === "admin") {
-        console.log("🔐 Admin đăng nhập");
+        console.log(" Admin đăng nhập");
         navigate("/admin/home");
       } else if (data.role?.toLowerCase() === "customer") {
-        console.log("👤 Customer đăng nhập");
+        console.log(" Customer đăng nhập");
 
         // Lấy customerId chính xác từ backend
         const customerId =
-          data.customerId || data.id || data.userID || data.user?.id;
+         data.refid  || data.id ||data.customerId  || data.user?.id;
 
         if (customerId) {
           localStorage.setItem("customerId", customerId);
-          console.log("✅ Saved customerId:", customerId);
+          console.log(" Saved customerId:", customerId);
         } else {
-          console.warn("⚠️ Không tìm thấy customerId:", data);
+          console.warn(" Không tìm thấy customerId:", data);
         }
 
         navigate("/");
         window.location.reload();
       } else {
-        console.warn("⚠️ Vai trò không xác định:", data.role);
+        console.warn(" Vai trò không xác định:", data.role);
         alert("Không xác định được loại tài khoản!");
       }
     } catch (err) {
-      console.error("❌ Lỗi đăng nhập:", err);
+      console.error(" Lỗi đăng nhập:", err);
       alert(err.response?.data?.message || "Đã xảy ra lỗi!");
     }
   };
