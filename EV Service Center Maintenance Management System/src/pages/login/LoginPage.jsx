@@ -18,6 +18,7 @@ import GoogleIcon from "./GoogleIcon.jsx";
 const LoginForm = ({ onSwitch }) => {
   const [formData, setFormData] = useState({ phone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
 
   const handleInputChange = (e) =>
@@ -25,6 +26,7 @@ const LoginForm = ({ onSwitch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
     try {
       const response = await axios.post("http://localhost:8080/api/auth/login", {
         phone: formData.phone,
@@ -35,9 +37,10 @@ const LoginForm = ({ onSwitch }) => {
       console.log(" Login response:", data);
 
       if (!data.token) {
-        alert("Đăng nhập thất bại!");
+        setMessage({ text: " Sai số điện thoại hoặc mật khẩu!", type: "error" });
         return;
       }
+
 
       //  Lưu token & user
       localStorage.setItem("token", data.token);
@@ -52,7 +55,7 @@ const LoginForm = ({ onSwitch }) => {
 
         // Lấy customerId chính xác từ backend
         const customerId =
-         data.refid  || data.id ||data.customerId  || data.user?.id;
+          data.refid || data.id || data.customerId || data.user?.id;
 
         if (customerId) {
           localStorage.setItem("customerId", customerId);
@@ -68,9 +71,13 @@ const LoginForm = ({ onSwitch }) => {
         alert("Không xác định được loại tài khoản!");
       }
     } catch (err) {
-      console.error(" Lỗi đăng nhập:", err);
-      alert(err.response?.data?.message || "Đã xảy ra lỗi!");
+      console.error("Lỗi đăng nhập:", err);
+      setMessage({
+        text: err.response?.data?.message || "❌ Sai số điện thoại hoặc mật khẩu!",
+        type: "error",
+      });
     }
+
   };
 
 
@@ -123,7 +130,14 @@ const LoginForm = ({ onSwitch }) => {
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
-
+        {message.text && (
+          <div
+            className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
+              }`}
+          >
+            {message.text}
+          </div>
+        )}
         <button
           type="submit"
           className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"
@@ -153,12 +167,15 @@ const RegisterForm = ({ onSwitch }) => {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const navigate = useNavigate();
 
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu xác nhận không khớp!");
       return;
@@ -174,19 +191,70 @@ const RegisterForm = ({ onSwitch }) => {
       const response = await axios.post("http://localhost:8080/api/customer/register", body);
 
       if (response.status === 201 || response.status === 200) {
-        alert("Đăng ký thành công! Vui lòng đăng nhập.");
-        onSwitch();
+        const data = response.data;
+        setMessage({ text: "🎉 Đăng ký thành công! Đang đăng nhập...", type: "success" });
+
+        // Nếu backend trả token
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data));
+
+          const customerId =
+            data.refid || data.id || data.customerId || data.user?.id;
+          if (customerId) localStorage.setItem("customerId", customerId);
+
+          setTimeout(() => {
+            navigate("/");
+            window.location.reload();
+          }, 1500);
+          return;
+        }
+
+        // Nếu chưa có token → tự login lại
+        const loginResponse = await axios.post("http://localhost:8080/api/auth/login", {
+          phone: formData.phone,
+          password: formData.password,
+        });
+
+        const loginData = loginResponse.data;
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData));
+
+        const customerId =
+          loginData.refid || loginData.id || loginData.customerId || loginData.user?.id;
+        if (customerId) localStorage.setItem("customerId", customerId);
+
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1500);
       } else {
-        alert("Đăng ký thất bại. Vui lòng thử lại!");
+        setMessage({ text: "❌ Đăng ký thất bại. Vui lòng thử lại!", type: "error" });
       }
+
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Đã xảy ra lỗi!");
+      console.error("Lỗi đăng ký:", err);
+
+      // Kiểm tra nếu backend trả lỗi trùng số điện thoại
+      const errorMessage = err.response?.data?.message || "";
+      if (
+        errorMessage.toLowerCase().includes("phone") ||
+        errorMessage.toLowerCase().includes("exists") ||
+        errorMessage.toLowerCase().includes("duplicate")
+      ) {
+        setMessage({ text: "⚠️ Số điện thoại đã được sử dụng!", type: "error" });
+      } else {
+        setMessage({
+          text: "❌ Đăng ký thất bại! Vui lòng thử lại.",
+          type: "error",
+        });
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
       <div className="relative">
         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
@@ -258,7 +326,15 @@ const RegisterForm = ({ onSwitch }) => {
           required
         />
       </div>
-
+      {message.text && (
+        <div
+          className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
+            }`}
+        >
+          {message.text}
+        </div>
+      )}
+      
       <button
         type="submit"
         className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"

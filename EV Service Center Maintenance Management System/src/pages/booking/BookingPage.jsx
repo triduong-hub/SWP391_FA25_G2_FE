@@ -124,7 +124,7 @@ const BookingPage = ({ onBack }) => {
         {/* Header */}
         <div className="text-center mb-8">
           <button
-            onClick={onBack}
+            onClick={() => window.location.href = '/'}
             className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 mb-4"
           >
             <ArrowLeft className="w-5 h-5" />

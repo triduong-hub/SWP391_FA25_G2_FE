@@ -10,6 +10,8 @@ const AddVehicleForm = ({ onBack, onNext }) => {
   const [models, setModels] = useState([]); // danh sách mẫu xe lấy từ API
   const [selectedModel, setSelectedModel] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [vin, setVin] = useState("");
 
   // Gọi API để lấy danh sách mẫu xe khi component mount
@@ -75,20 +77,14 @@ const AddVehicleForm = ({ onBack, onNext }) => {
       const response = await API.post("/vehicle/create", newVehicle);
       console.log(" Tạo xe thành công:", response.data);
 
-      alert(
-        language === "vi"
-          ? "Thêm xe thành công!"
-          : "Vehicle added successfully!"
-      );
+      setMessage("Thêm xe thành công!");
+      setMessageType("success");
 
       onNext(newVehicle);
     } catch (error) {
       console.error("❌ Lỗi khi thêm xe:", error);
-      alert(
-        language === "vi"
-          ? "Thêm xe thất bại!"
-          : "Failed to add vehicle!"
-      );
+      setMessage("Thêm xe thất bại!");
+      setMessageType("error");
     }
   };
 
@@ -107,6 +103,16 @@ const AddVehicleForm = ({ onBack, onNext }) => {
 
       <div className="bg-white rounded-2xl p-8 shadow-lg">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {message && (
+            <div
+              className={`p-3 mb-4 rounded-xl text-center font-medium ${messageType === "success"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+                }`}
+            >
+              {message}
+            </div>
+          )}
 
           {/* Mẫu xe */}
           <div>
