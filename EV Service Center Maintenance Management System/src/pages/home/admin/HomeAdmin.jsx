@@ -205,18 +205,18 @@ const HomeAdmin = () => {
                   onClick={() => navigate("/admin/revenue")}
                 />
                 <StatCard
-                  title="Xe đang bảo dưỡng"
+                  title="Lịch bảo dưỡng"
                   value={stats.vehicles}
                   color="from-yellow-400 to-yellow-600"
                   icon={<Car className="w-8 h-8 text-white" />}
                   onClick={() => navigate("/admin/schedule")}
                 />
                 <StatCard
-                  title="Công việc chờ phân công"
+                  title="Xe điện"
                   value={stats.pendingAssignments}
                   color="from-indigo-400 to-indigo-600"
                   icon={<ClipboardCheck className="w-8 h-8 text-white" />}
-                  onClick={() => navigate("/admin/technician")}
+                  onClick={() => navigate("/admin/cars")}
                 />
               </div>
 

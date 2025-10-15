@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from "react";
+import api from "../../../api";
+
 
 const CarManagement = () => {
   const [cars, setCars] = useState([]);
 
   useEffect(() => {
-    // TODO: Gọi API lấy danh sách xe
-    setCars([
-      {
-        id: 1,
-        owner: "Nguyễn Văn A",
-        licensePlate: "30A-123.45",
-        model: "VinFast VF e34",
-        status: "Đang bảo dưỡng",
-      },
-      {
-        id: 2,
-        owner: "Trần Thị B",
-        licensePlate: "29B-678.90",
-        model: "Tesla Model 3",
-        status: "Hoạt động",
-      },
-    ]);
+    const fetchCars = async () => {
+      try {
+        const response = await api.get("/vehicle/getAll");
+        setCars(response.data);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách xe:", error);
+      }
+    };
+
+    fetchCars();
   }, []);
 
   const handleAdd = () => {
@@ -42,12 +37,12 @@ const CarManagement = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-bold text-gray-800">🚗 Danh sách xe điện</h3>
-        <button
+        {/* <button
           onClick={handleAdd}
           className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:opacity-90 text-white px-4 py-2 rounded-xl shadow"
         >
           Thêm xe
-        </button>
+        </button> */}
       </div>
 
       {/* Table */}
@@ -64,21 +59,17 @@ const CarManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {cars.map((car) => (
-              <tr
-                key={car.id}
-                className="border-b hover:bg-emerald-50/50 transition text-gray-900"
-              >
-                <td className="p-3">{car.id}</td>
-                <td className="p-3">{car.owner}</td>
-                <td className="p-3">{car.licensePlate}</td>
-                <td className="p-3">{car.model}</td>
+            {cars.map((car, index) => (
+              <tr key={car.id || car.vehicleId || index} className="border-b hover:bg-emerald-50/50 transition text-gray-900">
+                <td className="p-3">{car.id || car.vehicleId}</td>
+                <td className="p-3">{car.owner || car.ownerName}</td>
+                <td className="p-3">{car.licensePlate || car.plateNumber}</td>
+                <td className="p-3">{car.model?.modelName || "Không rõ"}</td>
                 <td
-                  className={`p-3 font-medium ${
-                    car.status === "Hoạt động"
+                  className={`p-3 font-medium ${car.status === "Hoạt động"
                       ? "text-green-600"
                       : "text-red-500"
-                  }`}
+                    }`}
                 >
                   {car.status}
                 </td>
