@@ -50,12 +50,14 @@ const LoginForm = ({ onSwitch }) => {
       if (data.role?.toLowerCase() === "admin") {
         console.log(" Admin đăng nhập");
         navigate("/admin/home");
+      } else if (data.role?.toLowerCase() === "staff") {
+        console.log('staff đăng nhập');
+        navigate("/staffdash")
       } else if (data.role?.toLowerCase() === "customer") {
         console.log(" Customer đăng nhập");
 
         // Lấy customerId chính xác từ backend
-        const customerId =
-          data.refid || data.id || data.customerId || data.user?.id;
+        const customerId = data.refid || data.id || data.customerId || data.user?.id;
 
         if (customerId) {
           localStorage.setItem("customerId", customerId);
@@ -65,7 +67,6 @@ const LoginForm = ({ onSwitch }) => {
         }
 
         navigate("/");
-        window.location.reload();
       } else {
         console.warn(" Vai trò không xác định:", data.role);
         alert("Không xác định được loại tài khoản!");
@@ -334,7 +335,7 @@ const RegisterForm = ({ onSwitch }) => {
           {message.text}
         </div>
       )}
-      
+
       <button
         type="submit"
         className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"

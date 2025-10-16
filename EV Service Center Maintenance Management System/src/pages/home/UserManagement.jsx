@@ -14,6 +14,7 @@ const UserManagement = () => {
       try {
         // 🔹 Gọi API bằng API.js
         const res = await API.get("/customer/getAll");
+        console.log("📦 Dữ liệu users:", res.data);
         setUsers(Array.isArray(res.data) ? res.data : [res.data]);
       } catch (err) {
         console.error("❌ Lỗi khi load users:", err);
@@ -30,11 +31,10 @@ const UserManagement = () => {
 
     try {
       if (editingUser) {
-        await API.put(`/users/${editingUser.id}`, formData);
+        await API.put(`/customer/update/${editingUser.customerID}`, formData);
       } else {
-        await API.post("/users", formData);
+        await API.post("/customer/create", formData);
       }
-
       const res = await API.get("/users");
       setUsers(res.data);
 
@@ -49,7 +49,7 @@ const UserManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa user này không?")) {
       try {
-        await API.delete(`/users/${id}`);
+        await API.delete(`/customer/${id}`);
         setUsers(users.filter((u) => u.id !== id));
       } catch (err) {
         console.error("❌ Lỗi khi xóa user:", err);
@@ -107,10 +107,10 @@ const UserManagement = () => {
             ) : (
               filteredUsers.map((user) => (
                 <tr
-                  key={user.id}
+                  key={user.customerID}
                   className="border-b border-gray-300 last:border-b-0 hover:bg-emerald-50 transition"
                 >
-                  <td className="px-4 py-2 text-gray-700">{user.id}</td>
+                  <td className="px-4 py-2 text-gray-700">{user.customerID}</td>
                   <td className="px-4 py-2 text-gray-800">{user.name}</td>
                   <td className="px-4 py-2 text-gray-600">{user.email}</td>
                   <td className="px-4 py-2 text-gray-600">{user.phone}</td>

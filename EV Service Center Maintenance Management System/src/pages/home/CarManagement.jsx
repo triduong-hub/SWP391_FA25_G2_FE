@@ -9,6 +9,7 @@ const CarManagement = () => {
     const fetchCars = async () => {
       try {
         const response = await api.get("/vehicle/getAll");
+        console.log("Dữ liệu xe từ API:", response.data);
         setCars(response.data);
       } catch (error) {
         console.error("Lỗi khi tải danh sách xe:", error);
@@ -54,34 +55,30 @@ const CarManagement = () => {
               <th className="p-3">Chủ sở hữu</th>
               <th className="p-3">Biển số</th>
               <th className="p-3">Mẫu xe</th>
-              <th className="p-3">Trạng thái</th>
+              <th className="p-3">Vin</th>
               <th className="p-3 text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
             {cars.map((car, index) => (
-              <tr key={car.id || car.vehicleId || index} className="border-b hover:bg-emerald-50/50 transition text-gray-900">
-                <td className="p-3">{car.id || car.vehicleId}</td>
-                <td className="p-3">{car.owner || car.ownerName}</td>
-                <td className="p-3">{car.licensePlate || car.plateNumber}</td>
+              <tr
+                key={car.vehicleID || index}
+                className="border-b hover:bg-emerald-50/50 transition text-gray-900"
+              >
+                <td className="p-3">{car.vehicleID}</td>
+                <td className="p-3">{car.customerName}</td>
+                <td className="p-3">{car.licensePlate}</td>
                 <td className="p-3">{car.model?.modelName || "Không rõ"}</td>
-                <td
-                  className={`p-3 font-medium ${car.status === "Hoạt động"
-                      ? "text-green-600"
-                      : "text-red-500"
-                    }`}
-                >
-                  {car.status}
-                </td>
+                <td className="p-3">{car.vin || "Không rõ"}</td>
                 <td className="p-3 text-center space-x-2">
                   <button
-                    onClick={() => handleEdit(car.id)}
+                    onClick={() => handleEdit(car.vehicleID)}
                     className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
                   >
                     Sửa
                   </button>
                   <button
-                    onClick={() => handleDelete(car.id)}
+                    onClick={() => handleDelete(car.vehicleID)}
                     className="bg-gradient-to-r from-red-500 to-pink-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
                   >
                     Xóa
@@ -90,6 +87,7 @@ const CarManagement = () => {
               </tr>
             ))}
           </tbody>
+
         </table>
         {cars.length === 0 && (
           <p className="p-4 text-gray-500 text-center">

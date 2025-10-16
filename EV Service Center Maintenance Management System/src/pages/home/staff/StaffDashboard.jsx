@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from '../../../../api'
+import api from "../../../../api";
 import {
   Search,
   UserRoundPlus,
@@ -11,14 +11,18 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
-import API from "../../../../api";
+
 
 const StaffDashboard = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedTech, setSelectedTech] = useState("");
+  const [technicians, setTechnicians] = useState([]);
   const [orders, setOrders] = useState([]);
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await API.get("http://localhost:8080/api/bookings/all");
+        const res = await api.get("/bookings/all");
 
         console.log("Booking API response:", res.data);
 
@@ -59,16 +63,65 @@ const StaffDashboard = () => {
     fetchBookings();
   }, []);
 
+  useEffect(() => {
+    const fetchTechnicians = async () => {
+      try {
+        const res = await api.get("/employees/all/technicians");
+        console.log("Technician API response:", res.data);
+        console.log("techList :", res.data["List Of Technicians"] || res.data.refid || res.data.list || res.data.technicians || res.data.data);
+        console.log("Technician API full response:", res);
+        console.log("Technician API response data:", res.data);
+
+        // 🧩 Lấy mảng đúng từ API
+        let techList =
+          res.data.refid?.["List Of Technicians"] ||
+          res.data["List Of Technicians"] ||
+          res.data.technicians ||
+          res.data.data ||
+          [];
+
+        if (!Array.isArray(techList)) {
+          console.warn("⚠️ Dữ liệu technicians không phải mảng:", techList);
+          techList = [];
+        }
+        let employees =
+          res.data.refid?.["List Of Employees"] ||
+          res.data["List Of Employees"] ||
+          res.data.employees ||
+          res.data.data ||
+          [];
+
+        if (!Array.isArray(employees)) employees = [];
+        const filtered = employees.filter(
+          (emp) =>
+            emp.role?.toLowerCase() === "technician" ||
+            emp.position?.toLowerCase() === "technician"
+        );
 
 
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [selectedTech, setSelectedTech] = useState("");
-  const [technicians, setTechnicians] = useState([
-    { id: 1, name: "Lê Văn Cường" },
-    { id: 2, name: "Phạm Thị Dung" },
-    { id: 3, name: "Nguyễn Thế Vinh" },
-  ]);
+        setTechnicians(
+          techList.map((t) => ({
+            id: Number(t.employeeID), // ✅ Lấy đúng ID thực từ backend
+            name: t.name,             // ✅ Tên kỹ thuật viên
+          }))
+        );
+
+        console.log("✅ Technicians sau khi map:", techList.map((t) => ({
+          id: Number(t.employeeID),
+          name: t.name,
+        })));
+
+
+
+      } catch (err) {
+        console.error("Lỗi khi tải kỹ thuật viên:", err);
+      }
+    };
+
+
+    fetchTechnicians();
+  }, []);
+
 
   // Mở modal phân công
   const handleAssignClick = (order) => {
@@ -81,16 +134,19 @@ const StaffDashboard = () => {
     if (!selectedTech) return alert("Vui lòng chọn kỹ thuật viên!");
 
     try {
-      // 🟢 Gọi API lưu kỹ thuật viên xuống DB
-      await api.post(`/api/bookings/confirm`, {
-        orderId: selectedOrder.id,      
-        technicianName: selectedTech,
-      });
+      const payload = {
+        orderId: Number(selectedOrder.id),
+        technicianId: Number(selectedTech),
+      };
 
-      // 🟢 Cập nhật UI sau khi API thành công
+      console.log("📦 Payload gửi đi:", payload);
+
+      await api.post(`/bookings/confirm`, payload);
+
+      // ✅ Cập nhật UI sau khi API thành công
       const updated = orders.map((o) =>
         o.id === selectedOrder.id
-          ? { ...o, technician: selectedTech, status: "Đã xác nhận" }
+          ? { ...o, technician: technicians.find(t => t.id === Number(selectedTech))?.name, status: "Đã xác nhận" }
           : o
       );
       setOrders(updated);
@@ -99,9 +155,9 @@ const StaffDashboard = () => {
       setSelectedTech("");
       setSelectedOrder(null);
 
-      alert("Phân công kỹ thuật viên thành công!");
+      // alert("Phân công kỹ thuật viên thành công!");
     } catch (err) {
-      console.error("Lỗi khi gán kỹ thuật viên:", err);
+      console.error("❌ Lỗi khi gán kỹ thuật viên:", err.response?.data || err);
       alert("Không thể lưu kỹ thuật viên xuống hệ thống.");
     }
   };
@@ -227,8 +283,13 @@ const StaffDashboard = () => {
                   </span>
                 </td>
                 <td className="py-3 px-4 text-gray-700">
-                  {o.technician || "Chưa phân công"}
+                  {o.technician
+                    ? o.technician
+                    : o.status === "Đã xác nhận"
+                      ? "Đang chờ phân công"
+                      : "Chưa phân công"}
                 </td>
+
                 <td className="py-3 px-4 text-center space-x-2">
                   <button
                     onClick={() => handleAssignClick(o)}
@@ -274,11 +335,12 @@ const StaffDashboard = () => {
               className="w-full border rounded-lg px-3 py-2 text-sm mb-4"
             >
               <option value="">-- Chọn kỹ thuật viên --</option>
-              {technicians.map((t) => (
-                <option key={t.id} value={t.name}>
+              {technicians.map((t, index) => (
+                <option key={t.id + "-" + index} value={t.id}>
                   {t.name}
                 </option>
               ))}
+
             </select>
 
             <div className="flex justify-end gap-3">
