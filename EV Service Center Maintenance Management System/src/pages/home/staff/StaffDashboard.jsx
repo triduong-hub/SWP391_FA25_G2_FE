@@ -68,7 +68,7 @@ const StaffDashboard = () => {
       try {
         const res = await api.get("/employees/all/technicians");
         console.log("Technician API response:", res.data);
-        console.log("techList :", res.data["List Of Technicians"] || res.data.refid || res.data.list || res.data.technicians || res.data.data);
+        console.log("techList :", res.data["List Of Technicians"] ||res.data.refid || res.data.list || res.data.technicians || res.data.data);
         console.log("Technician API full response:", res);
         console.log("Technician API response data:", res.data);
 
@@ -84,20 +84,6 @@ const StaffDashboard = () => {
           console.warn("⚠️ Dữ liệu technicians không phải mảng:", techList);
           techList = [];
         }
-        let employees =
-          res.data.refid?.["List Of Employees"] ||
-          res.data["List Of Employees"] ||
-          res.data.employees ||
-          res.data.data ||
-          [];
-
-        if (!Array.isArray(employees)) employees = [];
-        const filtered = employees.filter(
-          (emp) =>
-            emp.role?.toLowerCase() === "technician" ||
-            emp.position?.toLowerCase() === "technician"
-        );
-
 
         setTechnicians(
           techList.map((t) => ({
