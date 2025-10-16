@@ -32,13 +32,25 @@ const ScheduleManagement = () => {
 
       // 🧭 Chuẩn hóa dữ liệu
       data = data.map((item) => ({
-        id: item.id,
-        vehicle: item.vehiclePlate || item.vehicle || "",
-        customer: item.customerName || item.customer || "",
-        type: item.serviceType || item.type || "",
-        date: item.bookingDate || item.date || "",
-        status: item.status || "",
+        id: item.orderId,
+        vehicle: `${item.vehicleModel || "—"} (${item.vehiclePlateNumber || ""})`,
+        customer: item.customerName || "—",
+        type:
+          Array.isArray(item.serviceNames) && item.serviceNames.length > 0
+            ? item.serviceNames.join(", ")
+            : item.serviceType || "—",
+        date: item.appointmentDate || "—",
+        branch: item.serviceCenterName || "—",
+        status:
+          item.status === "Pending"
+            ? "Chờ xác nhận"
+            : item.status === "Confirmed"
+              ? "Đã xác nhận"
+              : item.status === "Completed"
+                ? "Hoàn thành"
+                : item.status,
       }));
+
 
       // 🎯 Lọc dữ liệu theo filter
       const filtered = data.filter((item) => {
@@ -134,12 +146,12 @@ const ScheduleManagement = () => {
 
       {/* Nút thêm */}
       <div>
-        <button
+        {/* <button
           onClick={handleAdd}
           className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:opacity-90 text-white px-4 py-2 rounded-xl shadow"
         >
           ➕ Thêm lịch bảo dưỡng
-        </button>
+        </button> */}
       </div>
 
       {/* Bảng dữ liệu */}

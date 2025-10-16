@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from '../../../../api'
 import {
   Search,
   UserRoundPlus,
@@ -13,41 +14,52 @@ import {
 import API from "../../../../api";
 
 const StaffDashboard = () => {
-  const [orders, setOrders] = useState([
-    {
-      id: "ORD001",
-      customer: "Nguyễn Văn A",
-      phone: "0901234567",
-      vehicle: "Tesla Model 3",
-      service: "Battery Check",
-      branch: "District 1 Center",
-      technician: null,
-      status: "Chờ xác nhận",
-      price: "500.000 đ",
-    },
-    {
-      id: "ORD002",
-      customer: "Trần Thị B",
-      phone: "0907654321",
-      vehicle: "VinFast VF8",
-      service: "Motor Service",
-      branch: "District 7 Center",
-      technician: "Trần Thị Bình",
-      status: "Đã xác nhận",
-      price: "800.000 đ",
-    },
-    {
-      id: "ORD003",
-      customer: "Lê Văn C",
-      phone: "0912345678",
-      vehicle: "BMW iX",
-      service: "General Maintenance",
-      branch: "Thu Duc Center",
-      technician: null,
-      status: "Chờ xác nhận",
-      price: "1.200.000 đ",
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await API.get("http://localhost:8080/api/bookings/all");
+
+        console.log("Booking API response:", res.data);
+
+        // ✅ Sửa lại để lấy mảng bookings bên trong
+        const bookings = res.data.bookings || [];
+        console.log("Booking item sample:", res.data.bookings[0]);
+        setOrders(
+          bookings.map((b) => ({
+            id: b.orderId,
+            customer: b.customerName || "Chưa có tên",
+            phone: b.customerPhone || "—",
+            vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
+            service:
+              Array.isArray(b.serviceNames) && b.serviceNames.length > 0
+                ? b.serviceNames.join(", ")
+                : b.serviceType || "—",
+            branch: b.serviceCenterName || "—",
+            technician: b.technicianName || null,
+            status:
+              b.status === "Pending"
+                ? "Chờ xác nhận"
+                : b.status === "Confirmed"
+                  ? "Đã xác nhận"
+                  : b.status === "Completed"
+                    ? "Hoàn thành"
+                    : b.status,
+            price: b.totalCost
+              ? `${b.totalCost.toLocaleString()} đ`
+              : "—",
+          }))
+        );
+
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách booking:", err);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+
 
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -68,28 +80,32 @@ const StaffDashboard = () => {
   const handleConfirmAssign = async () => {
     if (!selectedTech) return alert("Vui lòng chọn kỹ thuật viên!");
 
-    const updated = orders.map((o) =>
-      o.id === selectedOrder.id
-        ? { ...o, technician: selectedTech, status: "Đã xác nhận" }
-        : o
-    );
-    setOrders(updated);
-
-    // Gọi API thật khi backend sẵn
-    /*
     try {
-      await API.put(`/orders/${selectedOrder.id}/assign`, {
+      // 🟢 Gọi API lưu kỹ thuật viên xuống DB
+      await api.post(`/api/bookings/confirm`, {
+        orderId: selectedOrder.id,      
         technicianName: selectedTech,
       });
-    } catch (err) {
-      console.error("Lỗi khi phân công kỹ thuật viên:", err);
-    }
-    */
 
-    setShowModal(false);
-    setSelectedTech("");
-    setSelectedOrder(null);
+      // 🟢 Cập nhật UI sau khi API thành công
+      const updated = orders.map((o) =>
+        o.id === selectedOrder.id
+          ? { ...o, technician: selectedTech, status: "Đã xác nhận" }
+          : o
+      );
+      setOrders(updated);
+
+      setShowModal(false);
+      setSelectedTech("");
+      setSelectedOrder(null);
+
+      alert("Phân công kỹ thuật viên thành công!");
+    } catch (err) {
+      console.error("Lỗi khi gán kỹ thuật viên:", err);
+      alert("Không thể lưu kỹ thuật viên xuống hệ thống.");
+    }
   };
+
 
   // Xác nhận đơn hàng
   // const handleConfirmOrder = (orderId) => {
@@ -198,15 +214,14 @@ const StaffDashboard = () => {
                 <td className="py-3 px-4">{o.branch}</td>
                 <td className="py-3 px-4">
                   <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      o.status === "Chờ xác nhận"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : o.status === "Đã xác nhận"
+                    className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : o.status === "Đã xác nhận"
                         ? "bg-blue-100 text-blue-700"
                         : o.status === "Hoàn thành"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                   >
                     {o.status}
                   </span>
