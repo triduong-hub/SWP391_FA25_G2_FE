@@ -3,7 +3,8 @@ import {
     Calendar, Clock, Wrench, CheckCircle, FileText,
     Play, User, Phone, MapPin, XCircle, Activity
 } from 'lucide-react';
-import API from '../../../../api'; // ✅ để bạn nối API thật
+import api from '../../../../api'; // ✅ để bạn nối API thật
+import { statusMapServerToUI, statusMapUIToServer } from "../../../utils/statusHelpers";
 
 const TechnicianDashboard = () => {
     const [tasks, setTasks] = useState([]);
@@ -13,55 +14,23 @@ const TechnicianDashboard = () => {
     const [newNote, setNewNote] = useState('');
 
 
-    // useEffect(() => {
-    //     const fetchTasks = async () => {
-    //         try {
-    //             const res = await API.get("/technician/tasks");
-    //             setTasks(res.data); // Dữ liệu thật từ backend
-    //         } catch (err) {
-    //             console.error("❌ Lỗi khi lấy danh sách công việc:", err);
-    //         }
-    //     };
-
-    //     fetchTasks();
-    // }, []);
     useEffect(() => {
-        // ✅ Khi có API thật, chỉ cần gọi:
-        // API.get('/technician/tasks').then(res => setTasks(res.data));
-        setTasks(mockTasks);
-    }, []);
+        const fetchTasks = async () => {
+            try {
+                const res = await api.get("/maintenances/all");
+                console.log("📦 Dữ liệu bảo trì:", res.data);
+                setTasks(Array.isArray(res.data.Maintenances) ? res.data.Maintenances : []);
+            } catch (err) {
+                console.error("❌ Lỗi khi lấy danh sách công việc:", err);
+            }
+        };
 
-    // ---------------- MOCK DATA ----------------
-    const mockTasks = [
-        {
-            id: 1,
-            orderId: 'ORD001',
-            customerName: 'Nguyễn Văn A',
-            customerPhone: '0901234567',
-            vehicle: 'Tesla Model 3 - 30A-12345',
-            service: 'Battery Check',
-            description: 'Kiểm tra tình trạng pin và hiệu suất sạc',
-            date: '2024-01-20',
-            time: '09:00',
-            location: 'EVCare - Quận 1',
-            status: 'Đã xác nhận',
-            technicianNotes: [],
-        },
-        {
-            id: 2,
-            orderId: 'ORD002',
-            customerName: 'Trần Thị B',
-            customerPhone: '0907654321',
-            vehicle: 'VinFast VF8 - 51G-67890',
-            service: 'Motor Service',
-            description: 'Kiểm tra và bảo dưỡng hệ thống động cơ điện',
-            date: '2024-01-20',
-            time: '10:30',
-            location: 'EVCare - Quận 1',
-            status: 'Đang thực hiện',
-            technicianNotes: [{ time: '10:35', note: 'Bắt đầu kiểm tra hệ thống động cơ' }],
-        },
-    ];
+        fetchTasks();
+
+        // 🔁 Cập nhật tự động mỗi 10 giây
+        const interval = setInterval(fetchTasks, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     // ---------------- UTILS ----------------
     const getStatusBadge = (status) => {
@@ -82,39 +51,53 @@ const TechnicianDashboard = () => {
         );
     };
 
+    const normalizedTasks = tasks.map((t) => {
+        return {
+            ...t,
+            status: t.status ? t.status.toLowerCase().replace(/\s+/g, "-") : "",
+        };
+    });
+
     const formatDate = (date, time) => `${new Date(date).toLocaleDateString('vi-VN')} ${time}`;
 
     // ---------------- HANDLERS ----------------
     // Khi kỹ thuật viên bấm "Bắt đầu"
-    const handleStart = async (id) => {
+    // Khi kỹ thuật viên bấm "Bắt đầu"
+    const handleStart = async (maintenanceID) => {
         try {
-            // 🔹 Cập nhật giao diện ngay (UI phản hồi nhanh)
-            setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'Đang thực hiện' } : t));
+            // Gọi API backend thật
+            await api.put(`/maintenances/${maintenanceID}/set-status/in-progress`);
 
-            // 🔹 Gọi API thật khi backend có
-            // await API.put(`/orders/${id}/start`);
-
-            console.log(`✅ Đơn ${id} đã chuyển sang "Đang thực hiện"`);
+            // Cập nhật UI
+            setTasks(prev =>
+                prev.map(t =>
+                    t.maintenanceID === maintenanceID ? { ...t, status: "in-progress" } : t
+                )
+            );
+            alert(`✅ Đơn ${maintenanceID} đã chuyển sang "Đang thực hiện"`);
         } catch (err) {
-            console.error("❌ Lỗi khi bắt đầu công việc:", err);
+            console.error("❌ Lỗi khi bắt đầu:", err);
             alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
         }
     };
 
     // Khi kỹ thuật viên bấm "Hoàn tất"
-    const handleComplete = async (id) => {
+    const handleComplete = async (maintenanceID) => {
         try {
-            setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'Hoàn thành' } : t));
+            await api.put(`/maintenances/${maintenanceID}/set-status/waiting-for-payment`);
 
-            // 🔹 Gọi API thật khi backend có
-            // await API.put(`/orders/${id}/complete`);
-
-            console.log(`🏁 Đơn ${id} đã chuyển sang "Hoàn thành"`);
+            setTasks(prev =>
+                prev.map(t =>
+                    t.maintenanceID === maintenanceID ? { ...t, status: "waiting-for-payment" } : t
+                )
+            );
+            alert(`🏁 Đơn ${maintenanceID} đã chuyển sang "Chờ thanh toán"`);
         } catch (err) {
-            console.error("❌ Lỗi khi hoàn tất công việc:", err);
+            console.error("❌ Lỗi khi hoàn tất:", err);
             alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
         }
     };
+
 
     const handleSaveNote = async () => {
         if (!newNote.trim()) return;
@@ -158,51 +141,90 @@ const TechnicianDashboard = () => {
                 <StatCard icon={CheckCircle} color="green" label="Hoàn tất" value={completed.length} />
             </div>
 
-            {/* TASK LIST */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {tasks.map(task => (
-                    <div key={task.id} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6">
+
+            return (
+            <>
+                {/* TASK LIST */}
+                {normalizedTasks.map(task => (
+                    console.log("task status:", task.status, "for", task.maintenanceID),
+                    <div key={task.maintenanceID} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6">
                         <div className="flex justify-between mb-3">
-                            <h3 className="font-semibold text-gray-900">{task.service}</h3>
-                            {getStatusBadge(task.status)}
+                            <h3 className="font-semibold text-gray-900">Bảo trì #{task.maintenanceID}</h3>
+                            <span
+                                className={`px-2 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : task.status === "waiting-for-payment"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : task.status === "completed"
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-gray-100 text-gray-700"
+                                    }`}
+                            >
+                                {statusMapServerToUI[task.status] || task.status}
+                            </span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-3">{task.description}</p>
 
-                        <div className="space-y-2 text-sm mb-4">
-                            <div className="flex items-center"><User className="w-4 h-4 mr-2 text-gray-400" />{task.customerName}</div>
-                            <div className="flex items-center"><Phone className="w-4 h-4 mr-2 text-gray-400" />{task.customerPhone}</div>
-                            <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-400" />{task.location}</div>
-                            <div className="flex items-center"><Calendar className="w-4 h-4 mr-2 text-gray-400" />{formatDate(task.date, task.time)}</div>
+                        <div className="space-y-2 text-sm text-gray-700 mb-4">
+                            <p><strong>Kỹ thuật viên:</strong> {task.empName}</p>
+                            <p><strong>Biển số xe:</strong> {task.licensePlate}</p>
+                            <p><strong>Mẫu xe:</strong> {task.model}</p>
+                            <p><strong>Chi phí:</strong> {task.cost ? task.cost + " triệu" : "Chưa xác định"}</p>
+                            <p>
+                                <strong>Thời gian bắt đầu:</strong>{" "}
+                                {task.startTime
+                                    ? new Date(task.startTime).toLocaleString("vi-VN")
+                                    : "Chưa bắt đầu"}
+                            </p>
+                            <p>
+                                <strong>Thời gian kết thúc:</strong>{" "}
+                                {task.endTime
+                                    ? new Date(task.endTime).toLocaleString("vi-VN")
+                                    : "Chưa hoàn tất"}
+                            </p>
+                            <p><strong>Ghi chú:</strong> {task.notes || "Không có"}</p>
                         </div>
 
-                        {/* BUTTONS */}
-                        <div className="flex gap-2 mt-4">
-                            {task.status === 'Đã xác nhận' && (
-                                <button onClick={() => handleStart(task.id)} className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg py-2 text-sm font-medium">
-                                    <Play className="inline w-4 h-4 mr-1" /> Bắt đầu
+                        {/* ✅ Nút thao tác */}
+                        <div className="mt-4 flex gap-2">
+                            {/* Khi chưa bắt đầu (pending hoặc confirmed) → hiện Bắt đầu */}
+                            {["pending", "confirmed", "in-progress"].includes(task.status) && (
+                                <button
+                                    onClick={() => handleStart(task.maintenanceID)}
+                                    className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+                                >
+                                    Bắt đầu
                                 </button>
                             )}
-                            {task.status === 'Đang thực hiện' && (
-                                <button onClick={() => handleComplete(task.id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium">
-                                    <CheckCircle className="inline w-4 h-4 mr-1" /> Hoàn tất
+
+                            {/* Khi đang thực hiện → hiện Hoàn tất */}
+                            {task.status === "in-progress" && (
+                                <button
+                                    onClick={() => handleComplete(task.maintenanceID)}
+                                    className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
+                                >
+                                    Hoàn tất
                                 </button>
                             )}
-                            <button
-                                onClick={() => { setSelectedTask(task); setNoteModal(true); }}
-                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg py-2 text-sm font-medium"
-                            >
-                                <FileText className="inline w-4 h-4 mr-1" /> Ghi chú
-                            </button>
-                            <button
-                                onClick={() => { setSelectedTask(task); setDetailModal(true); }}
-                                className="px-3 py-2 text-sm font-medium text-blue-600 hover:underline"
-                            >
-                                Chi tiết
-                            </button>
+
+                            {/* Khi chờ thanh toán → hiện trạng thái */}
+                            {task.status === "waiting-for-payment" && (
+                                <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg">
+                                    Chờ thanh toán
+                                </span>
+                            )}
+
+                            {/* Khi hoàn tất → hiện trạng thái */}
+                            {task.status === "completed" && (
+                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg">
+                                    Hoàn tất
+                                </span>
+                            )}
                         </div>
+
                     </div>
                 ))}
-            </div>
+            </>
+            );
 
             {/* NOTE MODAL */}
             {noteModal && selectedTask && (

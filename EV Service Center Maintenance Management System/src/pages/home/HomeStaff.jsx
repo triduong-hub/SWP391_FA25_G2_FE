@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
-import axios from "axios";
+import api from "../../../api";
 
 const HomeStaff = () => {
   const [staffList, setStaffList] = useState([]);
@@ -20,8 +20,11 @@ const HomeStaff = () => {
   // 🧾 Lấy danh sách nhân viên
   const fetchStaffData = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/staff");
-      setStaffList(res.data);
+      const res = await api.get("/employees");
+      console.log("📦 Dữ liệu nhân viên:", res.data);
+      const list = res.data["List Of Employees"] || [];
+      const sorted = list.sort((a, b) => a.employeeID - b.employeeID);
+      setStaffList(sorted);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách nhân viên:", error);
     } finally {
@@ -33,7 +36,7 @@ const HomeStaff = () => {
     fetchStaffData();
   }, []);
 
-  // 💾 Thêm / sửa
+  //  Thêm / sửa
   const handleSave = async () => {
     if (!formData.name || !formData.email || !formData.role) {
       alert("Vui lòng nhập đủ thông tin");
@@ -41,12 +44,9 @@ const HomeStaff = () => {
     }
     try {
       if (editingStaff) {
-        await axios.put(
-          `http://localhost:8080/api/staff/${editingStaff.id}`,
-          formData
-        );
+        await api.put(`/employees/${editingStaff.id}`, formData);
       } else {
-        await axios.post("http://localhost:8080/api/staff", formData);
+        await api.post("/employees", formData);
       }
       await fetchStaffData();
       setShowForm(false);
@@ -57,11 +57,11 @@ const HomeStaff = () => {
     }
   };
 
-  // ❌ Xóa
+  //  Xóa
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa nhân viên này không?")) {
       try {
-        await axios.delete(`http://localhost:8080/api/staff/${id}`);
+        await api.delete(`/employees/${id}`);
         setStaffList(staffList.filter((s) => s.id !== id));
       } catch (err) {
         console.error("Lỗi khi xóa nhân viên:", err);
@@ -143,20 +143,16 @@ const HomeStaff = () => {
                 </tr>
               ) : (
                 filteredStaff.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b hover:bg-emerald-50/50 transition"
-                  >
-                    <td className="p-3">{item.id}</td>
+                  <tr key={item.employeeID} className="border-b hover:bg-emerald-50/50 transition">
+                    <td className="p-3">{item.employeeID}</td>
                     <td className="p-3">{item.name}</td>
                     <td className="p-3">{item.email}</td>
                     <td className="p-3">{item.role}</td>
                     <td
-                      className={`p-3 font-medium ${
-                        item.status === "Đang làm việc"
-                          ? "text-green-600"
-                          : "text-red-500"
-                      }`}
+                      className={`p-3 font-medium ${item.status === "Đang làm việc"
+                        ? "text-green-600"
+                        : "text-red-500"
+                        }`}
                     >
                       {item.status}
                     </td>

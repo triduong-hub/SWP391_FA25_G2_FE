@@ -31,6 +31,9 @@ const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // trạng thái mute/unmute
   const [user, setUser] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const customerId = storedUser.userID || null;
   const [selected, setSelected] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const videoRef = useRef(null);
@@ -53,6 +56,26 @@ const HomePage = () => {
       });
   }, []);
 
+  //  Lấy danh sách đơn đặt lịch của khách
+  useEffect(() => {
+    if (!customerId) return;
+
+    const fetchBookings = async () => {
+      try {
+        console.log("📦 Lấy đơn đặt lịch theo CustomerId:", customerId);
+        const response = await API.get(`/bookings/customer/${customerId}`);
+        const bookingList = response.data?.data || response.data || [];
+        console.log("✅ Booking data:", bookingList);
+        const bookingData = response.data?.data || response.data || {};
+        setBookings(bookingData.bookings || []);
+
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy đơn đặt lịch:", error);
+      }
+    };
+
+    fetchBookings();
+  }, [customerId]);
 
 
   // Hàm scroll đến section
@@ -267,6 +290,55 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/*  💼 Danh sách đơn đặt lịch của khách */}
+        <section className="py-20 px-6 bg-gray-100">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
+              Đơn đặt lịch của bạn
+            </h2>
+
+            {bookings.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-6">
+                {bookings.map((order) => (
+                  <div key={order.orderId} className="bg-white p-6 rounded-xl shadow-md">
+                    <h3 className="text-xl font-semibold text-blue-700">
+                      Mã đơn: #{order.orderId}
+                    </h3>
+
+                    <p className="text-gray-600 mt-2">
+                      Ngày đặt: {new Date(order.orderDate).toLocaleDateString("vi-VN")}
+                    </p>
+
+                    <p className="text-gray-600">
+                      Lịch hẹn: {order.appointmentDate} – {order.appointmentTime?.slice(0, 5)}
+                    </p>
+
+                    <p className="text-gray-600">Trạng thái: {order.status}</p>
+
+                    <p className="text-gray-600">
+                      Dịch vụ:{" "}
+                      {Array.isArray(order.serviceNames)
+                        ? order.serviceNames.join(", ")
+                        : "Chưa có thông tin"}
+                    </p>
+
+                    <p className="text-gray-600">
+                      Xe: {order.vehicleModel || "Không rõ"} – Biển số:{" "}
+                      {order.vehiclePlateNumber || "N/A"}
+                    </p>
+
+                    <p className="text-gray-600">
+                      Trung tâm: {order.serviceCenterName || "Chưa xác định"}
+                    </p>
+                  </div>
+                ))}
+
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">Bạn chưa có đơn đặt lịch nào.</p>
+            )}
+          </div>
+        </section>
 
 
 
@@ -893,9 +965,6 @@ const HomePage = () => {
               <h4 className="text-lg font-semibold text-white mb-4">Đối tác</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="hover:text-blue-400">VinFast</a></li>
-                <li><a href="#" className="hover:text-blue-400">Tesla</a></li>
-                <li><a href="#" className="hover:text-blue-400">EVN</a></li>
-                <li><a href="#" className="hover:text-blue-400">Shell Recharge</a></li>
               </ul>
             </div>
 

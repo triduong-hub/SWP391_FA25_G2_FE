@@ -20,55 +20,59 @@ const StaffDashboard = () => {
   const [technicians, setTechnicians] = useState([]);
   const [orders, setOrders] = useState([]);
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await api.get("/bookings/all");
+  const fetchBookings = async () => {
+    try {
+      const res = await api.get("/bookings/all");
+      console.log("Booking API response:", res.data);
 
-        console.log("Booking API response:", res.data);
+      const bookings = res.data.bookings || [];
 
-        // ✅ Sửa lại để lấy mảng bookings bên trong
-        const bookings = res.data.bookings || [];
-        console.log("Booking item sample:", res.data.bookings[0]);
-        setOrders(
-          bookings.map((b) => ({
-            id: b.orderId,
-            customer: b.customerName || "Chưa có tên",
-            phone: b.customerPhone || "—",
-            vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
-            service:
-              Array.isArray(b.serviceNames) && b.serviceNames.length > 0
-                ? b.serviceNames.join(", ")
-                : b.serviceType || "—",
-            branch: b.serviceCenterName || "—",
-            technician: b.technicianName || null,
-            status:
-              b.status === "Pending"
-                ? "Chờ xác nhận"
-                : b.status === "Confirmed"
-                  ? "Đã xác nhận"
-                  : b.status === "Completed"
-                    ? "Hoàn thành"
-                    : b.status,
-            price: b.totalCost
-              ? `${b.totalCost.toLocaleString()} đ`
-              : "—",
-          }))
-        );
+      setOrders(
+        bookings.map((b) => ({
+          id: b.orderId,
+          customer: b.customerName || "Chưa có tên",
+          phone: b.customerPhone || "—",
+          vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
+          service:
+            Array.isArray(b.serviceNames) && b.serviceNames.length > 0
+              ? b.serviceNames.join(", ")
+              : b.serviceType || "—",
+          branch: b.serviceCenterName || "—",
+          technician: b.technicianName || null,
+          // ⚙️ Thêm dòng xử lý này để nhận đúng trạng thái "Đang thực hiện"
+          status:
+            b.status === "Pending"
+              ? "Chờ xác nhận"
+              : b.status === "Confirmed"
+              ? "Đã xác nhận"
+              : b.status === "InProgress" || b.status === "in-progress"
+              ? "Đang thực hiện"
+              : b.status === "WaitingForPayment" || b.status === "waiting-for-payment"
+              ? "Chờ thanh toán"
+              : b.status === "Completed" || b.status === "completed"
+              ? "Hoàn thành"
+              : b.status,
+          price: b.totalCost ? `${b.totalCost.toLocaleString()} đ` : "—",
+        }))
+      );
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách booking:", err);
+    }
+  };
 
-      } catch (err) {
-        console.error("Lỗi khi tải danh sách booking:", err);
-      }
-    };
+  fetchBookings();
 
-    fetchBookings();
-  }, []);
+  //  Thêm dòng này để tự động refresh mỗi 10 giây
+  const interval = setInterval(fetchBookings, 10000);
+  return () => clearInterval(interval);
+}, []);
 
   useEffect(() => {
     const fetchTechnicians = async () => {
       try {
         const res = await api.get("/employees/all/technicians");
         console.log("Technician API response:", res.data);
-        console.log("techList :", res.data["List Of Technicians"] ||res.data.refid || res.data.list || res.data.technicians || res.data.data);
+        console.log("techList :", res.data["List Of Technicians"] || res.data.refid || res.data.list || res.data.technicians || res.data.data);
         console.log("Technician API full response:", res);
         console.log("Technician API response data:", res.data);
 
@@ -127,7 +131,7 @@ const StaffDashboard = () => {
 
       console.log("📦 Payload gửi đi:", payload);
 
-      await api.post(`/bookings/confirm`, payload);
+      await api.post(`/maintenances/confirm`, payload);
 
       // ✅ Cập nhật UI sau khi API thành công
       const updated = orders.map((o) =>
@@ -257,22 +261,27 @@ const StaffDashboard = () => {
                 <td className="py-3 px-4">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : o.status === "Đã xác nhận"
-                        ? "bg-blue-100 text-blue-700"
-                        : o.status === "Hoàn thành"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : o.status === "Đã xác nhận"
+                          ? "bg-blue-100 text-blue-700"
+                          : o.status === "Đang thực hiện"
+                            ? "bg-orange-100 text-orange-700"
+                            : o.status === "Chờ thanh toán"
+                              ? "bg-purple-100 text-purple-700"
+                              : o.status === "Hoàn thành"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
                       }`}
                   >
                     {o.status}
                   </span>
+
                 </td>
                 <td className="py-3 px-4 text-gray-700">
                   {o.technician
                     ? o.technician
                     : o.status === "Đã xác nhận"
-                      ? "Đang chờ phân công"
+                      ? "Đã phân công"
                       : "Chưa phân công"}
                 </td>
 

@@ -45,6 +45,7 @@ const LoginForm = ({ onSwitch }) => {
       //  Lưu token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
+      const role = data.role?.toLowerCase().trim();
 
       //  Phân loại theo role
       if (data.role?.toLowerCase() === "admin") {
@@ -53,6 +54,9 @@ const LoginForm = ({ onSwitch }) => {
       } else if (data.role?.toLowerCase() === "staff") {
         console.log('staff đăng nhập');
         navigate("/staffdash")
+      } else if (data.role?.toLowerCase() === "technician") {
+        console.log('technician đăng nhập');
+        navigate("/techniciandash")
       } else if (data.role?.toLowerCase() === "customer") {
         console.log(" Customer đăng nhập");
 
@@ -62,9 +66,9 @@ const LoginForm = ({ onSwitch }) => {
         if (customerId) {
           localStorage.setItem("customerId", customerId);
           console.log(" Saved customerId:", customerId);
-        } else {
-          console.warn(" Không tìm thấy customerId:", data);
-        }
+        } //else {
+         // console.warn(" Không tìm thấy customerId:", data);
+       // }
 
         navigate("/");
       } else {
