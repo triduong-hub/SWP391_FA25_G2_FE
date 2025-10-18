@@ -1,61 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import API from '../../../api';
+import { v4 as uuidv4 } from 'uuid';
 
 const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
   const { language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [locations, setLocations] = useState([]);
 
-  const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
-  ];
+  const timeSlots = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
-  const locations = [
-    {
-      id: 1,
-      name: language === 'vi' ? 'Trung tâm Quận 1' : 'District 1 Center',
-      address: language === 'vi' ? '123 Đường Nguyễn Huệ, Quận 1, TP.HCM' : '123 Nguyen Hue St, District 1, HCMC',
-      phone: '(028) 1234 5678'
-    },
-    {
-      id: 2,
-      name: language === 'vi' ? 'Trung tâm Quận 7' : 'District 7 Center',
-      address: language === 'vi' ? '456 Đường Nguyễn Thị Thập, Quận 7, TP.HCM' : '456 Nguyen Thi Thap St, District 7, HCMC',
-      phone: '(028) 8765 4321'
-    },
-    {
-      id: 3,
-      name: language === 'vi' ? 'Trung tâm Thủ Đức' : 'Thu Duc Center',
-      address: language === 'vi' ? '789 Đường Võ Văn Ngân, TP. Thủ Đức, TP.HCM' : '789 Vo Van Ngan St, Thu Duc City, HCMC',
-      phone: '(028) 9876 5432'
-    }
-  ];
+  // Fetch service centers từ API
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await API.get('/service-centers/getAll');
+        // const data = (response.data || []).map((loc) => ({
+        //   key: loc.id || loc.locationID || loc.serviceCenterID || uuidv4(),
+        //   id: loc.id || loc.locationID || loc.serviceCenterID,
+        //   name: language === 'vi' ? loc.name_vi || loc.name : loc.name_en || loc.name,
+        //   address: language === 'vi' ? loc.address_vi || loc.address : loc.address_en || loc.address,
+        //   phone: loc.phone,
+        // })); // giống logic ở dưới nhưng chưa đầy đủ
+        const data = (response.data || []).map((loc) => {
+          const locId = loc.id || loc.locationID || loc.serviceCenterID; // 🟢 lấy đúng ID dù tên khác nhau
+          return {
+            key: locId || uuidv4(), // fallback tạo key nếu không có
+            id: locId,
+            name:
+              language === 'vi'
+                ? loc.name_vi || loc.name
+                : loc.name_en || loc.name,
+            address:
+              language === 'vi'
+                ? loc.address_vi || loc.address
+                : loc.address_en || loc.address,
+            phone: loc.phone,
+          };
+        });
+        setLocations(data);
+      } catch (error) {
+        console.error('Lỗi khi fetch locations:', error);
+      }
+    };
+    fetchLocations();
+  }, [language]);
 
+  // Kiểm tra giờ đã qua
+  const isTimePast = (time) => {
+    if (!selectedDate) return false;
+    const now = new Date();
+    const selected = new Date(selectedDate + 'T' + time);
+    return selectedDate === now.toISOString().split('T')[0] && selected < now;
+  };
+
+  // Next step
   const handleNext = () => {
     if (selectedDate && selectedTime && selectedLocation) {
       onDateTimeSelect(selectedDate, selectedTime, selectedLocation);
       onNext();
+    } else {
+      alert(language === 'vi'
+        ? 'Vui lòng chọn đầy đủ ngày, giờ và địa điểm!'
+        : 'Please select date, time, and location!');
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
           {language === 'vi' ? 'Chọn thời gian & địa điểm' : 'Select Time & Location'}
         </h2>
         <p className="text-gray-600">
-          {language === 'vi' 
+          {language === 'vi'
             ? 'Chọn thời gian và địa điểm thuận tiện cho bạn'
-            : 'Choose a convenient time and location for you'
-          }
+            : 'Choose a convenient time and location for you'}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Date & Time Selection */}
+        {/* Date & Time */}
         <div className="space-y-6">
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
@@ -77,49 +106,57 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
               {language === 'vi' ? 'Chọn giờ' : 'Select Time'}
             </h3>
             <div className="grid grid-cols-3 gap-3">
-              {timeSlots.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => setSelectedTime(time)}
-                  className={`py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
-                    selectedTime === time
+              {timeSlots.map((time) => {
+                const past = isTimePast(time);
+                return (
+                  <button
+                    key={time}
+                    onClick={() => !past && setSelectedTime(time)}
+                    disabled={past}
+                    className={`py-3 px-4 rounded-xl font-medium transition-all duration-200 ${selectedTime === time
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
+                      : past
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Location Selection */}
+        {/* Location */}
         <div>
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <MapPin className="w-6 h-6 mr-2 text-emerald-600" />
-            {language === 'vi' ? 'Chọn địa điểm' : 'Select Location'}
+            {language === 'vi' ? 'Chọn chi nhánh' : 'Select Branch'}
           </h3>
           <div className="space-y-4">
-            {locations.map((location) => (
-              <div
-                key={location.id}
-                onClick={() => setSelectedLocation(location)}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                  selectedLocation?.id === location.id
+            {locations.map((location) => {
+              const selectedKey = selectedLocation ? selectedLocation.key : null;
+              return (
+                <div
+                  key={location.key}
+                  onClick={() => setSelectedLocation(location)}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${selectedKey === location.key
                     ? 'border-emerald-500 bg-emerald-50'
                     : 'border-gray-200 hover:border-emerald-200 bg-white'
-                }`}
-              >
-                <h4 className="font-bold text-gray-900 mb-1">{location.name}</h4>
-                <p className="text-gray-600 text-sm mb-2">{location.address}</p>
-                <p className="text-emerald-600 text-sm font-medium">{location.phone}</p>
-              </div>
-            ))}
+                    }`}
+                >
+                  <h4 className="font-bold text-gray-900 mb-1">{location.name}</h4>
+                  <p className="text-gray-600 text-sm mb-2">{location.address}</p>
+                  <p className="text-emerald-600 text-sm font-medium">{location.phone}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
+      {/* Buttons */}
       <div className="flex space-x-4">
         <button
           onClick={onBack}

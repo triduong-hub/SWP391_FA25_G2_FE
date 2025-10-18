@@ -8,6 +8,12 @@ import { LanguageProvider } from "../../contexts/LanguageContext.jsx";
 import LoginPage from "../login/LoginPage.jsx";
 import ForgotPasswordPage from "../password/ForgotPasswordPage.jsx";
 
+// Trang Technician
+import TechnicianDashboard from "../home/Technician/TechnicianDashboard.jsx";
+
+// Trang Staff
+import StaffDashboard from "../home/staff/StaffDashboard.jsx";
+
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
 
@@ -20,7 +26,7 @@ import ScheduleManagement from "../home/ScheduleManagement.jsx";
 import CarManagement from "../home/CarManagement.jsx";
 import SystemManagement from "../home/SystemManagement.jsx";
 import RevenueManagement from "../home/RevenueManagement.jsx";
-import TechnicianManagement from "../home/TechnicianManagement.jsx"
+import TechnicianManagement from "../home/TechnicianManagement.jsx";
 
 // Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
@@ -41,6 +47,12 @@ function AppRoute() {
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
+        
+         {/* Technician */}
+        <Route path="/techniciandash" element={<TechnicianDashboard />} />
+
+         {/* Staff */}
+        <Route path="/staffdash" element={<StaffDashboard />} />
 
         {/* Trang quên mật khẩu */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -50,8 +62,8 @@ function AppRoute() {
 
         {/* Các route trong Admin */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route path="home" element={<HomeAdmin />} />
           <Route path="profile" element={<ProfileAdmin />} />
+          <Route path="home" element={<HomeAdmin />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="staff" element={<HomeStaff />} />
           <Route path="cars" element={<CarManagement />} />

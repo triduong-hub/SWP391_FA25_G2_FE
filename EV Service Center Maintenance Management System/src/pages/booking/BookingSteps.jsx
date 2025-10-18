@@ -11,7 +11,7 @@ const BookingSteps = ({ currentStep }) => {
     { number: 3, title: language === 'vi' ? 'Chọn dịch vụ' : 'Select Services' },
     { number: 4, title: language === 'vi' ? 'Chọn thời gian' : 'Select Time' },
     { number: 5, title: language === 'vi' ? 'Xác nhận' : 'Confirm' },
-    { number: 6, title: language === 'vi' ? 'Thanh toán' : 'Payment' }
+    // { number: 6, title: language === 'vi' ? 'Thanh toán' : 'Payment' }
   ];
 
   return (

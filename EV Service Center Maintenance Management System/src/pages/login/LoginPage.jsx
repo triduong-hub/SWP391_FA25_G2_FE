@@ -16,8 +16,9 @@ import axios from "axios";
 import GoogleIcon from "./GoogleIcon.jsx";
 
 const LoginForm = ({ onSwitch }) => {
-  const [formData, setFormData] = useState({ phone: "", password: "", rememberMe: false });
+  const [formData, setFormData] = useState({ phone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
 
   const handleInputChange = (e) =>
@@ -25,32 +26,65 @@ const LoginForm = ({ onSwitch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
     try {
       const response = await axios.post("http://localhost:8080/api/auth/login", {
         phone: formData.phone,
         password: formData.password,
       });
 
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
+      const data = response.data;
+      console.log(" Login response:", data);
+
+      if (!data.token) {
+        setMessage({ text: " Sai số điện thoại hoặc mật khẩu!", type: "error" });
+        return;
+      }
+
+
+      //  Lưu token & user
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data));
+
+      //  Phân loại theo role
+      if (data.role?.toLowerCase() === "admin") {
+        console.log(" Admin đăng nhập");
+        navigate("/admin/home");
+      } else if (data.role?.toLowerCase() === "customer") {
+        console.log(" Customer đăng nhập");
+
+        // Lấy customerId chính xác từ backend
+        const customerId =
+          data.refid || data.id || data.customerId || data.user?.id;
+
+        if (customerId) {
+          localStorage.setItem("customerId", customerId);
+          console.log(" Saved customerId:", customerId);
+        } else {
+          console.warn(" Không tìm thấy customerId:", data);
+        }
+
         navigate("/");
-      } else alert("Đăng nhập thất bại!");
+        window.location.reload();
+      } else {
+        console.warn(" Vai trò không xác định:", data.role);
+        alert("Không xác định được loại tài khoản!");
+      }
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Đã xảy ra lỗi!");
+      console.error("Lỗi đăng nhập:", err);
+      setMessage({
+        text: err.response?.data?.message || "❌ Sai số điện thoại hoặc mật khẩu!",
+        type: "error",
+      });
     }
+
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login initiated");
-    // TODO: xử lý Google OAuth
-  };
 
   return (
     <>
       <button
-        onClick={handleGoogleLogin}
+        onClick={() => console.log("Google login initiated")}
         className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-white border-2 border-gray-200 rounded-xl mb-4"
       >
         <GoogleIcon />
@@ -96,7 +130,14 @@ const LoginForm = ({ onSwitch }) => {
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
-
+        {message.text && (
+          <div
+            className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
+              }`}
+          >
+            {message.text}
+          </div>
+        )}
         <button
           type="submit"
           className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"
@@ -116,6 +157,7 @@ const LoginForm = ({ onSwitch }) => {
   );
 };
 
+// --- RegisterForm giữ nguyên (chỉ sửa nhỏ nếu cần) ---
 const RegisterForm = ({ onSwitch }) => {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -125,6 +167,7 @@ const RegisterForm = ({ onSwitch }) => {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
 
   const handleInputChange = (e) =>
@@ -132,10 +175,12 @@ const RegisterForm = ({ onSwitch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu xác nhận không khớp!");
       return;
     }
+
     try {
       const body = {
         name: formData.fullName,
@@ -143,25 +188,73 @@ const RegisterForm = ({ onSwitch }) => {
         phone: formData.phone,
         password: formData.password,
       };
-      const response = await axios.post(
-        "http://localhost:8080/api/customer/register",
-        body
-      );
+      const response = await axios.post("http://localhost:8080/api/customer/register", body);
 
       if (response.status === 201 || response.status === 200) {
-        alert("Đăng ký thành công! Vui lòng đăng nhập.");
-        onSwitch();
+        const data = response.data;
+        setMessage({ text: "🎉 Đăng ký thành công! Đang đăng nhập...", type: "success" });
+
+        // Nếu backend trả token
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data));
+
+          const customerId =
+            data.refid || data.id || data.customerId || data.user?.id;
+          if (customerId) localStorage.setItem("customerId", customerId);
+
+          setTimeout(() => {
+            navigate("/");
+            window.location.reload();
+          }, 1500);
+          return;
+        }
+
+        // Nếu chưa có token → tự login lại
+        const loginResponse = await axios.post("http://localhost:8080/api/auth/login", {
+          phone: formData.phone,
+          password: formData.password,
+        });
+
+        const loginData = loginResponse.data;
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData));
+
+        const customerId =
+          loginData.refid || loginData.id || loginData.customerId || loginData.user?.id;
+        if (customerId) localStorage.setItem("customerId", customerId);
+
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1500);
       } else {
-        alert("Đăng ký thất bại. Vui lòng thử lại!");
+        setMessage({ text: "❌ Đăng ký thất bại. Vui lòng thử lại!", type: "error" });
       }
+
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Đã xảy ra lỗi!");
+      console.error("Lỗi đăng ký:", err);
+
+      // Kiểm tra nếu backend trả lỗi trùng số điện thoại
+      const errorMessage = err.response?.data?.message || "";
+      if (
+        errorMessage.toLowerCase().includes("phone") ||
+        errorMessage.toLowerCase().includes("exists") ||
+        errorMessage.toLowerCase().includes("duplicate")
+      ) {
+        setMessage({ text: "⚠️ Số điện thoại đã được sử dụng!", type: "error" });
+      } else {
+        setMessage({
+          text: "❌ Đăng ký thất bại! Vui lòng thử lại.",
+          type: "error",
+        });
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
       <div className="relative">
         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
@@ -233,7 +326,15 @@ const RegisterForm = ({ onSwitch }) => {
           required
         />
       </div>
-
+      {message.text && (
+        <div
+          className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
+            }`}
+        >
+          {message.text}
+        </div>
+      )}
+      
       <button
         type="submit"
         className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"
@@ -257,7 +358,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      {/* Nền trang trí */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl"></div>
@@ -265,7 +365,6 @@ const LoginPage = () => {
       </div>
 
       <div className="relative w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        {/* Bên trái - Thương hiệu */}
         <div className="hidden lg:block text-center lg:text-left space-y-8">
           <div className="flex items-center justify-center lg:justify-start space-x-3 mb-8">
             <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-3 rounded-2xl shadow-lg">
@@ -304,7 +403,6 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Bên phải - Form */}
         <div className="w-full max-w-md mx-auto">
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8">
             <div className="text-center mb-8">
@@ -319,9 +417,7 @@ const LoginPage = () => {
                 {isLogin ? "Đăng nhập" : "Đăng ký"}
               </h2>
               <p className="text-gray-600">
-                {isLogin
-                  ? "Chào mừng bạn quay trở lại!"
-                  : "Tạo tài khoản mới để bắt đầu"}
+                {isLogin ? "Chào mừng bạn quay trở lại!" : "Tạo tài khoản mới để bắt đầu"}
               </p>
             </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Search } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
 import axios from "axios";
 
 const CarManagement = () => {
@@ -27,7 +27,7 @@ const CarManagement = () => {
     fetchCars();
   }, []);
 
-  // ✅ Save (Create / Update)
+  // ✅ Update only
   const handleSave = async () => {
     if (!formData.owner || !formData.licensePlate || !formData.model) {
       alert("Vui lòng nhập đủ thông tin xe");
@@ -35,14 +35,10 @@ const CarManagement = () => {
     }
 
     try {
-      if (editingCar) {
-        await axios.put(
-          `http://localhost:8080/api/vehicle/update/${editingCar.id}`,
-          formData
-        );
-      } else {
-        await axios.post("http://localhost:8080/api/vehicle/create", formData);
-      }
+      await axios.put(
+        `http://localhost:8080/api/vehicle/update/${editingCar.id}`,
+        formData
+      );
 
       const res = await axios.get("http://localhost:8080/api/vehicle/getAll");
       setCars(res.data);
@@ -79,12 +75,6 @@ const CarManagement = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Quản lý Xe điện</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl shadow-md transition"
-        >
-          <Plus className="w-5 h-5 mr-2" /> Thêm xe
-        </button>
       </div>
 
       {/* Search */}
@@ -168,12 +158,12 @@ const CarManagement = () => {
         </table>
       </div>
 
-      {/* Modal Form */}
-      {showForm && (
+      {/* Modal Form (only for editing) */}
+      {showForm && editingCar && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white/95 backdrop-blur rounded-2xl p-6 w-96 shadow-2xl">
             <h3 className="text-xl font-bold mb-4 text-gray-800">
-              {editingCar ? "Sửa thông tin xe" : "Thêm xe mới"}
+              Sửa thông tin xe
             </h3>
 
             <div className="space-y-3">
