@@ -166,7 +166,7 @@ const TechnicianDashboard = () => {
                     className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                     <option value="all">Tất cả</option>
-                    <option value="confirm">Đã xác nhận</option>
+                    <option value="confirmed">Đã xác nhận</option>
                     <option value="in_progress">Đang thực hiện</option>
                     <option value="waiting_for_payment">Chờ thanh toán</option>
                     <option value="completed">Hoàn tất</option>
@@ -228,12 +228,25 @@ const TechnicianDashboard = () => {
                 })
                 .map(task => (
                     console.log("task status:", task.status, "for", task.maintenanceID),
-                    <div key={task.maintenanceID} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6">
-                        <div className="flex justify-between mb-3">
-                            <h3 className="font-semibold text-gray-900">Bảo trì #{task.maintenanceID}</h3>
+                    <div
+                        key={task.maintenanceID}
+                        className={`rounded-2xl p-5 mb-5 border-2 shadow-md hover:shadow-lg transition-all duration-300 ${task.status === "in-progress"
+                                ? "border-purple-500 bg-purple-50"
+                                : task.status === "waiting-for-payment"
+                                    ? "border-orange-500 bg-orange-50"
+                                    : task.status === "completed"
+                                        ? "border-green-500 bg-green-50"
+                                        : "border-gray-300 bg-white"
+                            }`}
+                    >
+                        {/* HEADER */}
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-900 text-lg">
+                                Bảo trì #{task.maintenanceID}
+                            </h3>
                             <span
-                                className={`px-2 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
-                                    ? "bg-yellow-100 text-yellow-700"
+                                className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
+                                    ? "bg-purple-100 text-purple-700"
                                     : task.status === "waiting-for-payment"
                                         ? "bg-orange-100 text-orange-700"
                                         : task.status === "completed"
@@ -241,69 +254,96 @@ const TechnicianDashboard = () => {
                                             : "bg-gray-100 text-gray-700"
                                     }`}
                             >
-                                {statusMapServerToUI[task.status?.toLowerCase()?.replace(/-/g, " ")] || task.status}
-
+                                {statusMapServerToUI[task.status?.toLowerCase()?.replace(/-/g, " ")] ||
+                                    task.status}
                             </span>
                         </div>
 
-                        <div className="space-y-2 text-sm text-gray-700 mb-4">
-                            <p><strong>Kỹ thuật viên:</strong> {task.empName}</p>
-                            <p><strong>Biển số xe:</strong> {task.licensePlate}</p>
-                            <p><strong>Mẫu xe:</strong> {task.model}</p>
-                            <p><strong>Chi phí:</strong> {task.cost ? task.cost + " triệu" : "Chưa xác định"}</p>
-                            <p>
-                                <strong>Thời gian bắt đầu:</strong>{" "}
-                                {task.startTime
-                                    ? new Date(task.startTime).toLocaleString("vi-VN")
-                                    : "Chưa bắt đầu"}
-                            </p>
-                            <p>
-                                <strong>Thời gian kết thúc:</strong>{" "}
-                                {task.endTime
-                                    ? new Date(task.endTime).toLocaleString("vi-VN")
-                                    : "Chưa hoàn tất"}
-                            </p>
-                            <p><strong>Ghi chú:</strong> {task.notes || "Không có"}</p>
+                        {/* INFO */}
+                        {/* INFO */}
+                        <div className="text-sm text-gray-700 mb-4 border border-gray-200 rounded-xl overflow-hidden">
+                            <div className="grid sm:grid-cols-2 divide-x divide-gray-200">
+                                {/* Cột trái */}
+                                <div className="p-3 divide-y divide-gray-200">
+                                    <div className="py-1">
+                                        <p className="font-medium">Kỹ thuật viên:</p>
+                                        <p>{task.empName}</p>
+                                    </div>
+                                    <div className="py-1">
+                                        <p className="font-medium">Mẫu xe:</p>
+                                        <p>{task.model}</p>
+                                    </div>
+                                    <div className="py-1">
+                                        <p className="font-medium">Bắt đầu:</p>
+                                        <p>
+                                            {task.startTime
+                                                ? new Date(task.startTime).toLocaleString("vi-VN")
+                                                : "Chưa bắt đầu"}
+                                        </p>
+                                    </div>
+                                    <div className="py-1">
+                                        <p className="font-medium">Ghi chú:</p>
+                                        <p>{task.notes || "Không có"}</p>
+                                    </div>
+                                </div>
+
+                                {/* Cột phải */}
+                                <div className="p-3 divide-y divide-gray-200">
+                                    <div className="py-1">
+                                        <p className="font-medium">Biển số xe:</p>
+                                        <p>{task.licensePlate}</p>
+                                    </div>
+                                    <div className="py-1">
+                                        <p className="font-medium">Chi phí:</p>
+                                        <p>{task.cost ? `${task.cost} triệu` : "Chưa xác định"}</p>
+                                    </div>
+                                    <div className="py-1">
+                                        <p className="font-medium">Kết thúc:</p>
+                                        <p>
+                                            {task.endTime
+                                                ? new Date(task.endTime).toLocaleString("vi-VN")
+                                                : "Chưa hoàn tất"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* ✅ Nút thao tác */}
-                        <div className="mt-4 flex gap-2">
-                            {/* Khi chưa bắt đầu (pending hoặc confirmed) → hiện Bắt đầu */}
-                            {["pending", "confirmed",].includes(task.status) && (
+
+                        {/* ACTION BUTTONS */}
+                        <div className="mt-3 flex gap-2">
+                            {["pending", "confirmed"].includes(task.status) && (
                                 <button
                                     onClick={() => handleStart(task.maintenanceID)}
-                                    className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
                                 >
                                     Bắt đầu
                                 </button>
                             )}
 
-                            {/* Khi đang thực hiện → hiện Hoàn tất */}
                             {task.status === "in-progress" && (
                                 <button
                                     onClick={() => handleComplete(task.maintenanceID)}
-                                    className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
+                                    className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
                                 >
                                     Hoàn tất
                                 </button>
                             )}
 
-                            {/* Khi chờ thanh toán → hiện trạng thái */}
                             {task.status === "waiting-for-payment" && (
-                                <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg">
+                                <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg text-sm">
                                     Chờ thanh toán
                                 </span>
                             )}
 
-                            {/* Khi hoàn tất → hiện trạng thái */}
                             {task.status === "completed" && (
-                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg">
+                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg text-sm">
                                     Hoàn tất
                                 </span>
                             )}
                         </div>
-
                     </div>
+
                 ))}
 
             {/* NOTE MODAL */}

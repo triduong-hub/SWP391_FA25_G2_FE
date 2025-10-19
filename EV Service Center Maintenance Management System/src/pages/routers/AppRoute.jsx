@@ -33,6 +33,9 @@ import Profile from "../home/users/Profile.jsx";
 // Trang đặt lịch (Booking Page)
 import BookingPage from "../booking/BookingPage.jsx";
 
+// Trang linh kiện
+import Parts from "../home/components/Parts.jsx"
+
 function AppRoute() {
   return (
     // ✅ Toàn bộ Route được bao trong LanguageProvider
@@ -40,17 +43,17 @@ function AppRoute() {
       <Routes>
         {/* Trang chủ */}
         <Route path="/" element={<HomePage />} />
-        
+
         {/* Trang cá nhân */}
         <Route path="/profile" element={<Profile />} />
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
-        
-         {/* Technician */}
+
+        {/* Technician */}
         <Route path="/techniciandash" element={<TechnicianDashboard />} />
 
-         {/* Staff */}
+        {/* Staff */}
         <Route path="/staffdash" element={<StaffDashboard />} />
 
         {/* Trang quên mật khẩu */}
@@ -58,6 +61,10 @@ function AppRoute() {
 
         {/* Trang đặt lịch bảo dưỡng */}
         <Route path="/booking" element={<BookingPage />} />
+
+        {/* Trang linh kiện */}
+        <Route path="/components" element={<Parts />} />
+
 
         {/* Các route trong Admin */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -68,7 +75,7 @@ function AppRoute() {
           <Route path="schedule" element={<ScheduleManagement />} />
           <Route path="revenue" element={<RevenueManagement />} />
           <Route path="settings" element={<SystemManagement />} />
-          <Route path="technician" element={<TechnicianManagement/>} />
+          <Route path="technician" element={<TechnicianManagement />} />
           {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
 
         </Route>
