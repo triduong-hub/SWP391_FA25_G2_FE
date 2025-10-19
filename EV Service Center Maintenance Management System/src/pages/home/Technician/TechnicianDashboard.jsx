@@ -12,6 +12,8 @@ const TechnicianDashboard = () => {
     const [noteModal, setNoteModal] = useState(false);
     const [detailModal, setDetailModal] = useState(false);
     const [newNote, setNewNote] = useState('');
+    const [filterStatus, setFilterStatus] = useState("all");
+
 
 
     useEffect(() => {
@@ -74,7 +76,7 @@ const TechnicianDashboard = () => {
                     t.maintenanceID === maintenanceID ? { ...t, status: "in-progress" } : t
                 )
             );
-            alert(`✅ Đơn ${maintenanceID} đã chuyển sang "Đang thực hiện"`);
+            // alert(`✅ Đơn ${maintenanceID} đã chuyển sang "Đang thực hiện"`);
         } catch (err) {
             console.error("❌ Lỗi khi bắt đầu:", err);
             alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
@@ -91,7 +93,7 @@ const TechnicianDashboard = () => {
                     t.maintenanceID === maintenanceID ? { ...t, status: "waiting-for-payment" } : t
                 )
             );
-            alert(`🏁 Đơn ${maintenanceID} đã chuyển sang "Chờ thanh toán"`);
+            // alert(`🏁 Đơn ${maintenanceID} đã chuyển sang "Chờ thanh toán"`);
         } catch (err) {
             console.error("❌ Lỗi khi hoàn tất:", err);
             alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
@@ -114,9 +116,31 @@ const TechnicianDashboard = () => {
     // ---------------- STATS ----------------
     const today = new Date().toISOString().split('T')[0];
     const todayTasks = tasks.filter(t => t.date === today);
-    const assigned = tasks.filter(t => t.status === 'assigned');
-    const inProgress = tasks.filter(t => t.status === 'in_progress');
-    const completed = tasks.filter(t => t.status === 'completed');
+
+    // Gom nhóm số lượng theo trạng thái
+    // Gom nhóm số lượng theo trạng thái (chuẩn hoá về snake_case)
+    const statusCounts = tasks.reduce((acc, t) => {
+        const raw = t.status || "unknown";
+        const status = raw
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, "_")  // chuyển mọi ký tự đặc biệt thành _
+            .replace(/^_+|_+$/g, "");     // bỏ _ thừa ở đầu/cuối
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {});
+
+
+    // Cấu hình icon + màu cho từng trạng thái
+    const statusConfig = {
+        pending: { icon: Clock, color: "gray", label: "Chờ xác nhận" },
+        confirmed: { icon: Calendar, color: "blue", label: "Đã xác nhận" },
+        assigned: { icon: Clock, color: "yellow", label: "Chờ xử lý" },
+        in_progress: { icon: Wrench, color: "purple", label: "Đang thực hiện" },
+        waiting_for_payment: { icon: FileText, color: "orange", label: "Chờ thanh toán" },
+        completed: { icon: CheckCircle, color: "green", label: "Hoàn tất" },
+    };
+
 
     // ---------------- RENDER ----------------
     return (
@@ -133,19 +157,76 @@ const TechnicianDashboard = () => {
                 </div>
             </div>
 
+            {/* FILTER */}
+            <div className="mb-6 flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Lọc theo trạng thái:</label>
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="all">Tất cả</option>
+                    <option value="confirm">Đã xác nhận</option>
+                    <option value="in_progress">Đang thực hiện</option>
+                    <option value="waiting_for_payment">Chờ thanh toán</option>
+                    <option value="completed">Hoàn tất</option>
+                </select>
+            </div>
+
             {/* STATS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <StatCard icon={Calendar} color="blue" label="Công việc hôm nay" value={todayTasks.length} />
-                <StatCard icon={Clock} color="yellow" label="Chờ xử lý" value={assigned.length} />
-                <StatCard icon={Wrench} color="purple" label="Đang thực hiện" value={inProgress.length} />
-                <StatCard icon={CheckCircle} color="green" label="Hoàn tất" value={completed.length} />
+                {/* Công việc hôm nay (cố định) */}
+                <StatCard
+                    icon={Calendar}
+                    color="blue"
+                    label="Tổng đơn (đã lọc)"
+                    value={
+                        normalizedTasks.filter(task => {
+                            if (filterStatus === "all") return true;
+                            const normalized = (task.status || "")
+                                .toLowerCase()
+                                .replace(/[^a-z0-9]+/g, "_")
+                                .replace(/^_+|_+$/g, "");
+                            return normalized === filterStatus;
+                        }).length
+                    }
+                />
+
+                {/* Tự động hiển thị các trạng thái thật từ dữ liệu */}
+                {/* Luôn hiển thị đủ các trạng thái chính */}
+                {["confirmed", "in_progress", "waiting_for_payment", "completed"].map((status) => {
+                    const config = statusConfig[status];
+                    const Icon = config.icon;
+                    const count = statusCounts[status] || 0;
+                    return (
+                        <StatCard
+                            key={status}
+                            icon={Icon}
+                            color={config.color}
+                            label={config.label}
+                            value={count}
+                        />
+                    );
+                })}
+
             </div>
 
 
-            return (
-            <>
-                {/* TASK LIST */}
-                {normalizedTasks.map(task => (
+
+
+            {/* TASK LIST */}
+            {normalizedTasks
+                .filter(task => {
+                    if (filterStatus === "all") return true;
+
+                    // chuẩn hoá status trước khi so sánh
+                    const normalized = (task.status || "")
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "_")
+                        .replace(/^_+|_+$/g, "");
+                    return normalized === filterStatus;
+                })
+                .map(task => (
                     console.log("task status:", task.status, "for", task.maintenanceID),
                     <div key={task.maintenanceID} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6">
                         <div className="flex justify-between mb-3">
@@ -160,7 +241,8 @@ const TechnicianDashboard = () => {
                                             : "bg-gray-100 text-gray-700"
                                     }`}
                             >
-                                {statusMapServerToUI[task.status] || task.status}
+                                {statusMapServerToUI[task.status?.toLowerCase()?.replace(/-/g, " ")] || task.status}
+
                             </span>
                         </div>
 
@@ -187,7 +269,7 @@ const TechnicianDashboard = () => {
                         {/* ✅ Nút thao tác */}
                         <div className="mt-4 flex gap-2">
                             {/* Khi chưa bắt đầu (pending hoặc confirmed) → hiện Bắt đầu */}
-                            {["pending", "confirmed", "in-progress"].includes(task.status) && (
+                            {["pending", "confirmed",].includes(task.status) && (
                                 <button
                                     onClick={() => handleStart(task.maintenanceID)}
                                     className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
@@ -223,8 +305,6 @@ const TechnicianDashboard = () => {
 
                     </div>
                 ))}
-            </>
-            );
 
             {/* NOTE MODAL */}
             {noteModal && selectedTask && (

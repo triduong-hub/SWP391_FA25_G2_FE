@@ -1,11 +1,12 @@
 //  Quy đổi trạng thái từ server -> tiếng Việt để hiển thị
 export const statusMapServerToUI = {
-  "confirmed": "Đã xác nhận",
-  "in-progress": "Đang thực hiện",
-  "waiting-for-payment": "Chờ thanh toán",
-  "completed": "Hoàn tất",
   "pending": "Chờ xác nhận",
+  "confirmed": "Đã xác nhận",
+  "in progress": "Đang thực hiện",
+  "waiting for payment": "Chờ thanh toán",
+  "completed": "Hoàn tất",
 };
+
 
 //  Quy đổi hành động trên UI -> trạng thái server
 export const statusMapUIToServer = {

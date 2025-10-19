@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../../api";
+import { statusMapServerToUI } from "../../../utils/statusHelpers";
 import {
   Search,
   UserRoundPlus,
@@ -19,53 +20,49 @@ const StaffDashboard = () => {
   const [selectedTech, setSelectedTech] = useState("");
   const [technicians, setTechnicians] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("Tất cả trạng thái");
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
-  const fetchBookings = async () => {
-    try {
-      const res = await api.get("/bookings/all");
-      console.log("Booking API response:", res.data);
+    const fetchBookings = async () => {
+      try {
+        const res = await api.get("/bookings/all");
+        console.log("Booking API response:", res.data);
 
-      const bookings = res.data.bookings || [];
+        const bookings = res.data.bookings || [];
+        console.log(" Dữ liệu trạng thái thô từ server:");
+        bookings.forEach((b) => console.log("orderId:", b.orderId, "status:", b.status));
 
-      setOrders(
-        bookings.map((b) => ({
-          id: b.orderId,
-          customer: b.customerName || "Chưa có tên",
-          phone: b.customerPhone || "—",
-          vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
-          service:
-            Array.isArray(b.serviceNames) && b.serviceNames.length > 0
-              ? b.serviceNames.join(", ")
-              : b.serviceType || "—",
-          branch: b.serviceCenterName || "—",
-          technician: b.technicianName || null,
-          // ⚙️ Thêm dòng xử lý này để nhận đúng trạng thái "Đang thực hiện"
-          status:
-            b.status === "Pending"
-              ? "Chờ xác nhận"
-              : b.status === "Confirmed"
-              ? "Đã xác nhận"
-              : b.status === "InProgress" || b.status === "in-progress"
-              ? "Đang thực hiện"
-              : b.status === "WaitingForPayment" || b.status === "waiting-for-payment"
-              ? "Chờ thanh toán"
-              : b.status === "Completed" || b.status === "completed"
-              ? "Hoàn thành"
-              : b.status,
-          price: b.totalCost ? `${b.totalCost.toLocaleString()} đ` : "—",
-        }))
-      );
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách booking:", err);
-    }
-  };
+        setOrders(
+          bookings.map((b) => ({
+            id: b.orderId,
+            customer: b.customerName || "Chưa có tên",
+            phone: b.customerPhone || "—",
+            vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
+            service:
+              Array.isArray(b.serviceNames) && b.serviceNames.length > 0
+                ? b.serviceNames.join(", ")
+                : b.serviceType || "—",
+            branch: b.serviceCenterName || "—",
+            technician: b.technicianName || null,
+            // ⚙️ Thêm dòng xử lý này để nhận đúng trạng thái "Đang thực hiện"
+            status: statusMapServerToUI[b.status?.trim()?.toLowerCase()] || "Không rõ",
 
-  fetchBookings();
 
-  //  Thêm dòng này để tự động refresh mỗi 10 giây
-  const interval = setInterval(fetchBookings, 10000);
-  return () => clearInterval(interval);
-}, []);
+            price: b.totalCost ? `${b.totalCost.toLocaleString()} đ` : "—",
+          }))
+        );
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách booking:", err);
+      }
+    };
+
+    fetchBookings();
+
+    //  Thêm dòng này để tự động refresh mỗi 10 giây
+    const interval = setInterval(fetchBookings, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchTechnicians = async () => {
@@ -220,16 +217,25 @@ const StaffDashboard = () => {
           <input
             type="text"
             placeholder="Tìm kiếm đơn hàng..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 pr-3 py-2 w-full border rounded-lg text-sm focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <select className="border rounded-lg px-3 py-2 text-sm">
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm"
+        >
           <option>Tất cả trạng thái</option>
           <option>Chờ xác nhận</option>
           <option>Đã xác nhận</option>
+          <option>Đang thực hiện</option>
+          <option>Chờ thanh toán</option>
           <option>Hoàn thành</option>
         </select>
       </div>
+
 
       {/* Bảng danh sách đơn hàng */}
       <div className="bg-white shadow rounded-xl overflow-hidden">
@@ -246,21 +252,33 @@ const StaffDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((o) => (
-              <tr key={o.id} className="border-t hover:bg-gray-50">
-                <td className="py-3 px-4 font-medium">{o.id}</td>
-                <td className="py-3 px-4">
-                  <div>{o.customer}</div>
-                  <div className="text-gray-500 text-xs">{o.phone}</div>
-                </td>
-                <td className="py-3 px-4">
-                  <div>{o.vehicle}</div>
-                  <div className="text-gray-500 text-xs">{o.service}</div>
-                </td>
-                <td className="py-3 px-4">{o.branch}</td>
-                <td className="py-3 px-4">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
+            {orders
+              .filter((o) => {
+                // lọc theo trạng thái
+                const matchStatus =
+                  filterStatus === "Tất cả trạng thái" || o.status === filterStatus;
+                // lọc theo từ khóa tìm kiếm
+                const matchSearch =
+                  o.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  o.vehicle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  o.id?.toString().includes(searchTerm);
+                return matchStatus && matchSearch;
+              })
+              .map((o) => (
+                <tr key={o.id} className="border-t hover:bg-gray-50">
+                  <td className="py-3 px-4 font-medium">{o.id}</td>
+                  <td className="py-3 px-4">
+                    <div>{o.customer}</div>
+                    <div className="text-gray-500 text-xs">{o.phone}</div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div>{o.vehicle}</div>
+                    <div className="text-gray-500 text-xs">{o.service}</div>
+                  </td>
+                  <td className="py-3 px-4">{o.branch}</td>
+                  <td className="py-3 px-4">
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
                         ? "bg-yellow-100 text-yellow-700"
                         : o.status === "Đã xác nhận"
                           ? "bg-blue-100 text-blue-700"
@@ -271,46 +289,45 @@ const StaffDashboard = () => {
                               : o.status === "Hoàn thành"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-gray-100 text-gray-700"
-                      }`}
-                  >
-                    {o.status}
-                  </span>
-
-                </td>
-                <td className="py-3 px-4 text-gray-700">
-                  {o.technician
-                    ? o.technician
-                    : o.status === "Đã xác nhận"
-                      ? "Đã phân công"
-                      : "Chưa phân công"}
-                </td>
-
-                <td className="py-3 px-4 text-center space-x-2">
-                  <button
-                    onClick={() => handleAssignClick(o)}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Phân công kỹ thuật viên"
-                  >
-                    <UserRoundPlus size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleConfirmOrder(o.id)}
-                    className="text-green-600 hover:text-green-800"
-                    title="Xác nhận đơn"
-                  >
-                    <Check size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteOrder(o.id)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Xóa đơn"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                        }`}
+                    >
+                      {o.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-700">
+                    {o.technician
+                      ? o.technician
+                      : o.status === "Đã xác nhận"
+                        ? "Đã phân công"
+                        : "Chưa phân công"}
+                  </td>
+                  <td className="py-3 px-4 text-center space-x-2">
+                    <button
+                      onClick={() => handleAssignClick(o)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Phân công kỹ thuật viên"
+                    >
+                      <UserRoundPlus size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleConfirmOrder(o.id)}
+                      className="text-green-600 hover:text-green-800"
+                      title="Xác nhận đơn"
+                    >
+                      <Check size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteOrder(o.id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Xóa đơn"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
+
         </table>
       </div>
 
