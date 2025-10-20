@@ -18,7 +18,11 @@ import {
   CartesianGrid,
 } from "recharts";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import API from "../../../../api"; // ✅ centralized API.js
+=======
+import API from "../../../../api";
+>>>>>>> Stashed changes
 =======
 import API from "../../../../api";
 >>>>>>> Stashed changes
@@ -35,11 +39,19 @@ const HomeAdmin = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const [showProfileMenu, setShowProfileMenu] = useState(false); // ✅ renamed from showNotifications
   const [admin, setAdmin] = useState(null); // ✅ Added
   const notifRef = useRef();
   const profileRef = useRef(); // ✅ Added
 
+=======
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [admin, setAdmin] = useState(null);
+
+  const profileRef = useRef();
+
+>>>>>>> Stashed changes
 =======
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [admin, setAdmin] = useState(null);
@@ -53,8 +65,14 @@ const HomeAdmin = () => {
     const token = localStorage.getItem("token");
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const fetchAdmin = async () => {
       if (!adminId || !token) return;
+=======
+    if (!adminId || !token) return;
+
+    const fetchAdmin = async () => {
+>>>>>>> Stashed changes
 =======
     if (!adminId || !token) return;
 
@@ -65,7 +83,12 @@ const HomeAdmin = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         setAdmin(res.data);
+=======
+        // ✅ Extract only the "data" object
+        setAdmin(res.data.data);
+>>>>>>> Stashed changes
 =======
         // ✅ Extract only the "data" object
         setAdmin(res.data.data);
@@ -79,7 +102,11 @@ const HomeAdmin = () => {
   }, []);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Load dashboard data
+=======
+  // ✅ Load dashboard data
+>>>>>>> Stashed changes
 =======
   // ✅ Load dashboard data
 >>>>>>> Stashed changes
@@ -106,7 +133,11 @@ const HomeAdmin = () => {
   }, []);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Click outside to close profile menu
+=======
+  // ✅ Click outside to close profile menu
+>>>>>>> Stashed changes
 =======
   // ✅ Click outside to close profile menu
 >>>>>>> Stashed changes
@@ -121,7 +152,11 @@ const HomeAdmin = () => {
   }, []);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Mock chart data
+=======
+  // ✅ Mock chart data
+>>>>>>> Stashed changes
 =======
   // ✅ Mock chart data
 >>>>>>> Stashed changes
