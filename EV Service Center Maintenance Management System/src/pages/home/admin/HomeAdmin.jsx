@@ -17,7 +17,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+<<<<<<< Updated upstream
 import API from "../../../../api"; // ✅ centralized API.js
+=======
+import API from "../../../../api";
+>>>>>>> Stashed changes
 
 const HomeAdmin = () => {
   const navigate = useNavigate();
@@ -30,23 +34,42 @@ const HomeAdmin = () => {
   });
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+<<<<<<< Updated upstream
   const [showProfileMenu, setShowProfileMenu] = useState(false); // ✅ renamed from showNotifications
   const [admin, setAdmin] = useState(null); // ✅ Added
   const notifRef = useRef();
   const profileRef = useRef(); // ✅ Added
 
+=======
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [admin, setAdmin] = useState(null);
+
+  const profileRef = useRef();
+
+>>>>>>> Stashed changes
   // ✅ Load Admin info
   useEffect(() => {
     const adminId = localStorage.getItem("adminId");
     const token = localStorage.getItem("token");
 
+<<<<<<< Updated upstream
     const fetchAdmin = async () => {
       if (!adminId || !token) return;
+=======
+    if (!adminId || !token) return;
+
+    const fetchAdmin = async () => {
+>>>>>>> Stashed changes
       try {
         const res = await API.get(`/admin/getby/${adminId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+<<<<<<< Updated upstream
         setAdmin(res.data);
+=======
+        // ✅ Extract only the "data" object
+        setAdmin(res.data.data);
+>>>>>>> Stashed changes
       } catch (error) {
         console.error("❌ Lỗi khi tải thông tin Admin:", error);
       }
@@ -55,7 +78,11 @@ const HomeAdmin = () => {
     fetchAdmin();
   }, []);
 
+<<<<<<< Updated upstream
   // Load dashboard data
+=======
+  // ✅ Load dashboard data
+>>>>>>> Stashed changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -78,7 +105,11 @@ const HomeAdmin = () => {
     fetchData();
   }, []);
 
+<<<<<<< Updated upstream
   // Click outside to close profile menu
+=======
+  // ✅ Click outside to close profile menu
+>>>>>>> Stashed changes
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -89,7 +120,11 @@ const HomeAdmin = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+<<<<<<< Updated upstream
   // Mock chart data
+=======
+  // ✅ Mock chart data
+>>>>>>> Stashed changes
   const revenueData = [
     { month: "T1", revenue: 4000 },
     { month: "T2", revenue: 3500 },
