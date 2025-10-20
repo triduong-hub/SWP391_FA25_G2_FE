@@ -19,6 +19,7 @@ import AdminLayout from "../home/admin/AdminLayout.jsx";
 
 // Trang con của Admin
 import HomeAdmin from "../home/admin/HomeAdmin.jsx";
+import ProfileAdmin from "../home/admin/ProfileAdmin.jsx";
 import UserManagement from "../home/UserManagement.jsx";
 import HomeStaff from "../home/HomeStaff.jsx";
 import ScheduleManagement from "../home/ScheduleManagement.jsx";
@@ -33,9 +34,6 @@ import Profile from "../home/users/Profile.jsx";
 // Trang đặt lịch (Booking Page)
 import BookingPage from "../booking/BookingPage.jsx";
 
-// Trang linh kiện
-import Parts from "../home/components/Parts.jsx"
-
 function AppRoute() {
   return (
     // ✅ Toàn bộ Route được bao trong LanguageProvider
@@ -43,17 +41,17 @@ function AppRoute() {
       <Routes>
         {/* Trang chủ */}
         <Route path="/" element={<HomePage />} />
-
+        
         {/* Trang cá nhân */}
         <Route path="/profile" element={<Profile />} />
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Technician */}
+        
+         {/* Technician */}
         <Route path="/techniciandash" element={<TechnicianDashboard />} />
 
-        {/* Staff */}
+         {/* Staff */}
         <Route path="/staffdash" element={<StaffDashboard />} />
 
         {/* Trang quên mật khẩu */}
@@ -62,12 +60,9 @@ function AppRoute() {
         {/* Trang đặt lịch bảo dưỡng */}
         <Route path="/booking" element={<BookingPage />} />
 
-        {/* Trang linh kiện */}
-        <Route path="/components" element={<Parts />} />
-
-
         {/* Các route trong Admin */}
         <Route path="/admin" element={<AdminLayout />}>
+          <Route path="profile" element={<ProfileAdmin />} />
           <Route path="home" element={<HomeAdmin />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="staff" element={<HomeStaff />} />
@@ -75,7 +70,7 @@ function AppRoute() {
           <Route path="schedule" element={<ScheduleManagement />} />
           <Route path="revenue" element={<RevenueManagement />} />
           <Route path="settings" element={<SystemManagement />} />
-          <Route path="technician" element={<TechnicianManagement />} />
+          <Route path="technician" element={<TechnicianManagement/>} />
           {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
 
         </Route>
