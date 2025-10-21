@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Target, ArrowLeft, } from "lucide-react";
 import API from "../../../../api";
+import { statusMapServerToUI } from "../../../utils/statusHelpers";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Car,
@@ -313,7 +314,10 @@ const HomePage = () => {
                       Lịch hẹn: {order.appointmentDate} – {order.appointmentTime?.slice(0, 5)}
                     </p>
 
-                    <p className="text-gray-600">Trạng thái: {order.status}</p>
+                    <p className="text-gray-600">
+                      Trạng thái:{" "}
+                      {statusMapServerToUI[order.status?.toLowerCase()] || order.status}
+                    </p>
 
                     <p className="text-gray-600">
                       Dịch vụ:{" "}
@@ -330,7 +334,21 @@ const HomePage = () => {
                     <p className="text-gray-600">
                       Trung tâm: {order.serviceCenterName || "Chưa xác định"}
                     </p>
+
+                    {/* 👉 Nút thanh toán ở cuối card */}
+                    {order.status?.toLowerCase() === "waiting for payment" && (
+                      <div className="mt-5 flex justify-end">
+                        <button
+                          onClick={() => navigate(`/payment/${order.orderId}`)}
+                          className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700 transition"
+                        >
+                          💳 Thanh toán ngay
+                        </button>
+
+                      </div>
+                    )}
                   </div>
+
                 ))}
 
               </div>

@@ -36,6 +36,9 @@ import BookingPage from "../booking/BookingPage.jsx";
 // Trang linh kiện
 import Parts from "../home/components/Parts.jsx"
 
+// Trang Thanh Toán
+import PaymentPage from "../payment/PaymentPage.jsx";
+
 function AppRoute() {
   return (
     // ✅ Toàn bộ Route được bao trong LanguageProvider
@@ -64,6 +67,9 @@ function AppRoute() {
 
         {/* Trang linh kiện */}
         <Route path="/components" element={<Parts />} />
+
+        {/* Trang thanh toán */}
+        <Route path="/payment/:orderId" element={<PaymentPage />} />
 
 
         {/* Các route trong Admin */}

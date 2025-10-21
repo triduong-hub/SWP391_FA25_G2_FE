@@ -8,7 +8,7 @@ import AddVehicleForm from './AddVehicleForm.jsx';
 import ServiceSelection from './ServiceSelection.jsx';
 import DateTimeSelection from './DateTimeSelection.jsx';
 import BookingConfirmation from './BookingConfirmation.jsx';
-import PaymentForm from './PaymentForm.jsx';
+// import PaymentForm from './PaymentForm.jsx';
 import API from '../../../api.js';
 
 const BookingPage = ({ onBack }) => {
@@ -199,14 +199,14 @@ const BookingPage = ({ onBack }) => {
                 />
               )}
 
-              {currentStep === 6 && (
+              {/* {currentStep === 6 && (
                 <PaymentForm
                   bookingData={bookingData}
                   setBookingData={setBookingData}
                   onBack={() => setCurrentStep(5)}
                   onComplete={onBack}
                 />
-              )}
+              )} */}
             </>
           )}
         </div>
