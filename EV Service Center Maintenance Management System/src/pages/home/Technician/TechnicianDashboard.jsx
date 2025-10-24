@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import api from '../../../../api'; // ✅ để bạn nối API thật
 import { statusMapServerToUI, statusMapUIToServer } from "../../../utils/statusHelpers";
+import { useNavigate } from "react-router-dom";
+
 
 const TechnicianDashboard = () => {
     const [tasks, setTasks] = useState([]);
@@ -13,6 +15,7 @@ const TechnicianDashboard = () => {
     const [detailModal, setDetailModal] = useState(false);
     const [newNote, setNewNote] = useState('');
     const [filterStatus, setFilterStatus] = useState("all");
+    const navigate = useNavigate();
 
 
 
@@ -30,9 +33,10 @@ const TechnicianDashboard = () => {
         fetchTasks();
 
         // 🔁 Cập nhật tự động mỗi 10 giây
-        const interval = setInterval(fetchTasks, 10000);
-        return () => clearInterval(interval);
-    }, []);
+        // const interval = setInterval(fetchTasks, 10000);
+        // return () => clearInterval(interval);
+    }
+        , []);
 
     // ---------------- UTILS ----------------
     const getStatusBadge = (status) => {
@@ -231,12 +235,12 @@ const TechnicianDashboard = () => {
                     <div
                         key={task.maintenanceID}
                         className={`rounded-2xl p-5 mb-5 border-2 shadow-md hover:shadow-lg transition-all duration-300 ${task.status === "in-progress"
-                                ? "border-purple-500 bg-purple-50"
-                                : task.status === "waiting-for-payment"
-                                    ? "border-orange-500 bg-orange-50"
-                                    : task.status === "completed"
-                                        ? "border-green-500 bg-green-50"
-                                        : "border-gray-300 bg-white"
+                            ? "border-purple-500 bg-purple-50"
+                            : task.status === "waiting-for-payment"
+                                ? "border-orange-500 bg-orange-50"
+                                : task.status === "completed"
+                                    ? "border-green-500 bg-green-50"
+                                    : "border-gray-300 bg-white"
                             }`}
                     >
                         {/* HEADER */}
@@ -311,7 +315,7 @@ const TechnicianDashboard = () => {
 
 
                         {/* ACTION BUTTONS */}
-                        <div className="mt-3 flex gap-2">
+                        {/* <div className="mt-3 flex gap-2">
                             {["pending", "confirmed"].includes(task.status) && (
                                 <button
                                     onClick={() => handleStart(task.maintenanceID)}
@@ -341,7 +345,75 @@ const TechnicianDashboard = () => {
                                     Hoàn tất
                                 </span>
                             )}
+                        </div> */}
+                        {/* ACTION BUTTONS */}
+                        <div className="mt-3 flex gap-2">
+                            {/* ✅ Khi đã xác nhận (staff phân công xong) */}
+                            {task.status === "confirmed" && (
+                                <button
+                                    onClick={() => handleStart(task.maintenanceID)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                >
+                                    Bắt đầu
+                                </button>
+                            )}
+
+                            {/* ✅ Khi đang thực hiện */}
+                            {task.status === "in-progress" && (
+                                <>
+                                    <button
+                                        onClick={() => navigate(`/technician/quotation/${task.maintenanceID}`)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                    >
+                                        🧾 Tạo báo giá
+                                    </button>
+                                </>
+                            )}
+
+                            {/* ✅ Khi đã báo giá xong, chờ khách xác nhận */}
+                            {task.status === "awaiting_customer_approval" && (
+                                <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                                    <span className="text-yellow-700 font-medium">
+                                         Chờ khách xác nhận báo giá
+                                    </span>
+                                    <button
+                                        onClick={() => navigate(`/quotation/${task.maintenanceID}`)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                    >
+                                         Xem báo giá
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* ✅ Khi khách đã xác nhận báo giá → kỹ thuật viên thực hiện lại */}
+                            {task.status === "approved" && (
+                                <button
+                                    onClick={() => handleComplete(task.maintenanceID)}
+                                    className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                >
+                                    Hoàn tất
+                                </button>
+                            )}
+
+                            {/* ✅ Khi chờ thanh toán */}
+                            {task.status === "waiting-for-payment" && (
+                                <>
+                                    <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg text-sm">
+                                        Chờ thanh toán
+                                    </span>
+
+                                </>
+                            )}
+
+                            {/* ✅ Khi hoàn tất */}
+                            {task.status === "completed" && (
+                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg text-sm">
+                                    Hoàn thành
+                                </span>
+                            )}
                         </div>
+
+
                     </div>
 
                 ))}

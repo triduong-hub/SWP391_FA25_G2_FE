@@ -17,6 +17,10 @@ import StaffDashboard from "../home/staff/StaffDashboard.jsx";
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
 
+// Xem báo giá (Customer)
+import CustomerQuotationDetailPage from "../home/users/CustomerQuotationPage.jsx";
+
+
 // Trang con của Admin
 import HomeAdmin from "../home/admin/HomeAdmin.jsx";
 import UserManagement from "../home/UserManagement.jsx";
@@ -38,6 +42,12 @@ import Parts from "../home/components/Parts.jsx"
 
 // Trang Thanh Toán
 import PaymentPage from "../payment/PaymentPage.jsx";
+
+//Trang báo giá
+import QuotationPage from "../home/Technician/QuotationPage.jsx";
+
+// Xem báo giá
+import QuotationDetailPage from "../home/Technician/QuotationDetailPage.jsx";
 
 function AppRoute() {
   return (
@@ -70,6 +80,17 @@ function AppRoute() {
 
         {/* Trang thanh toán */}
         <Route path="/payment/:orderId" element={<PaymentPage />} />
+
+        {/* Trang báo giá */}
+        <Route path="/technician/quotation/:jobId" element={<QuotationPage />} />
+
+        {/* Trang xem báo giá */}
+        <Route path="/quotation/:quotationId" element={<QuotationDetailPage />} />
+
+        {/* Trang xem báo giá customer */}
+        <Route path="/customer/quotation/:orderId" element={<CustomerQuotationDetailPage />} />
+
+
 
 
         {/* Các route trong Admin */}

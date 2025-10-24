@@ -301,7 +301,10 @@ const HomePage = () => {
             {bookings.length > 0 ? (
               <div className="grid md:grid-cols-2 gap-6">
                 {bookings.map((order) => (
-                  <div key={order.orderId} className="bg-white p-6 rounded-xl shadow-md">
+                  <div
+                    key={order.orderId}
+                    className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition"
+                  >
                     <h3 className="text-xl font-semibold text-blue-700">
                       Mã đơn: #{order.orderId}
                     </h3>
@@ -335,28 +338,37 @@ const HomePage = () => {
                       Trung tâm: {order.serviceCenterName || "Chưa xác định"}
                     </p>
 
-                    {/* 👉 Nút thanh toán ở cuối card */}
-                    {order.status?.toLowerCase() === "waiting for payment" && (
-                      <div className="mt-5 flex justify-end">
+                    {/* 👉 Nút hành động ở cuối card */}
+                    <div className="mt-5 flex justify-end space-x-3">
+                      {/* 🟡 Nếu chờ khách xác nhận báo giá */}
+                      {order.status?.toLowerCase() === "awaiting_customer_approval" && (
+                        <button
+                          onClick={() => navigate(`/customer/quotation/${order.orderId}`)}
+                          className="bg-yellow-500 text-white px-5 py-2 rounded-md hover:bg-yellow-600 transition"
+                        >
+                          📄 Xem báo giá
+                        </button>
+                      )}
+
+                      {/* 💳 Nếu đang chờ thanh toán */}
+                      {order.status?.toLowerCase() === "waiting for payment" && (
                         <button
                           onClick={() => navigate(`/payment/${order.orderId}`)}
                           className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700 transition"
                         >
                           💳 Thanh toán ngay
                         </button>
-
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-
                 ))}
-
               </div>
             ) : (
               <p className="text-center text-gray-500">Bạn chưa có đơn đặt lịch nào.</p>
             )}
           </div>
         </section>
+
 
 
 
