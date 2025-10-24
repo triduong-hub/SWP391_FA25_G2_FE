@@ -25,65 +25,67 @@ const LoginForm = ({ onSwitch }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage({ text: "", type: "" });
-    try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", {
-        phone: formData.phone,
-        password: formData.password,
-      });
+  e.preventDefault();
+  setMessage({ text: "", type: "" });
 
-      const data = response.data;
-      console.log(" Login response:", data);
+  try {
+    const response = await axios.post("http://localhost:8080/api/auth/login", {
+      phone: formData.phone,
+      password: formData.password,
+    });
 
-      if (!data.token) {
-        setMessage({ text: " Sai số điện thoại hoặc mật khẩu!", type: "error" });
-        return;
-      }
+    const data = response.data;
+    console.log("🔑 Login response:", data);
 
-
-      //  Lưu token & user
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data));
-      const role = data.role?.toLowerCase().trim();
-
-      //  Phân loại theo role
-      if (data.role?.toLowerCase() === "admin") {
-        console.log(" Admin đăng nhập");
-        navigate("/admin/home");
-      } else if (data.role?.toLowerCase() === "staff") {
-        console.log('staff đăng nhập');
-        navigate("/staffdash")
-      } else if (data.role?.toLowerCase() === "technician") {
-        console.log('technician đăng nhập');
-        navigate("/techniciandash")
-      } else if (data.role?.toLowerCase() === "customer") {
-        console.log(" Customer đăng nhập");
-
-        // Lấy customerId chính xác từ backend
-        const customerId = data.refid || data.id || data.customerId || data.user?.id;
-
-        if (customerId) {
-          localStorage.setItem("customerId", customerId);
-          console.log(" Saved customerId:", customerId);
-        } //else {
-         // console.warn(" Không tìm thấy customerId:", data);
-       // }
-
-        navigate("/");
-      } else {
-        console.warn(" Vai trò không xác định:", data.role);
-        alert("Không xác định được loại tài khoản!");
-      }
-    } catch (err) {
-      console.error("Lỗi đăng nhập:", err);
-      setMessage({
-        text: err.response?.data?.message || "❌ Sai số điện thoại hoặc mật khẩu!",
-        type: "error",
-      });
+    if (!data.token) {
+      setMessage({ text: "❌ Sai số điện thoại hoặc mật khẩu!", type: "error" });
+      return;
     }
 
-  };
+    // ✅ Save token & user data
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data));
+
+    // ✅ Detect role & refId cleanly
+    const role = data.role?.toLowerCase().trim();
+    const refId =
+      data.refId ||
+      data.refid ||
+      data.id ||
+      data.userId ||
+      data.adminId ||
+      data.customerId ||
+      data.user?.id;
+
+    if (role === "admin") {
+      console.log("🧑‍💼 Admin đăng nhập");
+      if (refId) localStorage.setItem("adminId", refId);
+      navigate("/admin/home");
+    } else if (role === "staff") {
+      console.log("👨‍🔧 Staff đăng nhập");
+      if (refId) localStorage.setItem("staffId", refId);
+      navigate("/staffdash");
+    } else if (role === "technician") {
+      console.log("⚙️ Technician đăng nhập");
+      if (refId) localStorage.setItem("technicianId", refId);
+      navigate("/techniciandash");
+    } else if (role === "customer") {
+      console.log("🚗 Customer đăng nhập");
+      if (refId) localStorage.setItem("customerId", refId);
+      navigate("/");
+    } else {
+      console.warn("⚠️ Vai trò không xác định:", data.role);
+      alert("Không xác định được loại tài khoản!");
+    }
+  } catch (err) {
+    console.error("❌ Lỗi đăng nhập:", err);
+    setMessage({
+      text: err.response?.data?.message || "Sai số điện thoại hoặc mật khẩu!",
+      type: "error",
+    });
+  }
+};
+
 
 
   return (

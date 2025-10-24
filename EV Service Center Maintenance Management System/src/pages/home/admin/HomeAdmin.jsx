@@ -37,17 +37,28 @@ const HomeAdmin = () => {
 
   // ✅ Load Admin info
   useEffect(() => {
-    const adminId = localStorage.getItem("adminId");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
 
-    if (!adminId || !token) return;
+    // Use the actual admin ID from login response
+    const adminId =
+      storedUser?.refId ||
+      storedUser?.refid ||
+      storedUser?.id ||
+      storedUser?.adminId ||
+      localStorage.getItem("adminId");
+
+    if (!adminId || !token) {
+      console.error("❌ Không tìm thấy ID admin. Vui lòng đăng nhập lại.");
+      return;
+    }
 
     const fetchAdmin = async () => {
       try {
         const res = await API.get(`/admin/getby/${adminId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // ✅ Extract only the "data" object
+        console.log("✅ Admin info:", res.data);
         setAdmin(res.data.data);
       } catch (error) {
         console.error("❌ Lỗi khi tải thông tin Admin:", error);
@@ -152,8 +163,7 @@ const HomeAdmin = () => {
                   </button>
                   <button
                     onClick={() => {
-                      localStorage.removeItem("token");
-                      localStorage.removeItem("adminId");
+                      localStorage.clear();
                       navigate("/login");
                     }}
                     className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 transition"
