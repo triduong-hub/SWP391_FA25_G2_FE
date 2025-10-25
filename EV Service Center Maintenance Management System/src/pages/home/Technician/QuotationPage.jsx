@@ -19,6 +19,7 @@ export default function QuotationPage() {
     const [quotationSent, setQuotationSent] = useState(false);
     const [checklistMessage, setChecklistMessage] = useState("");
     const [checklistMessageType, setChecklistMessageType] = useState(""); // "success" | "error"
+    const [checklistSent, setChecklistSent] = useState(false);
     const navigate = useNavigate(); // ✅ thêm dòng này
 
 
@@ -131,35 +132,36 @@ export default function QuotationPage() {
         }
 
         try {
-            // Gửi từng checklist item riêng lẻ
             for (const item of checklistItems) {
                 const singlePayload = {
                     maintenanceId: Number(maintenanceID),
                     checkListId: item.checkListId,
                     status: item.status || "none",
                 };
-
-                console.log("📤 Gửi checklist item:", singlePayload);
-
                 await api.post(`/maintenances/${jobId}/checklist-items`, singlePayload);
             }
 
-            console.log("✅ Checklist đã lưu tất cả item!");
             setChecklistMessage(" Đã lưu checklist thành công!");
             setChecklistMessageType("success");
+            setChecklistSent(true); // ✅ khóa nút sau khi lưu
         } catch (err) {
-            console.error("❌ Lỗi khi lưu checklist:", err.response?.data || err);
+            console.error("❌ Lỗi khi lưu checklist:", err);
             setChecklistMessage(" Lưu checklist thất bại, vui lòng thử lại!");
             setChecklistMessageType("error");
         }
-
     };
+
 
 
 
 
     const handleSubmit = async () => {
         try {
+
+            if (!checklistSent || !partsSent) {
+                alert("Vui lòng xác nhận Checklist và Linh kiện trước khi gửi báo giá!");
+                return;
+            }
             //  Tính lại tổng ngay tại thời điểm gửi
             const totalPrice = parts.reduce(
                 (sum, p) => sum + Number(p.quantity) * Number(p.price),
@@ -326,9 +328,14 @@ export default function QuotationPage() {
                     <div className="flex flex-col items-end mt-4">
                         <button
                             onClick={() => handleSaveChecklist(jobId, checklist)}
-                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm text-sm font-semibold transition"
+                            disabled={checklistSent}
+                            className={`px-6 py-2 rounded-lg shadow-sm text-sm font-semibold transition 
+                                     ${checklistSent
+                                    ? "bg-gray-500 cursor-not-allowed text-white"
+                                    : "bg-green-600 hover:bg-green-700 text-white"
+                                }`}
                         >
-                            Xác nhận
+                            {checklistSent ? " Đã xác nhận" : "Xác nhận"}
                         </button>
 
                         {checklistMessage && (
@@ -400,7 +407,7 @@ export default function QuotationPage() {
                             disabled={isSendingParts || partsSent}
                             className={`px-6 py-2 rounded-lg text-sm font-semibold text-white transition
                                      ${partsSent
-                                    ? "bg-gray-800 cursor-not-allowed"
+                                    ? "bg-gray-500 cursor-not-allowed"
                                     : isSendingParts
                                         ? "bg-gray-400 cursor-wait"
                                         : "bg-green-600 hover:bg-green-700"
@@ -412,6 +419,7 @@ export default function QuotationPage() {
                                     ? " Đã xác nhận"
                                     : "Xác nhận"}
                         </button>
+
 
                         {message && (
                             <p className={`mt-2 text-sm font-medium ${messageType === "error" ? "text-red-600" : "text-green-600"}`}>
