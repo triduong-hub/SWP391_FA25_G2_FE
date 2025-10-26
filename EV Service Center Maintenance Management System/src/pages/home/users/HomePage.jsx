@@ -4,6 +4,7 @@ import { Target, ArrowLeft, } from "lucide-react";
 import API from "../../../../api";
 import { statusMapServerToUI } from "../../../utils/statusHelpers";
 import { motion, AnimatePresence } from "framer-motion";
+import Chatbot from "../../Chatbot/Chatbot.jsx";
 import {
   Car,
   Wrench,
@@ -1021,7 +1022,15 @@ const HomePage = () => {
             <p className="mt-1">Designed by <span className="text-gray-300 font-semibold">RTY</span></p>
           </div>
         </footer>
+            
+        return (
+          <div className="min-h-screen bg-gray-50">
+            {/* existing content */}
+            <Chatbot /> {/* 👈 Add this line at the bottom */}
+          </div>
+        );
 
+              
       </main>
     </div>
   );
