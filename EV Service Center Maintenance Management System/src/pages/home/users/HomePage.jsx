@@ -4,6 +4,10 @@ import { Target, ArrowLeft, } from "lucide-react";
 import API from "../../../../api";
 import Chatbot from "../../chatbot/ChatBot";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< Updated upstream
+=======
+import ChatBot from "../../chatbot/ChatBot";
+>>>>>>> Stashed changes
 import {
   Car,
   Wrench,
@@ -925,9 +929,15 @@ const HomePage = () => {
         </footer>
         return (
           <div className="min-h-screen bg-gray-50">
+<<<<<<< Updated upstream
           {/* existing content */}
             <Chatbot /> {/* 👈 Add this line at the bottom */}
         </div>
+=======
+            {/* existing content */}
+            <ChatBot /> {/* 👈 Add this line at the bottom */}
+          </div>
+>>>>>>> Stashed changes
         );
       </main>
     </div>

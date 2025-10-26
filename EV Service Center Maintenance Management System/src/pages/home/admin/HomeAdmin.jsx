@@ -30,6 +30,7 @@ const HomeAdmin = () => {
   });
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+<<<<<<< Updated upstream
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [admin, setAdmin] = useState(null);
 
@@ -69,6 +70,41 @@ const HomeAdmin = () => {
   }, []);
 
   // ✅ Load dashboard data
+=======
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showMenu, setShowMenu] = useState(false); // Added for profile menu
+  const [user, setUser] = useState(null); // Added for user data
+  const notifRef = useRef();
+
+  // Fetch user info on component mount
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const adminId = localStorage.getItem("id");
+        
+        if (token && adminId) {
+          const res = await axios.get(
+            `http://localhost:8080/api/admin/getby/${adminId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const userData = res.data?.data || res.data;
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("❌ Lỗi khi tải thông tin admin:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
+  // GỌI API LẤY DỮ LIỆU DASHBOARD
+>>>>>>> Stashed changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -102,7 +138,18 @@ const HomeAdmin = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+<<<<<<< Updated upstream
   // ✅ Mock chart data
+=======
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("id");
+    navigate("/login");
+  };
+
+  // Dữ liệu demo biểu đồ
+>>>>>>> Stashed changes
   const revenueData = [
     { month: "T1", revenue: 4000 },
     { month: "T2", revenue: 3500 },
@@ -173,6 +220,55 @@ const HomeAdmin = () => {
                 </div>
               )}
             </div>
+<<<<<<< Updated upstream
+=======
+
+            {/* Updated Profile Section - Matching HomePage.jsx */}
+            <div className="flex items-center space-x-3 relative">
+              {user ? (
+                <>
+                  <span className="font-semibold text-gray-800 order-1">
+                    {user.name || user.fullName || "Quản trị viên"}
+                  </span>
+                  <img
+                    src={user.avatar || "/default-avatar.jpg"}
+                    alt="Admin Avatar"
+                    className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer order-2"
+                    onClick={() => setShowMenu((prev) => !prev)}
+                  />
+
+                  {showMenu && (
+                    <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-md shadow-md w-32 py-2 z-50">
+                      <button
+                        onClick={() => {
+                          navigate("/admin/profile");
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        Hồ sơ
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div
+                  className="w-9 h-9 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full cursor-pointer shadow-md"
+                  title="Profile"
+                  onClick={() => navigate("/admin/profile")}
+                />
+              )}
+            </div>
+>>>>>>> Stashed changes
           </div>
         </header>
 
