@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, Filter, Eye, CreditCard as Edit3, Trash2, CheckCircle, XCircle, AlertTriangle, Activity, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react';
+import api from '../../../../api'; // ✅ đường dẫn thật tới file api.js
 
 const Parts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -8,73 +9,29 @@ const Parts = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Sample parts data
-  const parts = [
-    {
-      partID: 'P001',
-      partName: 'Tesla Model 3 Battery Pack',
-      category: 'Battery',
-      price: 25000000,
-      quantity: 5,
-      supplier: 'Tesla Vietnam',
-      status: 'in_stock',
-      description: 'Original Tesla Model 3 battery pack with 75kWh capacity'
-    },
-    {
-      partID: 'P002',
-      partName: 'VinFast VF8 Motor Assembly',
-      category: 'Motor',
-      price: 15000000,
-      quantity: 3,
-      supplier: 'VinFast Parts',
-      status: 'low_stock',
-      description: 'Electric motor assembly for VinFast VF8 front wheel drive'
-    },
-    {
-      partID: 'P003',
-      partName: 'BMW iX Brake Pads Set',
-      category: 'Brake',
-      price: 2500000,
-      quantity: 15,
-      supplier: 'BMW Parts Center',
-      status: 'in_stock',
-      description: 'High-performance brake pads for BMW iX electric vehicle'
-    },
-    {
-      partID: 'P004',
-      partName: 'Universal EV Charging Cable',
-      category: 'Charging',
-      price: 3500000,
-      quantity: 0,
-      supplier: 'EV Solutions Ltd',
-      status: 'out_of_stock',
-      description: 'Type 2 to Type 2 charging cable, 32A, 7.4kW'
-    },
-    {
-      partID: 'P005',
-      partName: 'Audi e-tron Suspension Kit',
-      category: 'Suspension',
-      price: 8500000,
-      quantity: 2,
-      supplier: 'Audi Parts Vietnam',
-      status: 'low_stock',
-      description: 'Complete air suspension kit for Audi e-tron models'
-    },
-    {
-      partID: 'P006',
-      partName: 'EV Tire Set (18 inch)',
-      category: 'Tire',
-      price: 12000000,
-      quantity: 8,
-      supplier: 'Michelin Vietnam',
-      status: 'in_stock',
-      description: 'Low rolling resistance tires optimized for electric vehicles'
-    }
-  ];
-
+  const [parts, setParts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const categories = ['Battery', 'Motor', 'Brake', 'Charging', 'Suspension', 'Tire', 'Electronics'];
   const suppliers = ['Tesla Vietnam', 'VinFast Parts', 'BMW Parts Center', 'EV Solutions Ltd', 'Audi Parts Vietnam', 'Michelin Vietnam'];
+
+
+  useEffect(() => {
+    const fetchParts = async () => {
+      try {
+        const response = await api.get('/components/getAll'); // ✅ gọi API thật
+        console.log('Dữ liệu API:', response.data);
+        setParts(response.data);
+      } catch (err) {
+        console.error('Lỗi khi tải phụ tùng:', err);
+        setError('Không thể tải dữ liệu từ server');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchParts();
+  }, []);
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -111,13 +68,20 @@ const Parts = () => {
   };
 
   const filteredParts = parts.filter(part => {
-    const matchesCategory = filterCategory === 'all' || part.category === filterCategory;
+    const name = part.name?.toLowerCase() || "";
+    const code = part.code?.toLowerCase() || "";
+    const supplier = part.supplierName?.toLowerCase() || "";
+
+    const matchesCategory = filterCategory === 'all' || part.type === filterCategory;
     const matchesStatus = filterStatus === 'all' || part.status === filterStatus;
-    const matchesSearch = part.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         part.partID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         part.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      name.includes(searchTerm.toLowerCase()) ||
+      code.includes(searchTerm.toLowerCase()) ||
+      supplier.includes(searchTerm.toLowerCase());
+
     return matchesCategory && matchesStatus && matchesSearch;
   });
+
 
   const handleViewDetails = (part) => {
     setSelectedPart(part);
@@ -140,6 +104,10 @@ const Parts = () => {
   const lowStockParts = parts.filter(p => p.status === 'low_stock').length;
   const outOfStockParts = parts.filter(p => p.status === 'out_of_stock').length;
   const totalValue = parts.reduce((sum, part) => sum + (part.price * part.quantity), 0);
+
+
+  if (loading) return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -165,7 +133,7 @@ const Parts = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center">
             <div className="bg-blue-100 p-3 rounded-xl mr-4">
@@ -214,17 +182,6 @@ const Parts = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center">
-            <div className="bg-purple-100 p-3 rounded-xl mr-4">
-              <ShoppingCart className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">{formatPrice(totalValue)}</h3>
-              <p className="text-gray-600 text-sm">Tổng giá trị</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Filters */}
@@ -275,7 +232,7 @@ const Parts = () => {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-900">Danh sách phụ tùng</h2>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -284,42 +241,71 @@ const Parts = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng tối thiểu</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nhà cung cấp</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
             </thead>
+
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredParts.map((part) => {
+              {filteredParts.map((part, index) => {
                 const StatusIcon = getStatusIcon(part.status);
                 return (
-                  <tr key={part.partID} className="hover:bg-gray-50">
+                  <tr key={`part-${part.componentID || index}`} className="hover:bg-gray-50">
+                    {/* Mã & Tên */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{part.partID}</div>
-                        <div className="text-sm text-gray-500">{part.partName}</div>
+                        <div className="text-sm font-medium text-gray-900">{part.code}</div>
+                        <div className="text-sm text-gray-500">{part.name}</div>
                       </div>
                     </td>
+
+                    {/* Danh mục */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {part.category}
+                        {part.type}
                       </span>
                     </td>
+
+                    {/* Giá */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{formatPrice(part.price)}</div>
                     </td>
+
+                    {/* Số lượng */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{part.quantity}</div>
                     </td>
+
+                    {/* ✅ Số lượng tối thiểu */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{part.supplier}</div>
+                      <div
+                        className={`text-sm font-medium ${part.quantity <= part.minQuantity ? 'text-yellow-600' : 'text-gray-900'
+                          }`}
+                      >
+                        {part.minQuantity}
+                      </div>
                     </td>
+
+                    {/* Nhà cung cấp */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(part.status)}`}>
+                      <div className="text-sm text-gray-500">{part.supplierName}</div>
+                    </td>
+
+                    {/* Trạng thái */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          part.status
+                        )}`}
+                      >
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {getStatusText(part.status)}
                       </span>
                     </td>
+
+                    {/* Thao tác */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button
@@ -495,23 +481,24 @@ const Parts = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-bold text-gray-900 mb-3">Thông tin cơ bản</h4>
-                  <p className="mb-2"><strong>Mã:</strong> {selectedPart.partID}</p>
-                  <p className="mb-2"><strong>Tên:</strong> {selectedPart.partName}</p>
-                  <p className="mb-2"><strong>Danh mục:</strong> {selectedPart.category}</p>
+                  <p className="mb-2"><strong>Mã:</strong> {selectedPart.code}</p>
+                  <p className="mb-2"><strong>Tên:</strong> {selectedPart.name}</p>
+                  <p className="mb-2"><strong>Danh mục:</strong> {selectedPart.type}</p>
                   <p className="mb-0"><strong>Giá:</strong> {formatPrice(selectedPart.price)}</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-bold text-gray-900 mb-3">Kho & Trạng thái</h4>
                   <p className="mb-2"><strong>Số lượng:</strong> {selectedPart.quantity}</p>
-                  <p className="mb-2"><strong>Nhà cung cấp:</strong> {selectedPart.supplier}</p>
-                  <p className="mb-0"><strong>Trạng thái:</strong> 
+                  <p className="mb-2"><strong>Số lượng tối thiểu:</strong> {selectedPart.minQuantity}</p>
+                  <p className="mb-2"><strong>Nhà cung cấp:</strong> {selectedPart.supplierName}</p>
+                  <p className="mb-0"><strong>Trạng thái:</strong>
                     <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedPart.status)}`}>
                       {getStatusText(selectedPart.status)}
                     </span>
                   </p>
                 </div>
               </div>
-              
+
               {selectedPart.description && (
                 <div className="bg-gray-50 rounded-lg p-4 mt-6">
                   <h4 className="font-bold text-gray-900 mb-3">Mô tả</h4>
@@ -523,7 +510,9 @@ const Parts = () => {
                 <h4 className="font-bold text-gray-900 mb-3">Thống kê</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="mb-2"><strong>Tổng giá trị:</strong> {formatPrice(selectedPart.price * selectedPart.quantity)}</p>
+                    <p className="mb-2">
+                      <strong>Tổng giá trị:</strong> {formatPrice(selectedPart.price * selectedPart.quantity)}
+                    </p>
                   </div>
                   <div>
                     <p className="mb-2"><strong>Cập nhật:</strong> {new Date().toLocaleDateString('vi-VN')}</p>
@@ -531,6 +520,7 @@ const Parts = () => {
                 </div>
               </div>
             </div>
+
             <div className="flex justify-end p-6 border-t border-gray-200">
               <button
                 onClick={() => setShowDetailModal(false)}

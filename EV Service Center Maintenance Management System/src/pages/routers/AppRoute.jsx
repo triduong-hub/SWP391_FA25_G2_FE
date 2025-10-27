@@ -17,6 +17,10 @@ import StaffDashboard from "../home/staff/StaffDashboard.jsx";
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
 
+// Xem báo giá (Customer)
+import CustomerQuotationDetailPage from "../home/users/CustomerQuotationPage.jsx";
+
+
 // Trang con của Admin
 import HomeAdmin from "../home/admin/HomeAdmin.jsx";
 import ProfileAdmin from "../home/admin/ProfileAdmin.jsx";
