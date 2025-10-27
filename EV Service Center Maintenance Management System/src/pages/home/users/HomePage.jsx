@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Target, ArrowLeft, } from "lucide-react";
 import API from "../../../../api";
-import { statusMapServerToUI } from "../../../utils/statusHelpers";
 import { motion, AnimatePresence } from "framer-motion";
-import Chatbot from "../../Chatbot/Chatbot.jsx";
+import ChatBot from "../../chatbot/ChatBot.jsx";
+import { statusMapServerToUI } from "../../../utils/statusHelpers";
 import {
   Car,
   Wrench,
@@ -33,11 +33,11 @@ const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // trạng thái mute/unmute
   const [user, setUser] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
   const [bookings, setBookings] = useState([]);
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const customerId = storedUser.userID || null;
-  const [selected, setSelected] = useState(null);
-  const [showMenu, setShowMenu] = useState(false);
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
@@ -45,11 +45,11 @@ const HomePage = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    API.get("http://localhost:8080/api/auth/getUserInfo") // vì baseURL đã là /api/auth/getUserInfo
-      .then((res) => {
-        const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
-        setUser(userData);
-        setIsLoggedIn(true);
+  API.get("http://localhost:8080/api/auth/getUserInfo")
+    .then((res) => {
+      const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
+      setUser(userData);
+      setIsLoggedIn(true);
       })
       .catch((err) => {
         console.error("Lỗi lấy thông tin người dùng:", err);
@@ -78,7 +78,6 @@ const HomePage = () => {
 
     fetchBookings();
   }, [customerId]);
-
 
   // Hàm scroll đến section
   const scrollToSection = (id) => {
@@ -996,6 +995,9 @@ const HomePage = () => {
               <h4 className="text-lg font-semibold text-white mb-4">Đối tác</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="hover:text-blue-400">VinFast</a></li>
+                <li><a href="#" className="hover:text-blue-400">Tesla</a></li>
+                <li><a href="#" className="hover:text-blue-400">EVN</a></li>
+                <li><a href="#" className="hover:text-blue-400">Shell Recharge</a></li>
               </ul>
             </div>
 
@@ -1022,15 +1024,13 @@ const HomePage = () => {
             <p className="mt-1">Designed by <span className="text-gray-300 font-semibold">RTY</span></p>
           </div>
         </footer>
-            
         return (
           <div className="min-h-screen bg-gray-50">
+
             {/* existing content */}
-            <Chatbot /> {/* 👈 Add this line at the bottom */}
+            <ChatBot /> {/* 👈 Add this line at the bottom */}
           </div>
         );
-
-              
       </main>
     </div>
   );
