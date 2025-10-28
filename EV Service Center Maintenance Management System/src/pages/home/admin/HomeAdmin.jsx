@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import {
-  Users,
-  DollarSign,
-  BarChart3,
-  Bell,
-  Car,
-  ClipboardCheck,
-} from "lucide-react";
+import { Users, DollarSign, Bell, Car, ClipboardCheck } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -18,11 +10,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import API from "../../../../api"; // ✅ Use your centralized API instance
 
 const HomeAdmin = () => {
   const navigate = useNavigate();
 
-  // Dashboard + Notifications
   const [stats, setStats] = useState({
     users: 0,
     revenue: 0,
@@ -32,44 +24,37 @@ const HomeAdmin = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showMenu, setShowMenu] = useState(false); // Added for profile menu
-  const [user, setUser] = useState(null); // Added for user data
-  const notifRef = useRef();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [admin, setAdmin] = useState(null);
 
-  // Fetch user info on component mount
+  const notifRef = useRef();
+  const profileRef = useRef();
+
+  // ✅ Load Admin Info
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const fetchAdmin = async () => {
       try {
+        const adminId = localStorage.getItem("adminId");
         const token = localStorage.getItem("token");
-        const adminId = localStorage.getItem("id");
-        
-        if (token && adminId) {
-          const res = await axios.get(
-            `http://localhost:8080/api/admin/getby/${adminId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          const userData = res.data?.data || res.data;
-          setUser(userData);
-        }
+        if (!adminId || !token) return;
+
+        const res = await API.get(`/admin/getby/${adminId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAdmin(res.data?.data || res.data);
       } catch (error) {
-        console.error("❌ Lỗi khi tải thông tin admin:", error);
+        console.error("❌ Lỗi khi tải thông tin Admin:", error);
       }
     };
-
-    fetchUserInfo();
+    fetchAdmin();
   }, []);
 
-  // GỌI API LẤY DỮ LIỆU DASHBOARD
+  // ✅ Load Dashboard Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:8080/api/admin/dashboard");
-
+        const res = await API.get("/admin/dashboard");
         const data = res.data;
         setStats({
           users: data.users ?? 0,
@@ -79,9 +64,8 @@ const HomeAdmin = () => {
         });
         setNotifications(data.notifications || []);
       } catch (error) {
-        console.error("Lỗi khi load dữ liệu:", error);
-
-        // Dữ liệu DEMO fallback
+        console.error("❌ Lỗi khi tải dữ liệu:", error);
+        // fallback demo
         setStats({
           users: 1200,
           revenue: 45800,
@@ -100,25 +84,28 @@ const HomeAdmin = () => {
     fetchData();
   }, []);
 
-  // Ẩn thông báo khi click ra ngoài
+  // ✅ Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle logout
+  // ✅ Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("id");
+    localStorage.removeItem("adminId");
     navigate("/login");
   };
 
-  // Dữ liệu demo biểu đồ
+  // Demo chart data
   const revenueData = [
     { month: "T1", revenue: 4000 },
     { month: "T2", revenue: 3500 },
@@ -138,41 +125,22 @@ const HomeAdmin = () => {
   ];
 
   const recentJobs = [
-    {
-      id: 1,
-      car: "VF8",
-      service: "Bảo dưỡng định kỳ",
-      staff: "Nguyễn Văn A",
-      status: "Đang thực hiện",
-    },
-    {
-      id: 2,
-      car: "VF5",
-      service: "Thay pin",
-      staff: "",
-      status: "Chờ phân công",
-    },
-    {
-      id: 3,
-      car: "VF9",
-      service: "Kiểm tra động cơ",
-      staff: "Lê Minh B",
-      status: "Hoàn thành",
-    },
+    { id: 1, car: "VF8", service: "Bảo dưỡng định kỳ", staff: "Nguyễn Văn A", status: "Đang thực hiện" },
+    { id: 2, car: "VF5", service: "Thay pin", staff: "", status: "Chờ phân công" },
+    { id: 3, car: "VF9", service: "Kiểm tra động cơ", staff: "Lê Minh B", status: "Hoàn thành" },
   ];
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Hiệu ứng nền */}
+      {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
       </div>
 
-      {/* Nội dung chính */}
       <div className="flex-1 flex flex-col z-10">
-        {/* Thanh trên cùng */}
+        {/* Header */}
         <header className="flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-white/30 p-4 shadow-md">
           <div className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
             Trang quản trị
@@ -185,6 +153,7 @@ const HomeAdmin = () => {
               className="px-3 py-1 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500"
             />
 
+            {/* 🔔 Notifications */}
             <div ref={notifRef} className="relative cursor-pointer">
               <Bell
                 className="w-6 h-6 text-gray-600 hover:text-emerald-600 transition-colors"
@@ -211,49 +180,32 @@ const HomeAdmin = () => {
               )}
             </div>
 
-            {/* Updated Profile Section - Matching HomePage.jsx */}
-            <div className="flex items-center space-x-3 relative">
-              {user ? (
-                <>
-                  <span className="font-semibold text-gray-800 order-1">
-                    {user.name || user.fullName || "Quản trị viên"}
-                  </span>
-                  <img
-                    src={user.avatar || "/default-avatar.jpg"}
-                    alt="Admin Avatar"
-                    className="w-9 h-9 rounded-full border border-gray-300 cursor-pointer order-2"
-                    onClick={() => setShowMenu((prev) => !prev)}
-                  />
+            {/* 👤 Profile dropdown (only Đăng xuất) */}
+            <div ref={profileRef} className="relative cursor-pointer">
+              <div
+                onClick={() => setShowProfileMenu((prev) => !prev)}
+                className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-full shadow hover:bg-white transition"
+              >
+                <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full flex items-center justify-center text-white font-semibold">
+                  {admin ? admin.name?.charAt(0)?.toUpperCase() : "A"}
+                </div>
+                <span className="text-gray-700 font-medium">
+                  {admin ? admin.name : "Admin"}
+                </span>
+              </div>
 
-                  {showMenu && (
-                    <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-md shadow-md w-32 py-2 z-50">
-                      <button
-                        onClick={() => {
-                          navigate("/admin/profile");
-                          setShowMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        Hồ sơ
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setShowMenu(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        Đăng xuất
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div
-                  className="w-9 h-9 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full cursor-pointer shadow-md"
-                  title="Profile"
-                  onClick={() => navigate("/admin/profile")}
-                />
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-40 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-100 overflow-hidden z-20">
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowProfileMenu(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 transition"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -265,7 +217,6 @@ const HomeAdmin = () => {
             <p className="text-gray-500">⏳ Đang tải dữ liệu...</p>
           ) : (
             <>
-              {/* Cards thống kê */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                   title="Người dùng"
@@ -297,13 +248,11 @@ const HomeAdmin = () => {
                 />
               </div>
 
-              {/* Biểu đồ */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ChartCard title="Biểu đồ doanh thu hàng tháng" data={revenueData} dataKey="revenue" color="#10b981" />
                 <ChartCard title="Biểu đồ bảo dưỡng xe theo tháng" data={maintenanceData} dataKey="jobs" color="#f59e0b" />
               </div>
 
-              {/* Bảng công việc gần đây */}
               <div className="bg-white/80 backdrop-blur p-6 rounded-3xl shadow-xl mt-6">
                 <h2 className="text-xl font-bold mb-4 text-gray-700">Công việc bảo dưỡng gần đây</h2>
                 <table className="w-full text-sm">
@@ -345,7 +294,7 @@ const HomeAdmin = () => {
   );
 };
 
-// 🔹 Component hiển thị card thống kê
+// 🔹 Stat Card
 const StatCard = ({ title, value, icon, color, onClick }) => (
   <div
     onClick={onClick}
@@ -359,7 +308,7 @@ const StatCard = ({ title, value, icon, color, onClick }) => (
   </div>
 );
 
-// 🔹 Component biểu đồ thực tế (Recharts)
+// 🔹 Chart Card
 const ChartCard = ({ title, data, dataKey, color }) => (
   <div className="p-6 rounded-3xl shadow-xl bg-white/80 backdrop-blur">
     <h2 className="text-lg font-bold mb-4 text-gray-700">{title}</h2>
