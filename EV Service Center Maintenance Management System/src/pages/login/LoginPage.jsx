@@ -12,7 +12,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../../api.js";
 import GoogleIcon from "./GoogleIcon.jsx";
 
 const LoginForm = ({ onSwitch }) => {
@@ -28,7 +28,7 @@ const LoginForm = ({ onSwitch }) => {
     e.preventDefault();
     setMessage({ text: "", type: "" });
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", {
+      const response = await api.post("/auth/login", {
         phone: formData.phone,
         password: formData.password,
       });
@@ -193,7 +193,7 @@ const RegisterForm = ({ onSwitch }) => {
         phone: formData.phone,
         password: formData.password,
       };
-      const response = await axios.post("http://localhost:8080/api/customer/register", body);
+      const response = await api.post("/customer/register", body);
 
       if (response.status === 201 || response.status === 200) {
         const data = response.data;
@@ -216,7 +216,7 @@ const RegisterForm = ({ onSwitch }) => {
         }
 
         // Nếu chưa có token → tự login lại
-        const loginResponse = await axios.post("http://localhost:8080/api/auth/login", {
+        const loginResponse = await api.post("/auth/login", {
           phone: formData.phone,
           password: formData.password,
         });

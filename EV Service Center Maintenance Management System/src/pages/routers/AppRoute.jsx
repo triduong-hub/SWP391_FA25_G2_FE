@@ -1,7 +1,7 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-// ✅ Import LanguageProvider
+//  Import LanguageProvider
 import { LanguageProvider } from "../../contexts/LanguageContext.jsx";
 
 // Trang login & password
@@ -19,6 +19,9 @@ import AdminLayout from "../home/admin/AdminLayout.jsx";
 
 // Xem báo giá (Customer)
 import CustomerQuotationDetailPage from "../home/users/CustomerQuotationPage.jsx";
+
+//Trang hóa đơn
+import InvoicePage from "../invoice/InvoicePage.jsx";
 
 
 // Trang con của Admin
@@ -42,6 +45,7 @@ import Parts from "../home/components/Parts.jsx"
 
 // Trang Thanh Toán
 import PaymentPage from "../payment/PaymentPage.jsx";
+import PaymentSuccess from "../payment/PaymentSuccess.jsx";
 
 //Trang báo giá
 import QuotationPage from "../home/Technician/QuotationPage.jsx";
@@ -51,7 +55,7 @@ import QuotationDetailPage from "../home/Technician/QuotationDetailPage.jsx";
 
 function AppRoute() {
   return (
-    // ✅ Toàn bộ Route được bao trong LanguageProvider
+    //  Toàn bộ Route được bao trong LanguageProvider
     <LanguageProvider>
       <Routes>
         {/* Trang chủ */}
@@ -80,12 +84,17 @@ function AppRoute() {
 
         {/* Trang thanh toán */}
         <Route path="/payment/:orderId" element={<PaymentPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancel" element={<Navigate to="/" replace />} />
 
         {/* Trang báo giá */}
         <Route path="/technician/quotation/:jobId" element={<QuotationPage />} />
 
         {/* Trang xem báo giá */}
         <Route path="/quotation/:quotationId" element={<QuotationDetailPage />} />
+
+         {/* Trang xem hóa đơn*/}
+         <Route path="/invoice/order/:orderId" element={<InvoicePage />} />
 
         {/* Trang xem báo giá customer */}
         <Route path="/customer/quotation/:orderId" element={<CustomerQuotationDetailPage />} />

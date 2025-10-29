@@ -113,14 +113,17 @@ const PaymentPage = () => {
                 console.log("📦 QR URL nhận được:", qr);
 
                 if (qr && qr.startsWith("https://pay.payos.vn")) {
-                    setQrUrl(qr);
+                    window.location.href = qr; // 🔹 Direct sang PayOS luôn
+                    return;
                 } else if (qr && typeof qr === "string") {
-                    // Nếu backend chỉ trả lại ID, tự ghép domain PayOS
-                    setQrUrl(`https://pay.payos.vn/web/${qr}`);
+                    const payUrl = `https://pay.payos.vn/web/${qr}`;
+                    window.location.href = payUrl; // 🔹 Direct sang PayOS luôn
+                    return;
                 } else {
                     console.error("⚠️ URL QR không hợp lệ:", qr);
                     setError("Liên kết thanh toán không hợp lệ, vui lòng thử lại.");
                 }
+
 
             } catch (err) {
                 console.error("❌ Lỗi khi tạo thanh toán:", err.response?.data || err);

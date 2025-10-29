@@ -45,11 +45,11 @@ const HomePage = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-  API.get("http://localhost:8080/api/auth/getUserInfo")
-    .then((res) => {
-      const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
-      setUser(userData);
-      setIsLoggedIn(true);
+    API.get("http://localhost:8080/api/auth/getUserInfo")
+      .then((res) => {
+        const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
+        setUser(userData);
+        setIsLoggedIn(true);
       })
       .catch((err) => {
         console.error("Lỗi lấy thông tin người dùng:", err);
@@ -359,6 +359,17 @@ const HomePage = () => {
                           💳 Thanh toán ngay
                         </button>
                       )}
+
+                      {/* ✅ Nếu đơn đã hoàn tất thì hiển thị nút xem hóa đơn */}
+                      {order.status?.toLowerCase() === "completed" && (
+                        <button
+                           onClick={() => navigate(`/invoice/order/${order.orderId}`)}
+                          className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
+                        >
+                          🧾 Xem hóa đơn
+                        </button>
+                      )}
+
                     </div>
                   </div>
                 ))}
@@ -1025,11 +1036,11 @@ const HomePage = () => {
           </div>
         </footer>
         return (
-          <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
 
-            {/* existing content */}
-            <ChatBot /> {/* 👈 Add this line at the bottom */}
-          </div>
+          {/* existing content */}
+          <ChatBot /> {/* 👈 Add this line at the bottom */}
+        </div>
         );
       </main>
     </div>

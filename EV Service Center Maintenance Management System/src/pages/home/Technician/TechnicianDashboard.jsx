@@ -374,26 +374,36 @@ const TechnicianDashboard = () => {
                             {task.status === "awaiting_customer_approval" && (
                                 <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
                                     <span className="text-yellow-700 font-medium">
-                                         Chờ khách xác nhận báo giá
+                                        Chờ khách xác nhận báo giá
                                     </span>
                                     <button
                                         onClick={() => navigate(`/quotation/${task.maintenanceID}`)}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
                                     >
-                                         Xem báo giá
+                                        Xem báo giá
                                     </button>
                                 </div>
                             )}
 
                             {/* ✅ Khi khách đã xác nhận báo giá → kỹ thuật viên thực hiện lại */}
                             {task.status === "approved" && (
-                                <button
-                                    onClick={() => handleComplete(task.maintenanceID)}
-                                    className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                >
-                                    Hoàn tất
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => navigate(`/quotation/${task.maintenanceID}`)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                    >
+                                        Xem báo giá
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleComplete(task.maintenanceID)}
+                                        className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
+                                    >
+                                        Hoàn tất
+                                    </button>
+                                </div>
                             )}
+
 
                             {/* ✅ Khi chờ thanh toán */}
                             {task.status === "waiting-for-payment" && (

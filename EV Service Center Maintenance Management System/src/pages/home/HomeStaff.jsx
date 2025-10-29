@@ -12,10 +12,18 @@ const HomeStaff = () => {
   const [editingStaff, setEditingStaff] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
+    password: "",
+    phone: "",
     email: "",
-    role: "",
-    status: "Đang làm việc",
+    gender: "",
+    role: "staff",
+    serviceCenter: "",
+    shift: "",
+    salary: "",
+    address: "",
+    birth: "",
   });
+
 
   // 🧾 Lấy danh sách nhân viên
   const fetchStaffData = async () => {
@@ -43,15 +51,56 @@ const HomeStaff = () => {
       return;
     }
     try {
+      console.log("📤 Dữ liệu gửi đi:", formData);
       if (editingStaff) {
-        await api.put(`/employees/${editingStaff.id}`, formData);
+        await api.put(`/employees/update/${editingStaff.employeeID}`, {
+          name: formData.name,
+          password: formData.password || "123456",
+          phone: formData.phone,
+          email: formData.email,
+          gender: formData.gender,
+          role: formData.role,
+          serviceCenter: Number(formData.serviceCenter) || 0,
+          shift: Number(formData.shift) || 0,
+          salary: Number(formData.salary) || 0,
+          address: formData.address,
+          birth: formData.birth ? `${formData.birth}T00:00:00` : null, // ✅ ISO format
+        });
+
       } else {
-        await api.post("/employees", formData);
+        await api.post("/employees/register", {
+          name: formData.name,
+          password: formData.password || "123456",
+          phone: formData.phone,
+          email: formData.email,
+          gender: formData.gender,
+          role: formData.role,
+          serviceCenter: Number(formData.serviceCenter) || 0,
+          shift: Number(formData.shift) || 0,
+          salary: Number(formData.salary) || 0,
+          address: formData.address,
+          birth: formData.birth ? `${formData.birth}T00:00:00` : null, // ✅ format ISO
+        });
       }
+
+
       await fetchStaffData();
       setShowForm(false);
       setEditingStaff(null);
-      setFormData({ name: "", email: "", role: "", status: "Đang làm việc" });
+      setFormData({
+        name: "",
+        password: "",
+        phone: "",
+        email: "",
+        gender: "",
+        role: "staff",
+        serviceCenter: "",
+        shift: "",
+        salary: "",
+        address: "",
+        birth: "",
+      });
+
     } catch (err) {
       console.error("Lỗi khi lưu nhân viên:", err);
     }
@@ -61,10 +110,14 @@ const HomeStaff = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa nhân viên này không?")) {
       try {
-        await api.delete(`/employees/${id}`);
-        setStaffList(staffList.filter((s) => s.id !== id));
+        await api.delete(`/employees/delete/${id}`);
+        setStaffList(staffList.filter((s) => s.employeeID !== id));
       } catch (err) {
         console.error("Lỗi khi xóa nhân viên:", err);
+        // 🧩 Thêm đoạn này để hiển thị lỗi chi tiết backend trả về
+        if (err.response) {
+          console.error("⚠️ Lỗi từ backend:", err.response.data);
+        }
       }
     }
   };
@@ -160,7 +213,21 @@ const HomeStaff = () => {
                       <button
                         onClick={() => {
                           setEditingStaff(item);
-                          setFormData(item);
+                          setFormData({
+                            name: item.name || "",
+                            password: "", // ✅ thêm để tránh cảnh báo uncontrolled
+                            phone: item.phone || "",
+                            email: item.email || "",
+                            gender: item.gender || "",
+                            role: item.role || "staff",
+                            serviceCenter: item.serviceCenter || "",
+                            shift: item.shift || "",
+                            salary: item.salary || "",
+                            address: item.address || "",
+                            birth: item.birth ? item.birth.split("T")[0] : "",
+                          });
+
+
                           setShowForm(true);
                         }}
                         className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
@@ -168,7 +235,7 @@ const HomeStaff = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(item.employeeID)}
                         className="bg-gradient-to-r from-red-500 to-pink-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -210,23 +277,70 @@ const HomeStaff = () => {
                 }
               />
               <input
-                type="text"
-                placeholder="Vai trò"
+                type="password"
+                placeholder="Mật khẩu"
                 className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
-                }
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
+
+              <input
+                type="text"
+                placeholder="Số điện thoại"
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+
               <select
                 className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value })
-                }
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
               >
-                <option value="Đang làm việc">Đang làm việc</option>
-                <option value="Nghỉ việc">Nghỉ việc</option>
+                <option value="">Chọn giới tính</option>
+                <option value="Male">Nam</option>
+                <option value="Female">Nữ</option>
+              </select>
+
+              <input
+                type="number"
+                placeholder="Mã trung tâm dịch vụ"
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.serviceCenter}
+                onChange={(e) => setFormData({ ...formData, serviceCenter: e.target.value })}
+              />
+
+              <input
+                type="number"
+                placeholder="Ca làm việc"
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.shift}
+                onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+              />
+
+              <input
+                type="text"
+                placeholder="Địa chỉ"
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+
+              <input
+                type="date"
+                placeholder="Ngày sinh"
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.birth}
+                onChange={(e) => setFormData({ ...formData, birth: e.target.value })}
+              />
+
+              <select
+                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              >
+                <option value="staff">Staff</option>
+                <option value="technician">Technician</option>
               </select>
             </div>
 
@@ -237,10 +351,18 @@ const HomeStaff = () => {
                   setEditingStaff(null);
                   setFormData({
                     name: "",
+                    password: "",
+                    phone: "",
                     email: "",
-                    role: "",
-                    status: "Đang làm việc",
+                    gender: "",
+                    role: "staff",
+                    serviceCenter: "",
+                    shift: "",
+                    salary: "",
+                    address: "",
+                    birth: "",
                   });
+
                 }}
                 className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
               >
