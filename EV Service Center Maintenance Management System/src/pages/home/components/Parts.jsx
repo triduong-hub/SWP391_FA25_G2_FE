@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, Filter, Eye, CreditCard as Edit3, Trash2, CheckCircle, XCircle, AlertTriangle, Activity, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react';
 import api from '../../../../api'; // ✅ đường dẫn thật tới file api.js
+import AIMinStock from './AIMinStock';
 
 const Parts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -111,6 +112,8 @@ const Parts = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      {/* ✅ Floating AI Assistant (Chat replacement) */}
+      <AIMinStock selectedPart={selectedPart} />
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
