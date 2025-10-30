@@ -4,6 +4,7 @@ import { useLanguage } from "../../contexts/LanguageContext";
 
 const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
   const { language } = useLanguage();
+  const defaultImg = "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg";
   console.log('vehicles', vehicles);
 
   return (
@@ -27,8 +28,28 @@ const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
             className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-emerald-200 group"
           >
             <img
-              src={vehicle.image || "https://placehold.co/300x200?text=Car"}
+              src={
+                (() => {
+                  // ✅ Ưu tiên các field ảnh có thể có trong dữ liệu API
+                  const img =
+                    vehicle.image ||
+                    vehicle.imageURL ||
+                    vehicle.modelImage ||
+                    vehicle.model?.image ||
+                    "";
+
+                  // Nếu không có ảnh → dùng ảnh mặc định
+                  if (!img) return defaultImg;
+
+                  // Nếu là link đầy đủ (Cloudinary, S3, …) → dùng luôn
+                  if (img.startsWith("http")) return img;
+
+                  // Nếu chỉ là đường dẫn tương đối → tự ghép với baseURL backend
+                  return `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}${img}`;
+                })()
+              }
               alt={`${vehicle.brand || "Car"} ${vehicle.model || ""}`}
+              onError={(e) => (e.target.src = defaultImg)}
               className="w-full h-48 object-cover rounded-xl mb-4 group-hover:scale-105 transition-transform duration-300"
             />
             <div className="space-y-2">

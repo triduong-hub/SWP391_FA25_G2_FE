@@ -98,8 +98,18 @@ const InvoicePage = () => {
                         <h3 className="font-semibold text-gray-800 mb-1">Thông tin xe</h3>
                         <p>Mẫu xe: {invoiceData.vehicleModel}</p>
                         <p>Biển số: {invoiceData.vehicleLicensePlate}</p>
-                        <p>Ngày nhận: {invoiceData.receivedDate}</p>
-                        <p>Ngày trả: {invoiceData.returnedDate}</p>
+                        <p>
+                            Ngày nhận:{" "}
+                            {invoiceData.startTime
+                                ? new Date(invoiceData.startTime).toLocaleString("vi-VN")
+                                : "—"}
+                        </p>
+                        <p>
+                            Ngày trả:{" "}
+                            {invoiceData.endTime
+                                ? new Date(invoiceData.endTime).toLocaleString("vi-VN")
+                                : "Chưa trả"}
+                        </p>
                     </div>
                 </div>
 

@@ -57,13 +57,14 @@ const BookingPage = ({ onBack }) => {
         console.log('vehList', vehicleList);
 
         const formattedVehicles = vehicleList.map((v) => ({
-          id: v.vehicleId || v.vehicleID || v.id,
-          brand: v.brand || (v.model?.modelName?.split(' ')[0] || 'Unknown'),
-          model: v.model?.modelName || 'Unknown',
+          id: v.vehicleID || v.id,
+          brand: v.model?.modelName || "Unknown", // Dùng modelName làm brand luôn
+          model: v.model?.modelName || "Unknown",
           year: v.year,
           licensePlate: v.licensePlate,
-          image: v.image || 'https://via.placeholder.com/300x200?text=Car',
+          image: v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
         }));
+
         console.log('formattedVehicles', formattedVehicles);
 
         setVehicles(formattedVehicles);
