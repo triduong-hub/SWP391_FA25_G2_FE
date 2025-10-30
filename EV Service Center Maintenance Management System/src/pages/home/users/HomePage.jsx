@@ -1006,9 +1006,6 @@ const HomePage = () => {
               <h4 className="text-lg font-semibold text-white mb-4">Đối tác</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="hover:text-blue-400">VinFast</a></li>
-                <li><a href="#" className="hover:text-blue-400">Tesla</a></li>
-                <li><a href="#" className="hover:text-blue-400">EVN</a></li>
-                <li><a href="#" className="hover:text-blue-400">Shell Recharge</a></li>
               </ul>
             </div>
 
