@@ -21,6 +21,7 @@
     "react-router-dom": "^7.9.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.2.1",
+    "sweetalert2": "^11.26.3",
     "swiper": "^12.0.2",
     "uuid": "^13.0.0"
   },

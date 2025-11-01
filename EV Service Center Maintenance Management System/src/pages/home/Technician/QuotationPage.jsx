@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../../api"; //  import api.js có sẵn
 import { ArrowLeft } from "lucide-react";
+import Swal from "sweetalert2";
 
 
 export default function QuotationPage() {
@@ -156,13 +157,28 @@ export default function QuotationPage() {
 
 
     const handleSubmit = async () => {
-        try {
+        if (!checklistSent || !partsSent) {
+            Swal.fire({
+                toast: true,
+                position: "top",
+                icon: "warning",
+                title: "Vui lòng xác nhận Checklist và Linh kiện trước khi gửi báo giá!",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: "#f59e0b", // vàng cảnh báo
+                color: "#ffffff",
+                iconColor: "#ffffff",
+                customClass: {
+                    popup: "rounded-xl shadow-lg",
+                    title: "text-lg font-semibold",
+                },
+            });
+            return;
+        }
 
-            if (!checklistSent || !partsSent) {
-                alert("Vui lòng xác nhận Checklist và Linh kiện trước khi gửi báo giá!");
-                return;
-            }
-            //  Tính lại tổng ngay tại thời điểm gửi
+        try {
+            // ✅ Tính lại tổng ngay tại thời điểm gửi
             const totalPrice = parts.reduce(
                 (sum, p) => sum + Number(p.quantity) * Number(p.price),
                 0
@@ -187,15 +203,46 @@ export default function QuotationPage() {
             console.log("📤 Dữ liệu báo giá gửi đi:", quotationData);
 
             const res = await api.post("/quotations/create", quotationData);
-            console.log(" Phản hồi từ server:", res.data);
-            setQuotationSent(true); // Báo giá đã gửi → chờ khách hàng xác nhận
-            alert(" Gửi báo giá thành công!");
+            console.log("✅ Phản hồi từ server:", res.data);
+
+            setQuotationSent(true);
+
+            Swal.fire({
+                toast: true,
+                position: "top",
+                icon: "success",
+                title: "Gửi báo giá thành công!",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: "#10b981", // xanh ngọc
+                color: "#ffffff",
+                iconColor: "#ffffff",
+                customClass: {
+                    popup: "rounded-xl shadow-lg",
+                    title: "text-lg font-semibold",
+                },
+            });
         } catch (err) {
-            console.error(" Lỗi khi gửi báo giá:", err.response?.data || err);
+            console.error("❌ Lỗi khi gửi báo giá:", err.response?.data || err);
+            Swal.fire({
+                toast: true,
+                position: "top",
+                icon: "error",
+                title: "Gửi báo giá thất bại, vui lòng thử lại!",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: "#ef4444", // đỏ lỗi
+                color: "#ffffff",
+                iconColor: "#ffffff",
+                customClass: {
+                    popup: "rounded-xl shadow-lg",
+                    title: "text-lg font-semibold",
+                },
+            });
         }
     };
-
-
 
 
     if (loading) {

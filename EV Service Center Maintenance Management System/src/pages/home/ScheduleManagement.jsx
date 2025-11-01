@@ -47,7 +47,7 @@ const ScheduleManagement = () => {
             : item.status === "Confirmed"
               ? "Đã xác nhận"
               : item.status === "Completed"
-                ? "Hoàn thành"
+                ? "Hoàn tất"
                 : item.status,
       }));
 
@@ -121,7 +121,7 @@ const ScheduleManagement = () => {
           <option value="">-- Trạng thái --</option>
           <option value="Đã đặt">Đã đặt</option>
           <option value="Đang xử lý">Đang xử lý</option>
-          <option value="Hoàn thành">Hoàn thành</option>
+          <option value="Hoàn tất">Hoàn tất</option>
           <option value="Hủy">Hủy</option>
         </select>
         <input
@@ -185,7 +185,7 @@ const ScheduleManagement = () => {
                   <td className="p-3">{s.type}</td>
                   <td className="p-3">{s.date}</td>
                   <td
-                    className={`p-3 font-medium ${s.status === "Hoàn thành"
+                    className={`p-3 font-medium ${s.status === "Hoàn tất"
                       ? "text-green-600"
                       : s.status === "Đang xử lý"
                         ? "text-yellow-600"

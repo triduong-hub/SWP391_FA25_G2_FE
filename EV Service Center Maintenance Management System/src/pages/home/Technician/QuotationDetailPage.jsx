@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../../api";
 import { ArrowLeft, ClipboardList, Wrench, DollarSign } from "lucide-react";
+import Swal from "sweetalert2";
+
 
 export default function QuotationDetailPage() {
-  const { quotationId } = useParams();
+  const { maintenanceId } = useParams();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -12,11 +14,12 @@ export default function QuotationDetailPage() {
   useEffect(() => {
     const fetchQuotation = async () => {
       try {
-        console.log("🟡 Đang gọi API với ID:", quotationId);
-          const res = await api.get(`/quotations/maintenance/${quotationId}`);
+        console.log("🟡 Gọi API báo giá cho maintenanceId:", maintenanceId);
+        const res = await api.get(`/quotations/maintenance/${maintenanceId}`);
+        console.log("📦 Dữ liệu từ API:", res.data);
+
         const q = res.data.data;
 
-        // 👉 Chuyển đổi key để React đọc đúng
         const formattedQuotation = {
           customerName: q.customerName,
           technicianName: q.technicianName,
@@ -30,24 +33,172 @@ export default function QuotationDetailPage() {
                 ? "Hoàn tất"
                 : q.status,
           checklist: q.checklistItemsStatus || [],
-          parts: q.quotationDetails?.map((item) => ({
-            componentID: item.quotationDetailID,
-            name: item.itemName,
+          parts: q.componentsUsed?.map((item) => ({
+            maintenanceComponentId: item.maintenanceComponentID,
+            name: item.componentName,
             quantity: item.quantity,
-            price: item.unitPrice,
+            price: item.componentPrice,
           })),
+
         };
 
-        console.log(" Dữ liệu sau khi format:", formattedQuotation);
+        console.log("✅ Dữ liệu sau khi format:", formattedQuotation);
         setQuotation(formattedQuotation);
       } catch (err) {
-        console.error(" Lỗi khi tải báo giá:", err);
+        console.error("❌ Lỗi khi tải báo giá:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchQuotation();
-  }, [quotationId]);
+  }, [maintenanceId]);
+
+
+  // ✅ Hàm tính lại tổng tiền linh kiện
+  const calculateTotal = (parts) => {
+    return parts.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  };
+
+  // ✅ Hàm xử lý khi đổi số lượng
+  const handleQuantityChange = async (index, newQuantity) => {
+    const updatedParts = [...quotation.parts];
+    const part = updatedParts[index];
+
+    if (newQuantity <= 0) return;
+
+    // Cập nhật tạm UI
+    updatedParts[index].quantity = Number(newQuantity);
+    const newTotal = calculateTotal(updatedParts);
+    setQuotation({ ...quotation, parts: updatedParts, totalAmount: newTotal });
+
+
+    try {
+      console.log("🟡 Dữ liệu gửi PUT:", {
+        maintenanceId,
+        maintenanceComponentId: part.maintenanceComponentId,
+        newQuantity,
+      });
+      await api.put(
+        `/maintenances/${maintenanceId}/components/${part.maintenanceComponentId}/quantity`,
+        { quantity: Number(newQuantity) }
+      );
+
+
+      console.log("✅ Cập nhật thành công linh kiện:", part.name);
+
+      Swal.fire({
+        toast: true,
+        position: "top", // hiện từ trên xuống
+        icon: "success",
+        title: `Đã cập nhật số lượng "${part.name}" thành công!`,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: "#10b981", // xanh ngọc đậm đẹp mắt
+        color: "#ffffff", // chữ trắng rõ ràng
+        iconColor: "#ffffff",
+        customClass: {
+          popup: "rounded-xl shadow-lg",
+          title: "text-lg font-semibold",
+        },
+      });
+
+
+    } catch (error) {
+      console.error("❌ Lỗi khi cập nhật số lượng:", error);
+      Swal.fire({
+        toast: true,
+        position: "top",
+        icon: "error",
+        title: "❌ Cập nhật thất bại! Vui lòng thử lại sau.",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        background: "#ef4444", // đỏ tươi
+        color: "#ffffff", // chữ trắng
+        iconColor: "#ffffff",
+        customClass: {
+          popup: "rounded-xl shadow-lg",
+          title: "text-lg font-semibold",
+        },
+      });
+    }
+  };
+
+  // ✅ Hàm xử lý xóa linh kiện
+  const handleDeletePart = async (index) => {
+    const part = quotation.parts[index];
+
+    const result = await Swal.fire({
+      title: `Xác nhận xóa linh kiện?`,
+      text: `Bạn có chắc muốn xóa "${part.name}" không?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#dc2626", // đỏ
+      cancelButtonColor: "#6b7280", // xám
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      console.log("🗑️ Gọi API xóa linh kiện:", {
+        maintenanceId,
+        maintenanceComponentId: part.maintenanceComponentId,
+      });
+
+      await api.delete(
+        `/maintenances/${maintenanceId}/components/${part.maintenanceComponentId}`
+      );
+
+      // Xóa khỏi UI
+      const updatedParts = quotation.parts.filter((_, i) => i !== index
+      );
+      const newTotal = calculateTotal(updatedParts);
+      setQuotation({ ...quotation, parts: updatedParts, totalAmount: newTotal });
+      Swal.fire({
+        toast: true,
+        position: "top",
+        icon: "success",
+        title: `Đã xóa linh kiện "${part.name}" thành công!`,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: "#10b981", // xanh ngọc đẹp mắt
+        color: "#ffffff", // chữ trắng rõ
+        iconColor: "#ffffff",
+        customClass: {
+          popup: "rounded-xl shadow-lg",
+          title: "text-lg font-semibold",
+        },
+      });
+
+
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa linh kiện:", error);
+      Swal.fire({
+        toast: true,
+        position: "top",
+        icon: "error",
+        title: "❌ Xóa thất bại! Vui lòng thử lại.",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        background: "#ef4444", // đỏ tươi
+        color: "#ffffff", // chữ trắng
+        iconColor: "#ffffff",
+        customClass: {
+          popup: "rounded-xl shadow-lg",
+          title: "text-lg font-semibold",
+        },
+      });
+
+    }
+  };
+
+
 
 
   if (loading)
@@ -56,7 +207,7 @@ export default function QuotationDetailPage() {
   if (!quotation)
     return (
       <div className="p-8 text-red-600 font-semibold">
-        Không tìm thấy báo giá #{quotationId}
+        Không tìm thấy báo giá #{maintenanceId}
       </div>
     );
 
@@ -69,7 +220,7 @@ export default function QuotationDetailPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Báo giá #{quotationId}
+            Báo giá #{maintenanceId}
           </h1>
           <p className="text-gray-500 text-sm">
             Chi tiết thông tin bảo dưỡng và linh kiện
@@ -162,22 +313,39 @@ export default function QuotationDetailPage() {
                 <th className="border p-2 text-center">Số lượng</th>
                 <th className="border p-2 text-right">Đơn giá</th>
                 <th className="border p-2 text-right">Thành tiền</th>
+                <th className="border p-2 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody>
-              {quotation.parts.map((p) => (
-                <tr key={p.componentID} className="border-b">
+              {quotation.parts.map((p, index) => (
+                <tr key={p.maintenanceComponentId} className="border-b">
                   <td className="border p-2">{p.name}</td>
-                  <td className="border p-2 text-center">{p.quantity}</td>
-                  <td className="border p-2 text-right">
-                    {formatCurrency(p.price)}
+                  <td className="border p-2 text-center">
+                    <input
+                      type="number"
+                      min="1"
+                      value={p.quantity}
+                      onChange={(e) => handleQuantityChange(index, e.target.value)}
+                      className="w-20 text-center border rounded-md p-1 focus:outline-none focus:ring focus:ring-blue-200"
+                    />
                   </td>
+                  <td className="border p-2 text-right">{formatCurrency(p.price)}</td>
                   <td className="border p-2 text-right">
                     {formatCurrency(p.price * p.quantity)}
+                  </td>
+                  <td className="border p-2 text-center">
+                    <button
+                      onClick={() => handleDeletePart(index)}
+                      className="text-red-600 hover:text-red-800 font-semibold"
+                    >
+                      Xóa
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
+
+
           </table>
         ) : (
           <p className="text-gray-500 italic">Không có linh kiện</p>
@@ -191,10 +359,10 @@ export default function QuotationDetailPage() {
             <p className="text-gray-600">Trạng thái:</p>
             <p
               className={`font-semibold ${quotation.status === "Đã xác nhận"
-                  ? "text-blue-600"
-                  : quotation.status === "Hoàn tất"
-                    ? "text-green-600"
-                    : "text-gray-700"
+                ? "text-blue-600"
+                : quotation.status === "Hoàn tất"
+                  ? "text-green-600"
+                  : "text-gray-700"
                 }`}
             >
               {quotation.status || "Chưa xác định"}

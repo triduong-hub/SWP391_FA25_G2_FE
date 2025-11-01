@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../../api";
 import { statusMapServerToUI } from "../../../utils/statusHelpers";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   UserRoundPlus,
@@ -22,6 +23,8 @@ const StaffDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState("Tất cả trạng thái");
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -29,29 +32,30 @@ const StaffDashboard = () => {
         const res = await api.get("/bookings/all");
         console.log("Booking API response:", res.data);
 
+
         const bookings = res.data.bookings || [];
-        console.log(" Dữ liệu trạng thái thô từ server:");
-        bookings.forEach((b) => console.log("orderId:", b.orderId, "status:", b.status));
 
         setOrders(
-          bookings.map((b) => ({
-            id: b.orderId,
-            customer: b.customerName || "Chưa có tên",
-            phone: b.customerPhone || "—",
-            vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
-            service:
-              Array.isArray(b.serviceNames) && b.serviceNames.length > 0
-                ? b.serviceNames.join(", ")
-                : b.serviceType || "—",
-            branch: b.serviceCenterName || "—",
-            technician: b.technicianName || null,
-            // ⚙️ Thêm dòng xử lý này để nhận đúng trạng thái "Đang thực hiện"
-            status: statusMapServerToUI[b.status?.trim()?.toLowerCase()] || "Không rõ",
+          bookings
+            .map((b) => ({
+              id: b.orderId,
+              customer: b.customerName || "Chưa có tên",
+              phone: b.customerPhone || "—",
+              vehicle: `${b.vehicleModel || "—"} (${b.vehiclePlateNumber || ""})`,
+              service:
+                Array.isArray(b.serviceNames) && b.serviceNames.length > 0
+                  ? b.serviceNames.join(", ")
+                  : b.serviceType || "—",
+              branch: b.serviceCenterName || "—",
+              technician: b.technicianName || null,
+              status: statusMapServerToUI[b.status?.trim()?.toLowerCase()] || "Không rõ",
+              price: b.totalCost ? `${b.totalCost.toLocaleString()} đ` : "—",
+              orderDate: new Date(b.orderDate), // ✅ thêm để sắp xếp
+            }))
+            .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
 
-
-            price: b.totalCost ? `${b.totalCost.toLocaleString()} đ` : "—",
-          }))
         );
+
       } catch (err) {
         console.error("Lỗi khi tải danh sách booking:", err);
       }
@@ -150,14 +154,6 @@ const StaffDashboard = () => {
   };
 
 
-  // Xác nhận đơn hàng
-  // const handleConfirmOrder = (orderId) => {
-  //   const updated = orders.map((o) =>
-  //     o.id === orderId ? { ...o, status: "Đã xác nhận" } : o
-  //   );
-  //   setOrders(updated);
-  // };
-
   // Xóa / Hủy đơn hàng
   const handleDeleteOrder = (orderId) => {
     if (!window.confirm("Bạn có chắc muốn xóa đơn hàng này không?")) return;
@@ -169,14 +165,26 @@ const StaffDashboard = () => {
   const totalOrders = orders.length;
   const pending = orders.filter((o) => o.status === "Chờ xác nhận").length;
   const confirmed = orders.filter((o) => o.status === "Đã xác nhận").length;
-  const completed = orders.filter((o) => o.status === "Hoàn thành").length;
+  const completed = orders.filter((o) => o.status === "Hoàn tất").length;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-2">Staff Dashboard</h1>
-      <p className="text-gray-500 mb-6">
-        Quản lý đơn hàng và phân công kỹ thuật viên
-      </p>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Staff Dashboard</h1>
+          <p className="text-gray-500">Quản lý đơn hàng và phân công kỹ thuật viên</p>
+        </div>
+        <button
+          onClick={() => {
+            localStorage.clear(); // ✅ Xóa token nếu có
+            navigate("/login");
+          }}
+          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium shadow"
+        >
+          Đăng xuất
+        </button>
+      </div>
+
 
       {/* Cards thống kê */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -204,7 +212,7 @@ const StaffDashboard = () => {
         <div className="bg-white p-4 rounded-xl shadow flex items-center gap-3">
           <CheckCircle className="text-green-500" size={28} />
           <div>
-            <div className="text-gray-500 text-sm">Hoàn thành</div>
+            <div className="text-gray-500 text-sm">Hoàn tất</div>
             <div className="text-xl font-semibold">{completed}</div>
           </div>
         </div>
@@ -230,10 +238,14 @@ const StaffDashboard = () => {
           <option>Tất cả trạng thái</option>
           <option>Chờ xác nhận</option>
           <option>Đã xác nhận</option>
+          <option>Chờ khách xác nhận báo giá</option>
           <option>Đang thực hiện</option>
           <option>Chờ thanh toán</option>
-          <option>Hoàn thành</option>
+          <option>Hoàn tất</option>
+          <option>Đã hủy</option>
+          <option>Không rõ</option>
         </select>
+
       </div>
 
 
@@ -279,20 +291,21 @@ const StaffDashboard = () => {
                   <td className="py-3 px-4">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : o.status === "Đã xác nhận"
-                          ? "bg-blue-100 text-blue-700"
-                          : o.status === "Đang thực hiện"
-                            ? "bg-orange-100 text-orange-700"
-                            : o.status === "Chờ thanh toán"
-                              ? "bg-purple-100 text-purple-700"
-                              : o.status === "Hoàn thành"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-700"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : o.status === "Đã xác nhận"
+                            ? "bg-blue-100 text-blue-700"
+                            : o.status === "Đang thực hiện"
+                              ? "bg-orange-100 text-orange-700"
+                              : o.status === "Chờ thanh toán"
+                                ? "bg-purple-100 text-purple-700"
+                                : o.status === "Hoàn tất"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-gray-100 text-gray-700"
                         }`}
                     >
                       {o.status}
                     </span>
+
                   </td>
                   <td className="py-3 px-4 text-gray-700">
                     {o.technician

@@ -112,73 +112,6 @@ export default function CustomerQuotationDetailPage() {
     };
 
 
-    // ✅ Cho phép khách hàng chỉnh sửa số lượng linh kiện
-    const handleQuantityChange = async (componentId, newQuantity) => {
-        try {
-            // Cập nhật trước trong UI
-            setQuotation((prev) => ({
-                ...prev,
-                parts: prev.parts.map((part) =>
-                    part.id === componentId
-                        ? { ...part, quantity: Number(newQuantity) }
-                        : part
-                ),
-            }));
-
-            // Gọi API PUT cập nhật số lượng
-            const res = await api.put(
-                `/maintenances/${quotation.parts.find(p => p.id === componentId).maintenanceId}/components/${componentId}/quantity`,
-                null,
-                { params: { quantity: Number(newQuantity) } }  // ✅ gửi qua query param
-            );
-
-
-            console.log(`✅ Đã cập nhật linh kiện ${componentId} thành ${newQuantity}`);
-        } catch (err) {
-            console.error("❌ Lỗi khi cập nhật số lượng linh kiện:", err);
-            if (err.response) {
-                console.log("📩 Response từ server:", err.response.data);
-                console.log("🔢 Status:", err.response.status);
-            }
-
-            alert("Không thể cập nhật số lượng linh kiện. Vui lòng thử lại!");
-        }
-    };
-
-
-
-    const handleDeletePart = async (componentId) => {
-        if (!window.confirm("Bạn có chắc muốn xóa linh kiện này không?")) return;
-
-        try {
-            console.log(`🟡 Gửi request DELETE /maintenances/${orderId}/components/${componentId}`);
-
-            // Gọi API DELETE và nhận phản hồi
-            const res = await api.delete(`/maintenances/${orderId}/components/${componentId}`);
-
-            console.log("✅ Phản hồi từ server khi xóa:", res.data);
-
-            setQuotation((prev) => ({
-                ...prev,
-                parts: prev.parts.filter((p) => p.id !== componentId),
-            }));
-
-            console.log(`🗑️ Đã xóa linh kiện ${componentId}`);
-        } catch (err) {
-            console.error("❌ Lỗi khi xóa linh kiện:", err);
-            if (err.response) {
-                console.log("📩 Response từ server:", err.response.data);
-                console.log("🔢 Status:", err.response.status);
-            }
-            alert("Không thể xóa linh kiện. Vui lòng thử lại!");
-        }
-    };
-
-
-
-
-
-
     const formatCurrency = (num) =>
         num?.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
@@ -291,9 +224,7 @@ export default function CustomerQuotationDetailPage() {
                                 <th className="border p-2 text-center">Số lượng</th>
                                 <th className="border p-2 text-right">Đơn giá</th>
                                 <th className="border p-2 text-right">Thành tiền</th>
-                                {quotation.status === "Chờ khách duyệt" && (
-                                    <th className="border p-2 text-center">Hành động</th>
-                                )}
+
                             </tr>
 
                         </thead>
@@ -301,40 +232,21 @@ export default function CustomerQuotationDetailPage() {
                             {quotation.parts.map((p) => (
                                 <tr key={p.id} className="border-b">
                                     <td className="border p-2">{p.name}</td>
-                                    <td className="border p-2 text-center">
-                                        {quotation.status === "Chờ khách duyệt" ? (
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                value={p.quantity}
-                                                onChange={(e) => handleQuantityChange(p.id, e.target.value)}
-                                                className="w-16 text-center border rounded-md"
-                                            />
-                                        ) : (
-                                            p.quantity
-                                        )}
-                                    </td>
+
+                                    {/* Chỉ hiển thị số lượng, không cho nhập */}
+                                    <td className="border p-2 text-center">{p.quantity}</td>
 
                                     <td className="border p-2 text-right">
                                         {formatCurrency(p.price)}
                                     </td>
+
                                     <td className="border p-2 text-right">
                                         {formatCurrency(p.price * p.quantity)}
                                     </td>
-                                    {quotation.status === "Chờ khách duyệt" && (
-                                        <td className="border p-2 text-center">
-                                            <button
-                                                onClick={() => handleDeletePart(p.id)}
-                                                className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md"
-                                            >
-                                                Xóa
-                                            </button>
-                                        </td>
-                                    )}
-
                                 </tr>
                             ))}
                         </tbody>
+
                     </table>
                 ) : (
                     <p className="text-gray-500 italic">Không có linh kiện</p>

@@ -75,7 +75,7 @@ const HomeAdmin = () => {
         setNotifications([
           "Có 3 xe mới cần bảo dưỡng",
           "Người dùng mới đăng ký: Trần Văn C",
-          "Xe VF8 đã hoàn thành bảo dưỡng",
+          "Xe VF8 đã hoàn tất bảo dưỡng",
         ]);
       } finally {
         setLoading(false);
@@ -127,7 +127,7 @@ const HomeAdmin = () => {
   const recentJobs = [
     { id: 1, car: "VF8", service: "Bảo dưỡng định kỳ", staff: "Nguyễn Văn A", status: "Đang thực hiện" },
     { id: 2, car: "VF5", service: "Thay pin", staff: "", status: "Chờ phân công" },
-    { id: 3, car: "VF9", service: "Kiểm tra động cơ", staff: "Lê Minh B", status: "Hoàn thành" },
+    { id: 3, car: "VF9", service: "Kiểm tra động cơ", staff: "Lê Minh B", status: "Hoàn tất" },
   ];
 
   return (
@@ -272,7 +272,7 @@ const HomeAdmin = () => {
                         <td className="p-3">{job.staff || "Chưa phân công"}</td>
                         <td
                           className={`p-3 font-semibold ${
-                            job.status === "Hoàn thành"
+                            job.status === "Hoàn tất"
                               ? "text-emerald-600"
                               : job.status === "Đang thực hiện"
                               ? "text-blue-600"

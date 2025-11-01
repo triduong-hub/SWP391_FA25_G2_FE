@@ -7,6 +7,7 @@ export const statusMapServerToUI = {
   "approved": "đã duyệt",
   "waiting for payment": "Chờ thanh toán",
   "completed": "Hoàn tất",
+  "processing": "Khách đã xác nhận",
 };
 
 
@@ -15,7 +16,7 @@ export const statusMapUIToServer = {
   batdau: "in-progress",          // khi kỹ thuật viên ấn "Bắt đầu"
   baogia: "awaiting-customer-approval",  // sau khi báo giá xong
   xacnhankhach: "in-progress",           // khách xác nhận báo giá
-  daduyet:"approved",
-  hoanthanh: "waiting-for-payment", // khi kỹ thuật viên ấn "Hoàn thành"
+  daduyet: "approved",
+  hoanthanh: "waiting-for-payment", // khi kỹ thuật viên ấn "Hoàn tất"
   thanhtoan: "completed",          // khi khách hàng thanh toán
 };

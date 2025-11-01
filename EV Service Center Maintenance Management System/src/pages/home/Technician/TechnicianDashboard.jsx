@@ -15,6 +15,8 @@ const TechnicianDashboard = () => {
     const [detailModal, setDetailModal] = useState(false);
     const [newNote, setNewNote] = useState('');
     const [filterStatus, setFilterStatus] = useState("all");
+    const [filterTechnician, setFilterTechnician] = useState("");
+
     const navigate = useNavigate();
 
 
@@ -24,19 +26,27 @@ const TechnicianDashboard = () => {
             try {
                 const res = await api.get("/maintenances/all");
                 console.log("📦 Dữ liệu bảo trì:", res.data);
-                setTasks(Array.isArray(res.data.Maintenances) ? res.data.Maintenances : []);
+
+                const maintenances = Array.isArray(res.data.Maintenances)
+                    ? res.data.Maintenances
+                    : [];
+
+                // 🟢 Sắp xếp đơn mới nhất nằm đầu tiên
+                const sortedMaintenances = maintenances.sort(
+                    (a, b) =>
+                        new Date(b.createdAt || b.startTime || b.maintenanceDate) -
+                        new Date(a.createdAt || a.startTime || a.maintenanceDate)
+                );
+
+                setTasks(sortedMaintenances);
             } catch (err) {
                 console.error("❌ Lỗi khi lấy danh sách công việc:", err);
             }
         };
 
         fetchTasks();
+    }, []);
 
-        // 🔁 Cập nhật tự động mỗi 10 giây
-        // const interval = setInterval(fetchTasks, 10000);
-        // return () => clearInterval(interval);
-    }
-        , []);
 
     // ---------------- UTILS ----------------
     const getStatusBadge = (status) => {
@@ -155,27 +165,69 @@ const TechnicianDashboard = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Technician Dashboard</h1>
                     <p className="text-gray-500">Quản lý công việc được phân công</p>
                 </div>
-                <div className="flex items-center text-gray-500 text-sm">
-                    <Activity className="w-4 h-4 mr-2" />
-                    {new Date().toLocaleTimeString('vi-VN')}
+                <div className="flex items-center gap-4 text-gray-500 text-sm">
+                    <div className="flex items-center">
+                        <Activity className="w-4 h-4 mr-2" />
+                        {new Date().toLocaleTimeString('vi-VN')}
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            localStorage.clear(); // Xóa token / session
+                            navigate("/login");   // Quay về trang login
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white font-medium text-sm rounded-lg shadow hover:bg-red-700 transition-all"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2h-3a2 2 0 00-2 2v1"
+                            />
+                        </svg>
+                        Đăng xuất
+                    </button>
                 </div>
+
             </div>
 
             {/* FILTER */}
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-6 flex flex-wrap items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">Lọc theo trạng thái:</label>
                 <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500"
                 >
                     <option value="all">Tất cả</option>
+                    <option value="pending">Chờ xác nhận</option>
                     <option value="confirmed">Đã xác nhận</option>
+                    <option value="assigned">Chờ xử lý</option>
                     <option value="in_progress">Đang thực hiện</option>
+                    <option value="awaiting_customer_approval">Chờ khách xác nhận báo giá</option>
+                    <option value="approved">Đã duyệt báo giá</option>
                     <option value="waiting_for_payment">Chờ thanh toán</option>
                     <option value="completed">Hoàn tất</option>
+                    <option value="cancelled">Đã hủy</option>
                 </select>
+
+                {/* Lọc theo tên kỹ thuật viên */}
+                <input
+                    type="text"
+                    value={filterTechnician}
+                    onChange={(e) => setFilterTechnician(e.target.value)}
+                    placeholder="Tìm theo tên nhân viên..."
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:ring-2 focus:ring-green-500"
+                />
             </div>
+
 
             {/* STATS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -221,17 +273,28 @@ const TechnicianDashboard = () => {
             {/* TASK LIST */}
             {normalizedTasks
                 .filter(task => {
-                    if (filterStatus === "all") return true;
-
-                    // chuẩn hoá status trước khi so sánh
-                    const normalized = (task.status || "")
+                    const normalizedStatus = (task.status || "")
                         .toLowerCase()
                         .replace(/[^a-z0-9]+/g, "_")
                         .replace(/^_+|_+$/g, "");
-                    return normalized === filterStatus;
+
+                    const matchStatus =
+                        filterStatus === "all" || normalizedStatus === filterStatus;
+
+                    const matchTechnician =
+                        !filterTechnician ||
+                        (task.empName || "")
+                            .toLowerCase()
+                            .includes(filterTechnician.toLowerCase());
+
+                    return matchStatus && matchTechnician;
                 })
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+
                 .map(task => (
-                    console.log("task status:", task.status, "for", task.maintenanceID),
+
+                    
                     <div
                         key={task.maintenanceID}
                         className={`rounded-2xl p-5 mb-5 border-2 shadow-md hover:shadow-lg transition-all duration-300 ${task.status === "in-progress"
@@ -418,7 +481,7 @@ const TechnicianDashboard = () => {
                             {/* ✅ Khi hoàn tất */}
                             {task.status === "completed" && (
                                 <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg text-sm">
-                                    Hoàn thành
+                                    Hoàn tất
                                 </span>
                             )}
                         </div>

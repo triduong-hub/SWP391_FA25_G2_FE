@@ -91,7 +91,8 @@ function AppRoute() {
         <Route path="/technician/quotation/:jobId" element={<QuotationPage />} />
 
         {/* Trang xem báo giá */}
-        <Route path="/quotation/:quotationId" element={<QuotationDetailPage />} />
+        <Route path="/quotation/:maintenanceId" element={<QuotationDetailPage />} />
+
 
          {/* Trang xem hóa đơn*/}
          <Route path="/invoice/order/:orderId" element={<InvoicePage />} />
