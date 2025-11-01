@@ -172,6 +172,13 @@ const TechnicianDashboard = () => {
                     </div>
 
                     <button
+                        onClick={() => navigate("/components")}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white font-medium text-sm rounded-lg shadow hover:bg-green-700 transition-all"
+                    >
+                        Phụ tùng
+                    </button>
+
+                    <button
                         onClick={() => {
                             localStorage.clear(); // Xóa token / session
                             navigate("/login");   // Quay về trang login
@@ -294,7 +301,7 @@ const TechnicianDashboard = () => {
 
                 .map(task => (
 
-                    
+
                     <div
                         key={task.maintenanceID}
                         className={`rounded-2xl p-5 mb-5 border-2 shadow-md hover:shadow-lg transition-all duration-300 ${task.status === "in-progress"

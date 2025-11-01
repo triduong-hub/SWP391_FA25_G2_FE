@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, Filter, Eye, CreditCard as Edit3, Trash2, CheckCircle, XCircle, AlertTriangle, Activity, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react';
 import api from '../../../../api'; // ✅ đường dẫn thật tới file api.js
 import AIMinStock from './AIMinStock';
+import { useNavigate } from "react-router-dom";
 
 const Parts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -13,6 +14,7 @@ const Parts = () => {
   const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
   const categories = ['Battery', 'Motor', 'Brake', 'Charging', 'Suspension', 'Tire', 'Electronics'];
   const suppliers = ['Tesla Vietnam', 'VinFast Parts', 'BMW Parts Center', 'EV Solutions Ltd', 'Audi Parts Vietnam', 'Michelin Vietnam'];
 
@@ -120,11 +122,14 @@ const Parts = () => {
           <h1 className="text-3xl font-bold text-gray-900">Parts Management</h1>
           <p className="text-gray-600 mt-1">Quản lý kho phụ tùng và linh kiện</p>
         </div>
+
         <div className="flex items-center space-x-3">
           <div className="flex items-center text-gray-500">
             <Activity className="w-4 h-4 mr-2" />
             <span className="text-sm">Cập nhật: {new Date().toLocaleTimeString('vi-VN')}</span>
           </div>
+
+          {/* 🔹 Nút thêm phụ tùng */}
           <button
             onClick={handleAddPart}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -132,8 +137,21 @@ const Parts = () => {
             <Plus className="w-4 h-4" />
             <span>Thêm phụ tùng</span>
           </button>
+
+          {/* 🔹 Nút quay về nằm kế bên */}
+          <button
+            onClick={() => {
+              const role = localStorage.getItem("role");
+              if (role === "technician") navigate("/techniciandash");
+              else navigate("/staffdash");
+            }}
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-all flex items-center space-x-2"
+          >
+             <span>Quay về</span>
+          </button>
         </div>
       </div>
+
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

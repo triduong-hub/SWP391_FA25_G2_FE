@@ -174,15 +174,25 @@ const StaffDashboard = () => {
           <h1 className="text-2xl font-bold">Staff Dashboard</h1>
           <p className="text-gray-500">Quản lý đơn hàng và phân công kỹ thuật viên</p>
         </div>
-        <button
-          onClick={() => {
-            localStorage.clear(); // ✅ Xóa token nếu có
-            navigate("/login");
-          }}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium shadow"
-        >
-          Đăng xuất
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/components")}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium shadow"
+          >
+            Phụ tùng
+          </button>
+
+          <button
+            onClick={() => {
+              localStorage.clear();
+              navigate("/login");
+            }}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium shadow"
+          >
+            Đăng xuất
+          </button>
+        </div>
       </div>
 
 
@@ -291,16 +301,16 @@ const StaffDashboard = () => {
                   <td className="py-3 px-4">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${o.status === "Chờ xác nhận"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : o.status === "Đã xác nhận"
-                            ? "bg-blue-100 text-blue-700"
-                            : o.status === "Đang thực hiện"
-                              ? "bg-orange-100 text-orange-700"
-                              : o.status === "Chờ thanh toán"
-                                ? "bg-purple-100 text-purple-700"
-                                : o.status === "Hoàn tất"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-gray-100 text-gray-700"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : o.status === "Đã xác nhận"
+                          ? "bg-blue-100 text-blue-700"
+                          : o.status === "Đang thực hiện"
+                            ? "bg-orange-100 text-orange-700"
+                            : o.status === "Chờ thanh toán"
+                              ? "bg-purple-100 text-purple-700"
+                              : o.status === "Hoàn tất"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
                         }`}
                     >
                       {o.status}
