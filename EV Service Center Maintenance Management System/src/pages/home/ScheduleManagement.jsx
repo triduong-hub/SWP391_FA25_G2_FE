@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
+import { Edit, Trash2 } from "lucide-react";
+import { statusMapServerToUI } from "../../utils/statusHelpers"; // đường dẫn file map trạng thái
+
 
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
@@ -41,14 +44,7 @@ const ScheduleManagement = () => {
             : item.serviceType || "—",
         date: item.appointmentDate || "—",
         branch: item.serviceCenterName || "—",
-        status:
-          item.status === "Pending"
-            ? "Chờ xác nhận"
-            : item.status === "Confirmed"
-              ? "Đã xác nhận"
-              : item.status === "Completed"
-                ? "Hoàn tất"
-                : item.status,
+        status: statusMapServerToUI[item.status?.toLowerCase()] || item.status || "—",
       }));
 
 
@@ -62,6 +58,8 @@ const ScheduleManagement = () => {
           (filter.date === "" || item.date === filter.date)
         );
       });
+
+
 
       setSchedules(filtered);
     } catch (error) {
@@ -98,6 +96,19 @@ const ScheduleManagement = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Hoàn tất":
+        return "text-green-600";
+      case "Đang xử lý":
+        return "text-yellow-600";
+      case "Hủy":
+        return "text-red-500";
+      default:
+        return "text-blue-600";
+    }
+  };
+
   return (
     <div className="p-6 bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100 min-h-screen rounded-2xl space-y-6 shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800">
@@ -119,8 +130,8 @@ const ScheduleManagement = () => {
           className="border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
         >
           <option value="">-- Trạng thái --</option>
-          <option value="Đã đặt">Đã đặt</option>
-          <option value="Đang xử lý">Đang xử lý</option>
+          <option value="Chờ xác nhận">Chờ xác nhận</option>
+          <option value="Đang thực hiện">Đang thực hiện</option>
           <option value="Hoàn tất">Hoàn tất</option>
           <option value="Hủy">Hủy</option>
         </select>
@@ -161,54 +172,47 @@ const ScheduleManagement = () => {
         ) : schedules.length === 0 ? (
           <p className="p-4 text-gray-500">⚠️ Không có lịch nào.</p>
         ) : (
-          <table className="w-full border-collapse text-gray-900">
+          <table className="w-full border-collapse text-gray-900 table-fixed">
             <thead>
               <tr className="bg-gradient-to-r from-emerald-100 to-blue-100 text-gray-700 text-sm uppercase">
-                <th className="p-3">ID</th>
-                <th className="p-3">Xe</th>
-                <th className="p-3">Khách hàng</th>
-                <th className="p-3">Loại bảo dưỡng</th>
-                <th className="p-3">Ngày đặt lịch</th>
-                <th className="p-3">Trạng thái</th>
-                <th className="p-3 text-center">Hành động</th>
+                <th className="p-3 w-16 text-center">ID</th>
+                <th className="p-3 w-40 text-left">Xe</th>
+                <th className="p-3 w-40 text-left">Khách hàng</th>
+                <th className="p-3 w-48 text-left">Loại bảo dưỡng</th>
+                <th className="p-3 w-32 text-center">Ngày đặt</th>
+                <th className="p-3 w-28 text-center">Trạng thái</th>
+                <th className="p-3 w-32 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {schedules.map((s, index) => (
                 <tr
                   key={s.id ?? `row-${index}`}
-                  className="border-b hover:bg-emerald-50/50 transition"
+                  className="border-b hover:bg-emerald-50 transition-all duration-150"
                 >
-                  <td className="p-3">{s.id}</td>
-                  <td className="p-3">{s.vehicle}</td>
-                  <td className="p-3">{s.customer}</td>
-                  <td className="p-3">{s.type}</td>
-                  <td className="p-3">{s.date}</td>
-                  <td
-                    className={`p-3 font-medium ${s.status === "Hoàn tất"
-                      ? "text-green-600"
-                      : s.status === "Đang xử lý"
-                        ? "text-yellow-600"
-                        : s.status === "Hủy"
-                          ? "text-red-500"
-                          : "text-blue-600"
-                      }`}
-                  >
+                  <td className="p-3 text-center">{s.id}</td>
+                  <td className="p-3 max-w-[160px] break-words">{s.vehicle}</td>
+                  <td className="p-3 max-w-[160px] break-words">{s.customer}</td>
+                  <td className="p-3 max-w-[200px] break-words">{s.type}</td>
+                  <td className="p-3 text-center">{s.date}</td>
+                  <td className={`p-3 font-medium text-center ${getStatusColor(s.status)}`}>
                     {s.status}
                   </td>
-                  <td className="p-3 text-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(s.id)}
-                      className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      onClick={() => handleDelete(s.id)}
-                      className="bg-gradient-to-r from-red-500 to-pink-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
-                    >
-                      Xóa
-                    </button>
+                  <td className="p-3 text-center">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(s.id)}
+                        className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg shadow transition"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg shadow transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -216,6 +220,7 @@ const ScheduleManagement = () => {
           </table>
         )}
       </div>
+
     </div>
   );
 };

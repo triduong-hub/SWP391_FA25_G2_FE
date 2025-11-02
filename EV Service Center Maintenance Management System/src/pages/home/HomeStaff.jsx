@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import api from "../../../api";
 
+
 const HomeStaff = () => {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,17 +177,21 @@ const HomeStaff = () => {
         {loading ? (
           <p className="p-4 text-gray-500">⏳ Đang tải dữ liệu...</p>
         ) : (
-          <table className="w-full border-collapse text-gray-900">
+          <table className="w-full border-collapse text-gray-900 table-fixed">
+
             <thead>
-              <tr className="bg-gradient-to-r from-emerald-100 to-blue-100 text-gray-700 text-sm uppercase">
-                <th className="p-3">ID</th>
-                <th className="p-3">Họ và tên</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Vai trò</th>
-                <th className="p-3">Trạng thái</th>
-                <th className="p-3 text-center">Hành động</th>
+              <tr className="bg-emerald-50 text-gray-700 text-sm uppercase border-b">
+                <th className="p-3 text-center w-[5%]">ID</th>
+                <th className="p-3 text-left w-[25%]">Họ và tên</th>
+                <th className="p-3 text-left w-[25%]">Email</th>
+                <th className="p-3 text-left w-[15%]">Vai trò</th>
+                <th className="p-3 text-center w-[15%]">Trạng thái</th>
+                <th className="p-3 text-center w-[15%]">Hành động</th>
               </tr>
             </thead>
+
+
+
             <tbody>
               {filteredStaff.length === 0 ? (
                 <tr>
@@ -197,25 +202,24 @@ const HomeStaff = () => {
               ) : (
                 filteredStaff.map((item) => (
                   <tr key={item.employeeID} className="border-b hover:bg-emerald-50/50 transition">
-                    <td className="p-3">{item.employeeID}</td>
-                    <td className="p-3">{item.name}</td>
-                    <td className="p-3">{item.email}</td>
-                    <td className="p-3">{item.role}</td>
+                    <td className="p-3 text-center">{item.employeeID}</td>
+                    <td className="p-3 text-left">{item.name}</td>
+                    <td className="p-3 text-left">{item.email}</td>
+                    <td className="p-3 text-left">{item.role}</td>
                     <td
-                      className={`p-3 font-medium ${item.status === "Đang làm việc"
-                        ? "text-green-600"
-                        : "text-red-500"
+                      className={`p-3 text-center font-medium ${item.status === "Đang làm việc" ? "text-green-600" : "text-red-500"
                         }`}
                     >
                       {item.status}
                     </td>
-                    <td className="p-3 text-center space-x-2">
+
+                    <td className="px-4 py-2 flex justify-center space-x-3">
                       <button
                         onClick={() => {
                           setEditingStaff(item);
                           setFormData({
                             name: item.name || "",
-                            password: "", // ✅ thêm để tránh cảnh báo uncontrolled
+                            password: "",
                             phone: item.phone || "",
                             email: item.email || "",
                             gender: item.gender || "",
@@ -226,21 +230,21 @@ const HomeStaff = () => {
                             address: item.address || "",
                             birth: item.birth ? item.birth.split("T")[0] : "",
                           });
-
-
                           setShowForm(true);
                         }}
-                        className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
+                        className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg shadow transition"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
+
                       <button
                         onClick={() => handleDelete(item.employeeID)}
-                        className="bg-gradient-to-r from-red-500 to-pink-500 hover:opacity-90 text-white px-3 py-1 rounded-lg shadow"
+                        className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg shadow transition"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
+
                   </tr>
                 ))
               )}
