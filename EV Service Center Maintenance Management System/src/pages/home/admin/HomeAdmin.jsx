@@ -19,6 +19,12 @@ const HomeAdmin = () => {
   const [dashboard, setDashboard] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [revenueData, setRevenueData] = useState([]);
+  // 🧩 Biểu đồ thống kê checklist fail
+  const [failureData, setFailureData] = useState([]);
+  // 👥 Biểu đồ thống kê account theo role
+  const [accountStats, setAccountStats] = useState([]);
+  // 📦 Biểu đồ đơn hàng & bảo dưỡng theo tháng
+  const [orderStats, setOrderStats] = useState([]);
   const profileRef = useRef();
 
   // ✅ Lấy dữ liệu dashboard từ API
@@ -59,6 +65,56 @@ const HomeAdmin = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const fetchFailureData = async () => {
+      try {
+        const res = await API.get("/statistics/failures");
+        console.log("⚠️ Dữ liệu lỗi checklist:", res.data);
+        setFailureData(res.data.failure_statistics || []);
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy dữ liệu lỗi checklist:", error);
+      }
+    };
+    fetchFailureData();
+  }, []);
+
+  useEffect(() => {
+    const fetchAccountStats = async () => {
+      try {
+        const res = await API.get("/statistics/accounts");
+        console.log("👥 Dữ liệu tài khoản theo role:", res.data);
+        setAccountStats(res.data.statistics || []);
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy dữ liệu tài khoản:", error);
+      }
+    };
+    fetchAccountStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchOrderStats = async () => {
+      try {
+        const year = new Date().getFullYear(); // Lấy năm hiện tại
+        const res = await API.get(`/statistics/orders/monthly?year=${year}`);
+        console.log("📦 Dữ liệu đơn hàng theo tháng:", res.data);
+
+        // Chuyển đổi dạng object sang mảng để Recharts dễ đọc
+        const months = Object.keys(res.data.ordersByMonth || {});
+        const formattedData = months.map((m) => ({
+          month: `Tháng ${m}`,
+          orders: res.data.ordersByMonth[m] || 0,
+          maintenances: res.data.maintenanceByMonth[m] || 0,
+        }));
+
+        setOrderStats(formattedData);
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy dữ liệu đơn hàng:", error);
+      }
+    };
+    fetchOrderStats();
+  }, []);
+
 
   // ✅ Đăng xuất
   const handleLogout = () => {
@@ -192,6 +248,85 @@ const HomeAdmin = () => {
                 </ResponsiveContainer>
               )}
             </div>
+
+            {/* ✅ Biểu đồ checklist fail */}
+            <div className="mt-10 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Thống kê checklist bị lỗi & xu hướng hỏng hóc
+              </h3>
+
+              {!failureData.length ? (
+                <p className="text-gray-500">Đang tải biểu đồ...</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart
+                    data={failureData}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="checklist_name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="fail_count" name="Số lần lỗi" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* ✅ Biểu đồ tài khoản theo vai trò */}
+            <div className="mt-10 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Thống kê số lượng tài khoản theo vai trò và tháng
+              </h3>
+
+              {!accountStats.length ? (
+                <p className="text-gray-500">Đang tải biểu đồ...</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart
+                    data={accountStats}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="CUSTOMER" name="Khách hàng" fill="#10b981" />
+                    <Bar dataKey="STAFF" name="Nhân viên" fill="#3b82f6" />
+                    <Bar dataKey="TECHNICIAN" name="Kỹ thuật viên" fill="#f59e0b" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            {/* ✅ Biểu đồ đơn hàng & bảo dưỡng theo tháng */}
+            <div className="mt-10 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Thống kê số lượng đơn hàng & bảo dưỡng theo tháng ({new Date().getFullYear()})
+              </h3>
+
+              {!orderStats.length ? (
+                <p className="text-gray-500">Đang tải biểu đồ...</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart
+                    data={orderStats}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="orders" name="Đơn hàng" fill="#3b82f6" />
+                    <Bar dataKey="maintenances" name="Bảo dưỡng" fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+
           </>
         )}
       </main>

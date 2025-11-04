@@ -7,6 +7,8 @@ const TechnicianManagement = () => {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
+  const statusList = ["Tất cả", ...new Set(tasks.map((t) => t.status))];
+
 
   // 🔹 Lấy dữ liệu thật từ API
   useEffect(() => {
@@ -44,6 +46,7 @@ const TechnicianManagement = () => {
       selectedStatus === "Tất cả" || task.status === selectedStatus;
     return matchSearch && matchStatus;
   });
+  
 
   return (
     <section className="p-6 bg-gray-50 min-h-screen">
@@ -69,11 +72,13 @@ const TechnicianManagement = () => {
           onChange={(e) => setSelectedStatus(e.target.value)}
           className="p-2 rounded-xl border border-gray-300 bg-white shadow-sm"
         >
-          <option>Tất cả</option>
-          <option>Completed</option>
-          <option>In Progress</option>
-          <option>Pending</option>
+          {statusList.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
+
       </div>
 
       {/* Bảng danh sách */}
@@ -81,6 +86,7 @@ const TechnicianManagement = () => {
         <table className="w-full text-sm text-left text-gray-700">
           <thead className="bg-blue-600 text-white">
             <tr>
+              <th className="px-6 py-3">ID</th>
               <th className="px-6 py-3">Khách hàng</th>
               <th className="px-6 py-3">Xe</th>
               <th className="px-6 py-3">Kỹ thuật viên</th>
@@ -94,6 +100,7 @@ const TechnicianManagement = () => {
                 key={task.id}
                 className="border-b hover:bg-gray-50 transition"
               >
+                <td className="px-6 py-4">{task.id}</td>
                 <td className="px-6 py-4 font-medium">{task.customer}</td>
                 <td className="px-6 py-4">{task.vehicle}</td>
                 <td className="px-6 py-4">{task.technician}</td>
@@ -101,16 +108,16 @@ const TechnicianManagement = () => {
                 <td className="px-6 py-4">
                   <span
                     className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "Hoàn tất"
-                        ? "bg-green-100 text-green-700"
-                        : task.status === "Đang thực hiện" ||
-                          task.status === "Khách đã xác nhận" ||
-                          task.status === "Đã xác nhận"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : task.status === "Chờ thanh toán" ||
-                            task.status === "Chờ khách xác nhận báo giá" ||
-                            task.status === "Chờ xác nhận"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-gray-100 text-gray-700"
+                      ? "bg-green-100 text-green-700"
+                      : task.status === "Đang thực hiện" ||
+                        task.status === "Khách đã xác nhận" ||
+                        task.status === "Đã xác nhận"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : task.status === "Chờ thanh toán" ||
+                          task.status === "Chờ khách xác nhận báo giá" ||
+                          task.status === "Chờ xác nhận"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-gray-100 text-gray-700"
                       }`}
                   >
                     {task.status}
