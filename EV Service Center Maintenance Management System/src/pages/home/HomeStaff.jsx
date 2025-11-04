@@ -207,11 +207,12 @@ const HomeStaff = () => {
                     <td className="p-3 text-left">{item.email}</td>
                     <td className="p-3 text-left">{item.role}</td>
                     <td
-                      className={`p-3 text-center font-medium ${item.status === "Đang làm việc" ? "text-green-600" : "text-red-500"
+                      className={`p-3 text-center font-medium ${item.status ? "text-green-600" : "text-red-500"
                         }`}
                     >
-                      {item.status}
+                      {item.status ? "Đang làm việc" : "Nghỉ việc"}
                     </td>
+
 
                     <td className="px-4 py-2 flex justify-center space-x-3">
                       <button
