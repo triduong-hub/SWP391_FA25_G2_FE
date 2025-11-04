@@ -14,6 +14,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import api from "../../../api.js";
 import GoogleIcon from "./GoogleIcon.jsx";
+import { GoogleLogin } from "@react-oauth/google";
+
 
 const LoginForm = ({ onSwitch }) => {
   const [formData, setFormData] = useState({ phone: "", password: "" });
@@ -67,8 +69,8 @@ const LoginForm = ({ onSwitch }) => {
           localStorage.setItem("customerId", customerId);
           console.log(" Saved customerId:", customerId);
         } //else {
-         // console.warn(" Không tìm thấy customerId:", data);
-       // }
+        // console.warn(" Không tìm thấy customerId:", data);
+        // }
 
         navigate("/");
       } else {
@@ -88,13 +90,35 @@ const LoginForm = ({ onSwitch }) => {
 
   return (
     <>
-      <button
-        onClick={() => console.log("Google login initiated")}
-        className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-white border-2 border-gray-200 rounded-xl mb-4"
-      >
-        <GoogleIcon />
-        <span className="font-medium text-gray-700">Tiếp tục với Google</span>
-      </button>
+      <div className="flex justify-center mb-4">
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            console.log("Google token:", credentialResponse.credential);
+            try {
+              const response = await api.post("/auth/google", {
+                token: credentialResponse.credential,
+              });
+
+              const data = response.data;
+              localStorage.setItem("token", data.token);
+              localStorage.setItem("user", JSON.stringify(data));
+
+              const role = data.role?.toLowerCase();
+              if (role === "admin") navigate("/admin/home");
+              else if (role === "staff") navigate("/staffdash");
+              else if (role === "technician") navigate("/techniciandash");
+              else navigate("/");
+
+            } catch (err) {
+              console.error("Google login error:", err);
+              alert("Đăng nhập Google thất bại!");
+            }
+          }}
+          onError={() => console.log("Google Login Failed")}
+          useOneTap
+        />
+      </div>
+
 
       <div className="flex items-center my-6">
         <div className="flex-1 border-t border-gray-200"></div>
