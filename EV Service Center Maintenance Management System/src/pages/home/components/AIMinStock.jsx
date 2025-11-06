@@ -132,13 +132,14 @@ const AIMinStock = () => {
                     Gợi ý tồn tối thiểu: {result.suggestedMin}
                   </p>
                 </div>
-
+                {/*
                 <button
                   onClick={applySuggestion}
                   className="w-full mt-4 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
                 >
                   Áp dụng gợi ý
                 </button>
+                */}
               </div>
             )}
           </div>

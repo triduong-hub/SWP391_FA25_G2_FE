@@ -1025,20 +1025,17 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-
           {/* Dòng cuối */}
           <div className="border-t border-gray-700 mt-12 pt-6 text-center text-sm text-gray-500">
             <p>© 2025 EV Care Pro. Mọi quyền được bảo lưu.</p>
             <p className="mt-1">Designed by <span className="text-gray-300 font-semibold">RTY</span></p>
           </div>
+          {/* ChatBot*/}    
+          <div className="">
+            {/* existing content */}
+            <ChatBot bookings={bookings} /> 
+          </div>
         </footer>
-        return (
-        <div className="min-h-screen bg-gray-50">
-
-          {/* existing content */}
-          <ChatBot bookings={bookings} /> 
-        </div>
-        );
       </main>
     </div>
   );

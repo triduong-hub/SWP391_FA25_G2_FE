@@ -15,7 +15,7 @@ const Parts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const categories = ['Battery', 'Motor', 'Brake', 'Charging', 'Suspension', 'Tire', 'Electronics'];
+  const categories = ['Truyền động', 'Làm mát', 'Điện & Nguồn'];
   const suppliers = ['Tesla Vietnam', 'VinFast Parts', 'BMW Parts Center', 'EV Solutions Ltd', 'Audi Parts Vietnam', 'Michelin Vietnam'];
 
 
@@ -99,32 +99,38 @@ const handleDeletePart = async (id) => {
   }
 };
 
-// 🟢 Update getStatusColor / getStatusText / getStatusIcon
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'active': return 'bg-green-100 text-green-800';
-    case 'inactive': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
-  }
-};
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "in_stock": return "bg-green-100 text-green-800";
+      case "low_stock": return "bg-yellow-100 text-yellow-800";
+      case "out_of_stock": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
-const getStatusText = (status) => {
-  switch (status) {
-    case 'active': return 'Đang hoạt động';
-    case 'inactive': return 'Ngừng hoạt động';
-    default: return 'Không xác định';
-  }
-};
+  const getStatusText = (status) => {
+    switch (status) {
+      case "in_stock": return "Còn hàng";
+      case "low_stock": return "Sắp hết";
+      case "out_of_stock": return "Hết hàng";
+      default: return "Không xác định";
+    }
+  };
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'active': return CheckCircle;
-    case 'inactive': return XCircle;
-    default: return Activity;
-  }
-};
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "in_stock": return CheckCircle;
+      case "low_stock": return AlertTriangle;
+      case "out_of_stock": return XCircle;
+      default: return Activity;
+    }
+  };
 
-
+  const getStockStatus = (part) => {
+    if (part.quantity === 0) return "out_of_stock";
+    if (part.quantity <= part.minQuantity) return "low_stock";
+    return "in_stock";
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -139,7 +145,7 @@ const getStatusIcon = (status) => {
     const supplier = part.supplierName?.toLowerCase() || "";
 
     const matchesCategory = filterCategory === 'all' || part.type === filterCategory;
-    const matchesStatus = filterStatus === 'all' || part.status === filterStatus;
+    const matchesStatus = filterStatus === 'all' || getStockStatus(part) === filterStatus;
     const matchesSearch =
       name.includes(searchTerm.toLowerCase()) ||
       code.includes(searchTerm.toLowerCase()) ||
@@ -166,9 +172,9 @@ const getStatusIcon = (status) => {
 
   // Statistics
   const totalParts = parts.length;
-  const inStockParts = parts.filter(p => p.status === 'in_stock').length;
-  const lowStockParts = parts.filter(p => p.status === 'low_stock').length;
-  const outOfStockParts = parts.filter(p => p.status === 'out_of_stock').length;
+  const inStockParts = parts.filter(p => getStockStatus(p) === 'in_stock').length;
+  const lowStockParts = parts.filter(p => getStockStatus(p) === 'low_stock').length;
+  const outOfStockParts = parts.filter(p => getStockStatus(p) === 'out_of_stock').length;
   const totalValue = parts.reduce((sum, part) => sum + (part.price * part.quantity), 0);
 
 
@@ -298,9 +304,10 @@ const getStatusIcon = (status) => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Ngừng hoạt động</option>
+            <option value="all">Tất cả tình trạng kho</option>
+            <option value="in_stock">Còn hàng</option>
+            <option value="low_stock">Sắp hết</option>
+            <option value="out_of_stock">Hết hàng</option>
           </select>
 
 
@@ -335,7 +342,8 @@ const getStatusIcon = (status) => {
 
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredParts.map((part, index) => {
-                const StatusIcon = getStatusIcon(part.status);
+                const stockStatus = getStockStatus(part);
+                const StatusIcon = getStatusIcon(stockStatus);
                 return (
                   <tr key={`part-${part.componentID || index}`} className="hover:bg-gray-50">
                     {/* Mã & Tên */}
@@ -386,7 +394,7 @@ const getStatusIcon = (status) => {
                         )}`}
                       >
                         <StatusIcon className="w-3 h-3 mr-1" />
-                        {getStatusText(part.status)}
+                        {getStatusText(stockStatus)}
                       </span>
                     </td>
 
@@ -525,16 +533,13 @@ const getStatusIcon = (status) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Nhà cung cấp</label>
-                    <select
-                      name="supplierName"                              
+                    <input
+                      name="supplierName"
+                      type="text"
                       defaultValue={selectedPart?.supplierName || ''}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Chọn nhà cung cấp</option>
-                      {suppliers.map(supplier => (
-                        <option key={supplier} value={supplier}>{supplier}</option>
-                      ))}
-                    </select>
+                      placeholder="Nhập tên nhà cung cấp"
+                    />
                   </div>
                 </div>
 
