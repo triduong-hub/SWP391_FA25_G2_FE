@@ -1036,7 +1036,7 @@ const HomePage = () => {
         <div className="min-h-screen bg-gray-50">
 
           {/* existing content */}
-          <ChatBot /> {/* 👈 Add this line at the bottom */}
+          <ChatBot bookings={bookings} /> 
         </div>
         );
       </main>
