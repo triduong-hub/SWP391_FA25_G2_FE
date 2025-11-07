@@ -23,6 +23,11 @@ const StaffDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState("Tất cả trạng thái");
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterBranch, setFilterBranch] = useState("Tất cả chi nhánh");
+  const [selectedShift, setSelectedShift] = useState("");
+
+  const branches = ["Tất cả chi nhánh", ...new Set(orders.map(o => o.branch))];
+
   const navigate = useNavigate();
 
 
@@ -92,10 +97,14 @@ const StaffDashboard = () => {
 
         setTechnicians(
           techList.map((t) => ({
-            id: Number(t.employeeID), // ✅ Lấy đúng ID thực từ backend
-            name: t.name,             // ✅ Tên kỹ thuật viên
+            id: Number(t.employeeID),
+            name: t.name,
+            branch: t.serviceCenterName || "Không rõ",
+            shift: t.shiftName || "Không rõ", // 🕐 thêm ca làm việc
           }))
         );
+
+
 
         console.log("✅ Technicians sau khi map:", techList.map((t) => ({
           id: Number(t.employeeID),
@@ -256,6 +265,20 @@ const StaffDashboard = () => {
           <option>Không rõ</option>
         </select>
 
+
+        <select
+          value={filterBranch}
+          onChange={(e) => setFilterBranch(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm"
+        >
+          {branches.map((b, index) => (
+            <option key={index} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+
+
       </div>
 
 
@@ -276,16 +299,17 @@ const StaffDashboard = () => {
           <tbody>
             {orders
               .filter((o) => {
-                // lọc theo trạng thái
                 const matchStatus =
                   filterStatus === "Tất cả trạng thái" || o.status === filterStatus;
-                // lọc theo từ khóa tìm kiếm
+                const matchBranch =
+                  filterBranch === "Tất cả chi nhánh" || o.branch === filterBranch;
                 const matchSearch =
                   o.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   o.vehicle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   o.id?.toString().includes(searchTerm);
-                return matchStatus && matchSearch;
+                return matchStatus && matchBranch && matchSearch;
               })
+
               .map((o) => (
                 <tr key={o.id} className="border-t hover:bg-gray-50">
                   <td className="py-3 px-4 font-medium">{o.id}</td>
@@ -364,23 +388,52 @@ const StaffDashboard = () => {
             <p className="text-sm text-gray-600 mb-2">
               Đơn hàng: <strong>{selectedOrder?.id}</strong>
             </p>
+
+            <p className="text-sm text-gray-600 mb-2">
+              Chi nhánh: <strong>{selectedOrder?.branch}</strong>
+            </p>
+
+            <select
+              value={selectedShift}
+              onChange={(e) => setSelectedShift(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm mb-4"
+            >
+              <option value="">-- Chọn ca làm việc --</option>
+              <option value="Ca Sáng">Ca Sáng</option>
+              <option value="Ca Trưa">Ca Trưa</option>
+              <option value="Ca Tối">Ca Tối</option>
+            </select>
+
             <select
               value={selectedTech}
               onChange={(e) => setSelectedTech(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 text-sm mb-4"
             >
               <option value="">-- Chọn kỹ thuật viên --</option>
-              {technicians.map((t, index) => (
-                <option key={t.id + "-" + index} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
+              {technicians
+                .filter(
+                  (t) =>
+                    t.branch === selectedOrder?.branch &&
+                    (selectedShift === "" || t.shift === selectedShift)
+                )
+                .map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} — {t.shift}
+                  </option>
+                ))}
+
+
+
 
             </select>
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedTech("");
+                  setSelectedShift(""); //  reset luôn ca làm việc khi đóng modal
+                }}
                 className="flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
               >
                 <X size={16} /> Hủy
