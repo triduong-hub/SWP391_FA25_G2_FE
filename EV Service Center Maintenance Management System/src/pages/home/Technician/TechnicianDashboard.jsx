@@ -83,6 +83,7 @@ const TechnicianDashboard = () => {
         try {
             // Gọi API backend thật
             await api.put(`/maintenances/${maintenanceID}/set-status/in-progress`);
+            
 
             // Cập nhật UI
             setTasks(prev =>
@@ -101,6 +102,7 @@ const TechnicianDashboard = () => {
     const handleComplete = async (maintenanceID) => {
         try {
             await api.put(`/maintenances/${maintenanceID}/set-status/waiting-for-payment`);
+            await api.post(`/invoices/create`, { maintenanceId: maintenanceID });
 
             setTasks(prev =>
                 prev.map(t =>
