@@ -278,13 +278,13 @@ const HomePage = () => {
                   onClick={handleBookingClick}
                   className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:opacity-90 text-white px-10 py-4 rounded-full font-semibold shadow-lg transition-all"
                 >
-                  🚗 Đặt lịch ngay
+                  Đặt lịch ngay
                 </button>
                 <button
                   onClick={() => scrollToSection('gioi-thieu')}
                   className="bg-white/90 text-blue-600 px-10 py-4 rounded-full font-semibold shadow-md hover:bg-white transition-all"
                 >
-                  ℹ️ Tìm hiểu thêm
+                  Tìm hiểu thêm
                 </button>
               </div>
             </div>
@@ -292,93 +292,106 @@ const HomePage = () => {
         </section>
 
         {/*  💼 Danh sách đơn đặt lịch của khách */}
-        <section className="py-20 px-6 bg-gray-100">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
+        <section className="py-20 px-6 bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
               Đơn đặt lịch của bạn
             </h2>
 
             {bookings.length > 0 ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                {bookings.map((order) => (
-                  <div
-                    key={order.orderId}
-                    className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition"
-                  >
-                    <h3 className="text-xl font-semibold text-blue-700">
-                      Mã đơn: #{order.orderId}
-                    </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 bg-white shadow-lg rounded-xl">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Mã đơn</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ngày đặt</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Lịch hẹn</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Dịch vụ</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Xe</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Trung tâm</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {bookings.map((order) => {
+                      const statusLower = order.status?.toLowerCase();
+                      let statusColor =
+                        "bg-gray-100 text-gray-800";
+                      if (statusLower === "awaiting_customer_approval") statusColor = "bg-yellow-100 text-yellow-800";
+                      if (statusLower === "waiting for payment") statusColor = "bg-green-100 text-green-800";
+                      if (statusLower === "completed") statusColor = "bg-blue-100 text-blue-800";
 
-                    <p className="text-gray-600 mt-2">
-                      Ngày đặt: {new Date(order.orderDate).toLocaleDateString("vi-VN")}
-                    </p>
-
-                    <p className="text-gray-600">
-                      Lịch hẹn: {order.appointmentDate} – {order.appointmentTime?.slice(0, 5)}
-                    </p>
-
-                    <p className="text-gray-600">
-                      Trạng thái:{" "}
-                      {statusMapServerToUI[order.status?.toLowerCase()] || order.status}
-                    </p>
-
-                    <p className="text-gray-600">
-                      Dịch vụ:{" "}
-                      {Array.isArray(order.serviceNames)
-                        ? order.serviceNames.join(", ")
-                        : "Chưa có thông tin"}
-                    </p>
-
-                    <p className="text-gray-600">
-                      Xe: {order.vehicleModel || "Không rõ"} – Biển số:{" "}
-                      {order.vehiclePlateNumber || "N/A"}
-                    </p>
-
-                    <p className="text-gray-600">
-                      Trung tâm: {order.serviceCenterName || "Chưa xác định"}
-                    </p>
-
-                    {/* 👉 Nút hành động ở cuối card */}
-                    <div className="mt-5 flex justify-end space-x-3">
-                      {/* 🟡 Nếu chờ khách xác nhận báo giá */}
-                      {order.status?.toLowerCase() === "awaiting_customer_approval" && (
-                        <button
-                          onClick={() => navigate(`/customer/quotation/${order.orderId}`)}
-                          className="bg-yellow-500 text-white px-5 py-2 rounded-md hover:bg-yellow-600 transition"
+                      return (
+                        <tr
+                          key={order.orderId}
+                          className="hover:bg-gray-50 transition"
                         >
-                          📄 Xem báo giá
-                        </button>
-                      )}
-
-                      {/* 💳 Nếu đang chờ thanh toán */}
-                      {order.status?.toLowerCase() === "waiting for payment" && (
-                        <button
-                          onClick={() => navigate(`/payment/${order.orderId}`)}
-                          className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700 transition"
-                        >
-                          💳 Thanh toán ngay
-                        </button>
-                      )}
-
-                      {/* ✅ Nếu đơn đã hoàn tất thì hiển thị nút xem hóa đơn */}
-                      {order.status?.toLowerCase() === "completed" && (
-                        <button
-                           onClick={() => navigate(`/invoice/order/${order.orderId}`)}
-                          className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
-                        >
-                          🧾 Xem hóa đơn
-                        </button>
-                      )}
-
-                    </div>
-                  </div>
-                ))}
+                          <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#{order.orderId}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                            {new Date(order.orderDate).toLocaleDateString("vi-VN")}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                            {order.appointmentDate} – {order.appointmentTime?.slice(0, 5)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                            {Array.isArray(order.serviceNames)
+                              ? order.serviceNames.join(", ")
+                              : "Chưa có"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                            {order.vehicleModel || "Không rõ"} – {order.vehiclePlateNumber || "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                            {order.serviceCenterName || "Chưa xác định"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
+                              {statusMapServerToUI[statusLower] || order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-wrap gap-2">
+                              {statusLower === "awaiting_customer_approval" && (
+                                <button
+                                  onClick={() => navigate(`/customer/quotation/${order.orderId}`)}
+                                  className="bg-yellow-500 text-white px-4 py-1.5 rounded-lg hover:bg-yellow-600 transition text-sm font-medium"
+                                >
+                                  Xem báo giá
+                                </button>
+                              )}
+                              {statusLower === "waiting for payment" && (
+                                <button
+                                  onClick={() => navigate(`/payment/${order.orderId}`)}
+                                  className="bg-green-600 text-white px-4 py-1.5 rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                                >
+                                  Thanh toán
+                                </button>
+                              )}
+                              {statusLower === "completed" && (
+                                <button
+                                  onClick={() => navigate(`/invoice/order/${order.orderId}`)}
+                                  className="bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                                >
+                                  Xem hóa đơn
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
-              <p className="text-center text-gray-500">Bạn chưa có đơn đặt lịch nào.</p>
+              <p className="text-center text-gray-500 text-lg mt-10">
+                Bạn chưa có đơn đặt lịch nào.
+              </p>
             )}
           </div>
         </section>
+
 
 
 
@@ -670,76 +683,6 @@ const HomePage = () => {
           </div>
         </section>
 
-
-        {/* 6. Bảng giá dịch vụ */}
-        <section id="bang-gia" className="py-20 px-6 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-              Chọn dịch vụ
-            </h2>
-            <p className="text-center text-gray-500 mb-14">
-              Chọn các dịch vụ bảo dưỡng bạn cần cho xe của mình
-            </p>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
-              {[
-                {
-                  name: "Kiểm tra pin",
-                  desc: "Kiểm tra tình trạng pin, dung lượng và hiệu suất sạc",
-                  price: "500.000 ₫",
-                  time: "60 phút",
-                  icon: <Battery className="w-6 h-6 text-green-600" />,
-                  iconBg: "bg-green-100",
-                },
-                {
-                  name: "Bảo dưỡng động cơ",
-                  desc: "Kiểm tra và bảo dưỡng hệ thống động cơ điện",
-                  price: "800.000 ₫",
-                  time: "90 phút",
-                  icon: <Zap className="w-6 h-6 text-blue-600" />,
-                  iconBg: "bg-blue-100",
-                },
-                {
-                  name: "Kiểm tra phanh",
-                  desc: "Kiểm tra hệ thống phanh và thay má phanh nếu cần",
-                  price: "300.000 ₫",
-                  time: "45 phút",
-                  icon: <ShieldCheck className="w-6 h-6 text-red-600" />,
-                  iconBg: "bg-red-100",
-                },
-                {
-                  name: "Bảo dưỡng tổng quát",
-                  desc: "Bảo dưỡng toàn diện tất cả hệ thống của xe",
-                  price: "1.200.000 ₫",
-                  time: "120 phút",
-                  icon: <Wrench className="w-6 h-6 text-yellow-600" />,
-                  iconBg: "bg-yellow-100",
-                },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${s.iconBg}`}>{s.icon}</div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{s.name}</h3>
-                      <p className="text-gray-500 text-sm mt-1">{s.desc}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex items-center justify-between">
-                    <div>
-                      <p className="text-2xl font-bold text-green-700">{s.price}</p>
-                    </div>
-                    <p className="text-gray-500 text-sm">{s.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* 8. Gallery */}
         <section className="py-20 px-6 bg-gray">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
@@ -769,10 +712,10 @@ const HomePage = () => {
 
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10">
               {[
-                { name: "Anh Tuấn", role: "Kỹ thuật viên trưởng", img: "/p6.png" },
-                { name: "Minh Khoa", role: "Chuyên viên điện – pin", img: "/p6.png" },
-                { name: "Hữu Phúc", role: "Chuyên viên bảo dưỡng", img: "/p6.png" },
-                { name: "Văn Nam", role: "Kỹ thuật viên cơ khí", img: "/p6.png" },
+                { name: "Anh Tuấn", role: "Kỹ thuật viên trưởng", img: "/vinfast1.jpg" },
+                { name: "Minh Khoa", role: "Chuyên viên điện – pin", img: "/vinfast2.jpg" },
+                { name: "Hữu Phúc", role: "Chuyên viên bảo dưỡng", img: "/vin3.jpg" },
+                { name: "Văn Nam", role: "Kỹ thuật viên cơ khí", img: "/vin4.jpg" },
               ].map((member, i) => (
                 <div
                   key={i}
@@ -811,21 +754,21 @@ const HomePage = () => {
               {[
                 {
                   quote: "Xe tôi luôn trong tình trạng tốt nhờ EV Care Pro!",
-                  name: "Nguyễn Văn Minh",
+                  name: "Anh Dương Đình Trí",
                   role: "Chủ xe VinFast VF8",
-                  img: "/p6.png",
+                  img: "/customer1.jpg",
                 },
                 {
                   quote: "Dịch vụ tận tâm và nhanh chóng, rất hài lòng.",
-                  name: "Trần Thị Mai",
+                  name: "Chị Phan Thị Như Ngọc",
                   role: "Khách hàng thân thiết",
-                  img: "/p6.png",
+                  img: "/customer2.jpg",
                 },
                 {
                   quote: "Kỹ thuật viên chuyên nghiệp, giải thích rõ ràng từng bước.",
-                  name: "Lê Quang Huy",
+                  name: "Anh Trần Ngọc Thành",
                   role: "Chủ xe EV CityCar",
-                  img: "/p6.png",
+                  img: "/customer3.jpg",
                 },
               ].map((t, i) => (
                 <div
@@ -865,8 +808,8 @@ const HomePage = () => {
           {(() => {
             const stats = [
               { label: "Khách hàng", value: 50000, suffix: "+" },
-              { label: "Trung tâm", value: 120, suffix: "+" },
-              { label: "Kỹ thuật viên", value: 500, suffix: "+" },
+              { label: "Trung tâm", value: 10, suffix: "+" },
+              { label: "Kỹ thuật viên", value: 250, suffix: "+" },
               { label: "Năm kinh nghiệm", value: 10, suffix: "+" },
             ];
 
@@ -928,53 +871,58 @@ const HomePage = () => {
             </p>
 
             {/* Danh sách chi nhánh đại diện */}
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-16">
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {[
-                { city: "Hà Nội", center: "EV Care Pro - Trần Duy Hưng" },
-                { city: "TP. Hồ Chí Minh", center: "EV Care Pro - Quận 7" },
-                { city: "Đà Nẵng", center: "EV Care Pro - Hải Châu" },
-                { city: "Cần Thơ", center: "EV Care Pro - Ninh Kiều" },
-                { city: "Hải Phòng", center: "EV Care Pro - Lê Chân" },
-                { city: "Nha Trang", center: "EV Care Pro - Trần Phú" },
+                {
+                  city: "Hà Nội",
+                  center: "EV Care Pro - Thanh Liệt (Km 2+500, đường Phan Trọng Tuệ, Xã Thanh Liệt, Huyện Thanh Trì)",
+                },
+                {
+                  city: "Hà Nội",
+                  center: "EV Care Pro - Vinhomes Riverside (Tầng 1, TTTM Vincom Plaza, KĐT Vinhomes Riverside, Phường Phúc Lợi, Quận Long Biên)",
+                },
+                {
+                  city: "Hà Nội",
+                  center: "EV Care Pro - Vinhomes Ocean Park (TTTM Vincom Ocean Park, KĐT Vinhomes Ocean Park, Cổng số 9 – Khu Kiêu Kỵ, Gia Lâm)",
+                },
+                {
+                  city: "Hà Nội",
+                  center: "EV Care Pro - Vinhomes Smart City (TTTM Vincom Smart City, KĐT Vinhomes Smart City, Phường Tây Mỗ, Quận Nam Từ Liêm)",
+                },
+                {
+                  city: "TP. Hồ Chí Minh",
+                  center: "EV Care Pro - Đồng Khởi (Tầng 1, TTTM Vincom Center Đồng Khởi, 72 Lê Thánh Tôn, Quận 1)",
+                },
+                {
+                  city: "TP. Hồ Chí Minh",
+                  center: "EV Care Pro - Landmark 81 (Tầng L1, Vincom Center Landmark 81, 208 Nguyễn Hữu Cảnh, Quận Bình Thạnh)",
+                },
+                {
+                  city: "TP. Hồ Chí Minh",
+                  center: "EV Care Pro - Quận 7 (54 Nguyễn Thị Thập, Phường Bình Thuận, Quận 7)",
+                },
+                {
+                  city: "Cần Thơ",
+                  center: "EV Care Pro - Xuân Khánh (Tầng L1, TTTM Vincom Plaza Xuân Khánh, Số 209 Đường 30 Tháng 4, Phường Xuân Khánh, Quận Ninh Kiều)",
+                },
+                {
+                  city: "Đà Nẵng",
+                  center: "EV Care Pro - Sơn Trà (Tầng 1, TTTM Vincom Plaza Đà Nẵng, Số 910A Ngô Quyền, P. An Hải Bắc, Quận Sơn Trà)",
+                },
+                {
+                  city: "Cà Mau",
+                  center: "EV Care Pro - Phường 8 (Số 139 Nguyễn Tất Thành, Phường 8, TP. Cà Mau)",
+                },
               ].map((branch, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6 text-left"
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all p-6 cursor-pointer border border-gray-100"
                 >
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    {branch.city}
-                  </h3>
-                  <p className="text-gray-500 mt-1">{branch.center}</p>
+                  <h3 className="text-xl font-bold text-gray-900">{branch.city}</h3>
+                  <p className="text-gray-500 mt-2 text-sm">{branch.center}</p>
                 </div>
               ))}
             </div>
-
-            {/* Google Map */}
-            <div className="relative w-full h-96">
-              <iframe
-                className="w-full h-full rounded-2xl shadow-lg border border-gray-200"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919..."
-                title="Google Maps"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
-          </div>
-        </section>
-
-        {/* 21. Newsletter */}
-        <section className="py-20 px-6 bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-center">
-          <h2 className="text-3xl font-bold mb-6">Đăng ký nhận tin</h2>
-          <p className="mb-6">Nhận ngay ưu đãi và tin tức mới nhất từ EV Care.</p>
-          <div className="flex justify-center">
-            <input
-              type="email"
-              placeholder="Nhập email của bạn"
-              className="px-4 py-2 rounded-l-lg text-gray-800 w-64"
-            />
-            <button className="bg-green-500 px-6 py-2 rounded-r-lg font-semibold">
-              Đăng ký
-            </button>
           </div>
         </section>
 
@@ -1013,16 +961,10 @@ const HomePage = () => {
             <div>
               <h4 className="text-lg font-semibold text-white mb-4">Liên hệ</h4>
               <ul className="space-y-2 text-sm">
-                <li>📍 123 Trần Duy Hưng, Hà Nội</li>
-                <li>📞 0123 456 789</li>
-                <li>📧 support@evcarepro.vn</li>
+                <li>📍 1084 Nguyễn Duy Trinh, Hồ Chí Minh</li>
+                <li>📞 0906791084</li>
+                <li>📧 dinhtri11012005@gmail.com</li>
               </ul>
-              <div className="flex space-x-4 mt-4">
-                <a href="#" className="hover:text-blue-400">🌐</a>
-                <a href="#" className="hover:text-blue-400">👍</a>
-                <a href="#" className="hover:text-blue-400">🐦</a>
-                <a href="#" className="hover:text-blue-400">💼</a>
-              </div>
             </div>
           </div>
           {/* Dòng cuối */}
@@ -1030,10 +972,10 @@ const HomePage = () => {
             <p>© 2025 EV Care Pro. Mọi quyền được bảo lưu.</p>
             <p className="mt-1">Designed by <span className="text-gray-300 font-semibold">RTY</span></p>
           </div>
-          {/* ChatBot*/}    
+          {/* ChatBot*/}
           <div className="">
             {/* existing content */}
-            <ChatBot bookings={bookings} /> 
+            <ChatBot bookings={bookings} />
           </div>
         </footer>
       </main>
