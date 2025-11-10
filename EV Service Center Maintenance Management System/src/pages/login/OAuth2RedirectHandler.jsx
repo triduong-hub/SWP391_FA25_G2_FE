@@ -11,23 +11,53 @@ const OAuth2RedirectHandler = () => {
         const name = searchParams.get('name');
         const role = searchParams.get('role');
         const avatar = searchParams.get('avatar');
+        const userID = searchParams.get('userID');
+        const refId = searchParams.get('refId');
         
-        console.log('OAuth2 Redirect - Received params:', { token, email, name, role, avatar });
-        
+        // console.log('OAuth2 Redirect - Received params:', { token, email, name, role, avatar });
+        console.log('OAuth2 Redirect - Received params:', { 
+            token: token ? 'exists' : 'missing',
+            email, 
+            name, 
+            role, 
+            userID, 
+            refId 
+        });
+
         if (token) {
             // Lưu token và user info
             localStorage.setItem('token', token);
             
+            //Decode name và avatar
+            const decodedName = name ? decodeURIComponent(name) : '';
+            const decodedAvatar = avatar ? decodeURIComponent(avatar) : '';
+            
+            //Tạo userData với ĐẦY ĐỦ thông tin
             const userData = {
+                userID: parseInt(userID),           //userID
                 email,
-                name,
+                name: decodedName,
+                fullName: decodedName,
                 role,
-                pictureUrl: avatar
+                avatar: decodedAvatar,
+                pictureUrl: decodedAvatar,
+                refid: refId ? parseInt(refId) : null,  //refId
+                id: parseInt(userID),               //alias cho userID
+                customerId: refId ? parseInt(refId) : parseInt(userID)  //customerId
             };
             
+            //Lưu user data
             localStorage.setItem('user', JSON.stringify(userData));
             
+            //Lưu customerId riêng (để các page khác dễ truy cập)
+            const customerId = refId ? refId : userID;
+            if (customerId) {
+                localStorage.setItem('customerId', customerId);
+                console.log('✅ Saved customerId:', customerId);
+            }
+            
             console.log('✅ Đã lưu token và user info vào localStorage');
+            console.log('👤 User data:', userData);
             
             // Redirect theo role
             const roleNormalized = role?.toLowerCase().trim();

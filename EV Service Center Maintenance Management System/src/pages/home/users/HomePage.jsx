@@ -41,22 +41,80 @@ const HomePage = () => {
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   // if (!token) return;
+  //   if (!token) {
+  //   console.log("❌ No token found");
+  //   setIsLoggedIn(false);
+  //   return;
+  // }
 
+  //   API.get("http://localhost:8080/api/auth/getUserInfo")
+  //     .then((res) => {
+  //       const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
+  //       setUser(userData);
+  //       setIsLoggedIn(true);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Lỗi lấy thông tin người dùng:", err);
+  //       localStorage.removeItem("token");
+  //       setIsLoggedIn(false);
+  //     });
+  // }, []);
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+  
+  console.log("🔍 HomePage useEffect triggered");
+  console.log("🔑 Token:", token ? "exists" : "missing");
+  console.log("👤 Stored user:", storedUser);
+  
+  if (token && storedUser) {
+    try {
+      const userData = JSON.parse(storedUser);
+      
+      // Decode name nếu cần
+      if (userData.name) {
+        userData.name = decodeURIComponent(userData.name);
+      }
+      if (userData.fullName) {
+        userData.fullName = decodeURIComponent(userData.fullName);
+      }
+      
+      setUser(userData);
+      setIsLoggedIn(true);
+      
+      console.log("✅ User logged in:", userData);
+    } catch (error) {
+      console.error("❌ Error parsing user:", error);
+      setIsLoggedIn(false);
+    }
+  } else if (token && !storedUser) {
+    // ✅ Nếu có token nhưng không có user → gọi API
+    console.log("📡 Calling API /auth/getUserInfo...");
+    
     API.get("http://localhost:8080/api/auth/getUserInfo")
       .then((res) => {
-        const userData = res.data?.data || res.data; // ← điều chỉnh theo backend
+        const userData = res.data?.data || res.data;
+        console.log("✅ User from API:", userData);
+        
         setUser(userData);
         setIsLoggedIn(true);
+        
+        // Lưu lại vào localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
       })
       .catch((err) => {
-        console.error("Lỗi lấy thông tin người dùng:", err);
+        console.error("❌ API Error:", err);
         localStorage.removeItem("token");
         setIsLoggedIn(false);
       });
-  }, []);
+  } else {
+    setIsLoggedIn(false);
+  }
+}, []);
 
   //  Lấy danh sách đơn đặt lịch của khách
   useEffect(() => {
