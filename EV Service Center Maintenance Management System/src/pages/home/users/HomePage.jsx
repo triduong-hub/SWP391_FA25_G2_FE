@@ -43,7 +43,12 @@ const HomePage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    
+    if (!token) {
+    console.log("❌ No token found");
+    setIsLoggedIn(false);
+    return;
+  }
 
     API.get("http://localhost:8080/api/auth/getUserInfo")
       .then((res) => {
@@ -57,6 +62,33 @@ const HomePage = () => {
         setIsLoggedIn(false);
       });
   }, []);
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const storedUser = localStorage.getItem("user");
+
+  //   if (token && storedUser) {
+  //     try {
+  //       const userData = JSON.parse(storedUser);
+  //       console.log("✅ User from localStorage:", userData);
+
+  //       // Decode name nếu bị encode
+  //       if (userData.name) {
+  //         userData.name = decodeURIComponent(userData.name);
+  //       }
+
+  //       setUser(userData);
+  //       setIsLoggedIn(true);
+  //     } catch (error) {
+  //       console.error("Error parsing user data:", error);
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //       setIsLoggedIn(false);
+  //     }
+  //   } else {
+  //     setIsLoggedIn(false);
+  //   }
+  // }, []);
 
   //  Lấy danh sách đơn đặt lịch của khách
   useEffect(() => {
@@ -363,7 +395,7 @@ const HomePage = () => {
                       {/* ✅ Nếu đơn đã hoàn tất thì hiển thị nút xem hóa đơn */}
                       {order.status?.toLowerCase() === "completed" && (
                         <button
-                           onClick={() => navigate(`/invoice/order/${order.orderId}`)}
+                          onClick={() => navigate(`/invoice/order/${order.orderId}`)}
                           className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
                         >
                           🧾 Xem hóa đơn
@@ -1030,10 +1062,10 @@ const HomePage = () => {
             <p>© 2025 EV Care Pro. Mọi quyền được bảo lưu.</p>
             <p className="mt-1">Designed by <span className="text-gray-300 font-semibold">RTY</span></p>
           </div>
-          {/* ChatBot*/}    
+          {/* ChatBot*/}
           <div className="">
             {/* existing content */}
-            <ChatBot bookings={bookings} /> 
+            <ChatBot bookings={bookings} />
           </div>
         </footer>
       </main>
