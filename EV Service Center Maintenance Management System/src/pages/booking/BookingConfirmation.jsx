@@ -25,6 +25,13 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
   const formatPrice = (price) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 
+  const getMinutes = (timeString) => {
+    if (!timeString) return 0;
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+
   const getTotalPrice = () =>
     bookingData.services.reduce((total, service) => total + service.price, 0);
 
@@ -178,8 +185,7 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
                 <div>
                   <h4 className="font-medium text-gray-900">{service.name}</h4>
                   <p className="text-sm text-gray-600">
-                    {service.duration}{' '}
-                    {language === 'vi' ? 'phút' : 'minutes'}
+                    {getMinutes(service.estimatedTime)} {language === 'vi' ? 'phút' : 'minutes'}
                   </p>
                 </div>
                 <span className="font-bold text-emerald-600">

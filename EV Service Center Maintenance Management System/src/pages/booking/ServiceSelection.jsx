@@ -18,11 +18,15 @@ const ServiceSelection = ({ bookingData, setBookingData, onServiceToggle, onBack
         console.table(response.data.data || response.data);
         // 🔧 Chuẩn hóa dữ liệu để đảm bảo ID đồng nhất
         const list = (response.data.data || response.data).map(s => ({
-          id: s.serviceID || s.serviceid || s.id,
-          name: s.serviceName || s.name || s.service_name,  // 🟢 Đảm bảo có name
-          price: s.price || 0,
-          duration: s.duration || 0,
+          id: s.serviceID,
+          serviceName: s.serviceName,
+          description: s.description,
+          price: s.price,
+          estimatedTime: s.estimatedTime, // dùng đúng field từ API
+          serviceType: s.serviceType,
+          warrantyPeriod: s.warrantyPeriod
         }));
+
 
         setServices(list);
       } catch (error) {
@@ -102,13 +106,13 @@ const ServiceSelection = ({ bookingData, setBookingData, onServiceToggle, onBack
               <p className="text-gray-600 mb-3 text-sm">{service.description}</p>
 
               <div className="space-y-1 text-sm text-gray-500 mb-4">
-                <p>🧩 <strong>Component:</strong> {service.component || 'N/A'}</p>
-                <p>⚙️ <strong>Type:</strong> {service.serviceType || 'General'}</p>
-                <p>⏱ <strong>Estimated Time:</strong> {service.estimatedTime || 'N/A'}</p>
-                <p>🛡 <strong>Warranty:</strong> {service.warrantyPeriod
-                  ? `${service.warrantyPeriod} months`
-                  : 'No warranty'}</p>
+                <p> <strong>Loại dịch vụ:</strong> {service.serviceType || 'Combo'}</p>
+                <p> <strong>Thời gian dự kiến:</strong> {service.estimatedTime || 'N/A'}</p>
+                <p> <strong>Bảo hành:</strong> {service.warrantyPeriod
+                  ? `${service.warrantyPeriod} tháng`
+                  : 'Không có'}</p>
               </div>
+
 
               <div className="flex justify-between items-center">
                 <p className="text-2xl font-bold text-emerald-600">
