@@ -7,6 +7,7 @@ import { LanguageProvider } from "../../contexts/LanguageContext.jsx";
 // Trang login & password
 import LoginPage from "../login/LoginPage.jsx";
 import ForgotPasswordPage from "../password/ForgotPasswordPage.jsx";
+import OAuth2RedirectHandler from "../login/OAuth2RedirectHandler.jsx"; // ✅ THÊM IMPORT NÀY
 
 // Trang Technician
 import TechnicianDashboard from "../home/Technician/TechnicianDashboard.jsx";
@@ -22,6 +23,8 @@ import CustomerQuotationDetailPage from "../home/users/CustomerQuotationPage.jsx
 
 //Trang hóa đơn
 import InvoicePage from "../invoice/InvoicePage.jsx";
+
+
 
 
 // Trang con của Admin
@@ -66,6 +69,7 @@ function AppRoute() {
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} /> {/* ✅ THÊM ROUTE NÀY */}
 
         {/* Technician */}
         <Route path="/techniciandash" element={<TechnicianDashboard />} />
