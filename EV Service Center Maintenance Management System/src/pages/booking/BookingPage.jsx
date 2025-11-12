@@ -169,9 +169,34 @@ const BookingPage = ({ onBack }) => {
               {currentStep === 2 && (
                 <AddVehicleForm
                   onBack={() => setCurrentStep(1)}
-                  onNext={() => setCurrentStep(3)}
+                  onNext={async () => {
+                    // 🚗 Sau khi thêm xe mới, tải lại danh sách xe
+                    if (!customerId) return;
+
+                    try {
+                      const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
+                      const vehicleList = response.data?.data || [];
+                      const formattedVehicles = vehicleList.map((v) => ({
+                        id: v.vehicleID || v.id,
+                        brand: v.model?.modelName || "Unknown",
+                        model: v.model?.modelName || "Unknown",
+                        year: v.year,
+                        licensePlate: v.licensePlate,
+                        image:
+                          v.model?.imageUrl ||
+                          "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
+                      }));
+
+                      // ✅ Cập nhật danh sách xe và quay về bước chọn xe
+                      setVehicles(formattedVehicles);
+                      setCurrentStep(1);
+                    } catch (error) {
+                      console.error("❌ Lỗi khi reload danh sách xe sau khi thêm:", error);
+                    }
+                  }}
                 />
               )}
+
 
               {currentStep === 3 && (
                 <ServiceSelection
