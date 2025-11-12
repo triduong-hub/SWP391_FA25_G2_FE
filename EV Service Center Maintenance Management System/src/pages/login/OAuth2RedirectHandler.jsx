@@ -6,6 +6,9 @@ const OAuth2RedirectHandler = () => {
     const navigate = useNavigate();
     
     useEffect(() => {
+        console.log('🌐 Full URL:', window.location.href);
+        console.log('🔍 Search params:', window.location.search);
+
         const token = searchParams.get('token');
         const email = searchParams.get('email');
         const name = searchParams.get('name');
@@ -25,32 +28,42 @@ const OAuth2RedirectHandler = () => {
         });
 
         if (token) {
+            console.log('🔑 Token length:', token.length);
+            console.log('🔑 Token first 50 chars:', token.substring(0, 50));
+
             // Lưu token và user info
             localStorage.setItem('token', token);
-            
+            console.log('💾 Token saved to localStorage');
+
+        //     setTimeout(() => {
+        //     const savedToken = localStorage.getItem('token');
+        //     console.log('✅ Verify saved token:', savedToken ? 'EXISTS' : 'MISSING');
+        //     console.log('✅ Saved token matches:', savedToken === token);
+        // }, 100);
+
             //Decode name và avatar
             const decodedName = name ? decodeURIComponent(name) : '';
             const decodedAvatar = avatar ? decodeURIComponent(avatar) : '';
             
             //Tạo userData với ĐẦY ĐỦ thông tin
             const userData = {
-                userID: parseInt(userID),           //userID
+                userID: parseInt(refId),           //userID
                 email,
                 name: decodedName,
                 fullName: decodedName,
                 role,
                 avatar: decodedAvatar,
                 pictureUrl: decodedAvatar,
-                refid: refId ? parseInt(refId) : null,  //refId
-                id: parseInt(userID),               //alias cho userID
-                customerId: refId ? parseInt(refId) : parseInt(userID)  //customerId
+                id: parseInt(userID),
+                refid: parseInt(refId),  //refId
+                customerId: parseInt(refId)//customerId
             };
             
             //Lưu user data
             localStorage.setItem('user', JSON.stringify(userData));
             
             //Lưu customerId riêng (để các page khác dễ truy cập)
-            const customerId = refId ? refId : userID;
+            const customerId = userData.customerId;
             if (customerId) {
                 localStorage.setItem('customerId', customerId);
                 console.log('✅ Saved customerId:', customerId);
@@ -58,6 +71,33 @@ const OAuth2RedirectHandler = () => {
             
             console.log('✅ Đã lưu token và user info vào localStorage');
             console.log('👤 User data:', userData);
+
+        //     //Test API luôn
+        //     setTimeout(async () => {
+        //     console.log('🧪 Testing API call...');
+        //     const testToken = localStorage.getItem('token');
+            
+        //     try {
+        //         const response = await fetch('http://localhost:8080/api/auth/getUserInfo', {
+        //             method: 'GET',
+        //             headers: {
+        //                 'Authorization': `Bearer ${testToken}`,
+        //                 'Content-Type': 'application/json'
+        //             }
+        //         });
+                
+        //         console.log('🧪 Test API response status:', response.status);
+                
+        //         if (response.ok) {
+        //             const data = await response.json();
+        //             console.log('✅ Test API success:', data);
+        //         } else {
+        //             console.error('❌ Test API failed:', response.status, response.statusText);
+        //         }
+        //     } catch (error) {
+        //         console.error('❌ Test API error:', error);
+        //     }
+        // }, 500);
             
             // Redirect theo role
             const roleNormalized = role?.toLowerCase().trim();
