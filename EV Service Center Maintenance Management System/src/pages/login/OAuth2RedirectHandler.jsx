@@ -106,10 +106,10 @@ const OAuth2RedirectHandler = () => {
                 console.log('🔄 Redirecting to /admin/home');
                 navigate('/admin/home');
             } else if (roleNormalized === 'staff') {
-                console.log('🔄 Redirecting to /staffdash');
-                navigate('/staffdash');
+                console.log('🔄 Redirecting to /staff/dashboard');
+                navigate('/staff/dashboard');
             } else if (roleNormalized === 'technician') {
-                console.log('🔄 Redirecting to /techniciandash');
+                console.log('🔄 Redirecting to /technician/dashboard');
                 navigate('/techniciandash');
             } else if (roleNormalized === 'customer') {
                 console.log('🔄 Redirecting to /');

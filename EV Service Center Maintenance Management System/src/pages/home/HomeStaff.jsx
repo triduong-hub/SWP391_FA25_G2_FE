@@ -24,7 +24,8 @@ const HomeStaff = () => {
     address: "",
     birth: "",
   });
-
+  const [serviceCenters, setServiceCenters] = useState([]);
+  const [shifts, setShifts] = useState([]);
 
   // 🧾 Lấy danh sách nhân viên
   const fetchStaffData = async () => {
@@ -43,6 +44,33 @@ const HomeStaff = () => {
 
   useEffect(() => {
     fetchStaffData();
+  }, []);
+
+  useEffect(() => {
+    const fetchServiceCenters = async () => {
+      try {
+        const res = await api.get("/service-centers/getAll"); 
+        setServiceCenters(res.data || []); 
+        
+        console.log(" Danh sách trung tâm dịch vụ:", res.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách trung tâm dịch vụ:", error);
+      }
+    };
+    fetchServiceCenters();
+  }, []);
+
+  useEffect(() => {
+    const fetchShifts = async () => {
+      try {
+        const res = await api.get("/shifts/getAll");
+        setShifts(res.data || []);
+        console.log("Danh sách ca làm việc:", res.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách ca làm việc:", error);
+      }
+    };
+    fetchShifts();
   }, []);
 
   //  Thêm / sửa
@@ -257,96 +285,169 @@ const HomeStaff = () => {
       {/* Modal thêm / sửa */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 w-96 shadow-2xl border border-gray-200">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl p-6 w-full max-w-4xl shadow-2xl border border-gray-200 flex flex-col max-h-[90vh]">
             <h3 className="text-xl font-bold mb-4 text-gray-800 text-center">
               {editingStaff ? "✏️ Sửa nhân viên" : "➕ Thêm nhân viên"}
             </h3>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Tên nhân viên"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 flex-1 overflow-y-auto px-4">
+              {/* Tên nhân viên */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tên nhân viên:
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+              </div>
 
-              <input
-                type="text"
-                placeholder="Số điện thoại"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email:
+                </label>
+                <input
+                  type="email"
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                />
+              </div>
 
-              <select
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-              >
-                <option value="">Chọn giới tính</option>
-                <option value="Male">Nam</option>
-                <option value="Female">Nữ</option>
-              </select>
+              {/* Mật khẩu */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu:
+                </label>
+                <input
+                  type="password"
+                  placeholder={editingStaff ? "Để trống nếu không đổi" : ""}
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
 
-              <input
-                type="number"
-                placeholder="Mã trung tâm dịch vụ"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.serviceCenter}
-                onChange={(e) => setFormData({ ...formData, serviceCenter: e.target.value })}
-              />
+              {/* Số điện thoại */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số điện thoại:
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
 
-              <input
-                type="number"
-                placeholder="Ca làm việc"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.shift}
-                onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
-              />
+              {/* Giới tính */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Giới tính:
+                </label>
+                <select
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                >
+                  <option value="">Chọn giới tính</option>
+                  <option value="Male">Nam</option>
+                  <option value="Female">Nữ</option>
+                </select>
+              </div>
 
-              <input
-                type="text"
-                placeholder="Địa chỉ"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
+              {/* Trung tâm dịch vụ */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Trung tâm dịch vụ:
+                </label>
+                <select
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.serviceCenter}
+                  onChange={(e) => setFormData({ ...formData, serviceCenter: e.target.value })}
+                >
+                  <option value="">Chọn trung tâm dịch vụ</option>
+                  
+                  {/* Tự động tạo các lựa chọn từ API */}
+                  {serviceCenters.map((center) => (                  
+                    <option key={center.serviceCenterID} value={center.serviceCenterID}>
+                      {center.name}
+                    </option>
 
-              <input
-                type="date"
-                placeholder="Ngày sinh"
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.birth}
-                onChange={(e) => setFormData({ ...formData, birth: e.target.value })}
-              />
+                  ))}
+                </select>
+              </div>
 
-              <select
-                className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              >
-                <option value="staff">Staff</option>
-                <option value="technician">Technician</option>
-              </select>
+              {/* Ca làm việc */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ca làm việc:
+                </label>
+                <select
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.shift}
+                  onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                >
+                  <option value="">Chọn ca làm việc</option>
+                  
+                  {/* Tự động tạo các lựa chọn từ API */}
+                  {shifts.map((shift) => (
+                    <option key={shift.shiftID} value={shift.shiftID}>
+                      {shift.name} ({shift.start_time} - {shift.end_time})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Địa chỉ */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Địa chỉ:
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
+              </div>
+
+              {/* Ngày sinh */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ngày sinh:
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.birth}
+                  onChange={(e) => setFormData({ ...formData, birth: e.target.value })}
+                />
+              </div>
+
+              {/* Vai trò */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vai trò:
+                </label>
+                <select
+                  className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                >
+                  <option value="staff">Staff</option>
+                  <option value="technician">Technician</option>
+                </select>
+              </div>
+
             </div>
 
             <div className="flex justify-end space-x-3 mt-6">

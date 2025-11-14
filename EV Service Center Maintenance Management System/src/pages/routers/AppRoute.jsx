@@ -11,9 +11,12 @@ import OAuth2RedirectHandler from "../login/OAuth2RedirectHandler.jsx"; // ✅ T
 
 // Trang Technician
 import TechnicianDashboard from "../home/Technician/TechnicianDashboard.jsx";
+import TechnicianLayout from "../home/Technician/TechnicianLayout.jsx";
 
 // Trang Staff
 import StaffDashboard from "../home/staff/StaffDashboard.jsx";
+import StaffLayout from "../home/staff/StaffLayout.jsx";
+import StaffAssignments from "../home/staff/StaffAssignments.jsx";
 
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
@@ -72,10 +75,25 @@ function AppRoute() {
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} /> {/* ✅ THÊM ROUTE NÀY */}
 
         {/* Technician */}
-        <Route path="/techniciandash" element={<TechnicianDashboard />} />
+        <Route path="/technician" element={<TechnicianLayout />}>
+          {/* Trang mặc định là Dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+
+          {/* Route cho Dashboard */}
+          <Route path="dashboard" element={<TechnicianDashboard />} />
+
+          {/* Route cho Phụ tùng */}
+          <Route path="components" element={<Parts />} />
+        </Route>
 
         {/* Staff */}
-        <Route path="/staffdash" element={<StaffDashboard />} />
+        <Route path="/staff" element={<StaffLayout />}>
+          {/* Trang mặc định sẽ chuyển về dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<StaffDashboard />} />
+          <Route path="assignments" element={<StaffAssignments />} />
+        </Route>
+
 
         {/* Trang quên mật khẩu */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -98,8 +116,8 @@ function AppRoute() {
         <Route path="/quotation/:maintenanceId" element={<QuotationDetailPage />} />
 
 
-         {/* Trang xem hóa đơn*/}
-         <Route path="/invoice/order/:orderId" element={<InvoicePage />} />
+        {/* Trang xem hóa đơn*/}
+        <Route path="/invoice/order/:orderId" element={<InvoicePage />} />
 
         {/* Trang xem báo giá customer */}
         <Route path="/customer/quotation/:orderId" element={<CustomerQuotationDetailPage />} />

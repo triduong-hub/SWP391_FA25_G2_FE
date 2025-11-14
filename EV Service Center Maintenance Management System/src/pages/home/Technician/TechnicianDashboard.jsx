@@ -19,8 +19,6 @@ const TechnicianDashboard = () => {
 
     const navigate = useNavigate();
 
-
-
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -160,52 +158,7 @@ const TechnicianDashboard = () => {
 
     // ---------------- RENDER ----------------
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            {/* HEADER */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Technician Dashboard</h1>
-                    <p className="text-gray-500">Quản lý công việc được phân công</p>
-                </div>
-                <div className="flex items-center gap-4 text-gray-500 text-sm">
-                    <div className="flex items-center">
-                        <Activity className="w-4 h-4 mr-2" />
-                        {new Date().toLocaleTimeString('vi-VN')}
-                    </div>
-
-                    <button
-                        onClick={() => navigate("/components")}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white font-medium text-sm rounded-lg shadow hover:bg-green-700 transition-all"
-                    >
-                        Phụ tùng
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            localStorage.clear(); // Xóa token / session
-                            navigate("/login");   // Quay về trang login
-                        }}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white font-medium text-sm rounded-lg shadow hover:bg-red-700 transition-all"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2h-3a2 2 0 00-2 2v1"
-                            />
-                        </svg>
-                        Đăng xuất
-                    </button>
-                </div>
-
-            </div>
+        <div className="w-full">      
 
             {/* FILTER */}
             <div className="mb-6 flex flex-wrap items-center gap-3">

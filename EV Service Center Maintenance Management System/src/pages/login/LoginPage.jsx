@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Car,
   Shield,
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api.js";
 import GoogleIcon from "./GoogleIcon.jsx";
 //import { GoogleLogin } from "@react-oauth/google";
+import ReCAPTCHA from "react-google-recaptcha";
 
 
 const LoginForm = ({ onSwitch }) => {
@@ -55,10 +56,10 @@ const LoginForm = ({ onSwitch }) => {
         navigate("/admin/home");
       } else if (data.role?.toLowerCase() === "staff") {
         console.log('staff đăng nhập');
-        navigate("/staffdash")
+        navigate("/staff/dashboard")
       } else if (data.role?.toLowerCase() === "technician") {
         console.log('technician đăng nhập');
-        navigate("/techniciandash")
+        navigate("/technician/dashboard")
       } else if (data.role?.toLowerCase() === "customer") {
         console.log(" Customer đăng nhập");
 
@@ -289,6 +290,8 @@ const LoginForm = ({ onSwitch }) => {
 };
 
 // --- RegisterForm giữ nguyên (chỉ sửa nhỏ nếu cần) ---
+const RECAPTCHA_SITE_KEY = "6LetRQwsAAAAAOhTCqPY1IcwzaWiMH6-ZAdkASct";
+
 const RegisterForm = ({ onSwitch }) => {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -299,7 +302,9 @@ const RegisterForm = ({ onSwitch }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [captchaToken, setCaptchaToken] = useState(null);
   const navigate = useNavigate();
+  const recaptchaRef = useRef(null);
 
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -309,8 +314,15 @@ const RegisterForm = ({ onSwitch }) => {
     setMessage({ text: "", type: "" });
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu xác nhận không khớp!");
-      return;
+      return; 
     }
+
+    const token = await recaptchaRef.current.executeAsync();  
+
+  if (!token) {
+    setMessage({ text: "Vui lòng xác thực bạn không phải là robot.", type: "error" });
+    return;
+  }
 
     try {
       const body = {
@@ -318,9 +330,10 @@ const RegisterForm = ({ onSwitch }) => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
+        captchaToken: token,
       };
       const response = await api.post("/customer/register", body);
-
+      recaptchaRef.current.reset();
       if (response.status === 201 || response.status === 200) {
         const data = response.data;
         setMessage({ text: "🎉 Đăng ký thành công! Đang đăng nhập...", type: "success" });
@@ -361,6 +374,9 @@ const RegisterForm = ({ onSwitch }) => {
         }, 1500);
       } else {
         setMessage({ text: "❌ Đăng ký thất bại. Vui lòng thử lại!", type: "error" });
+        console.log("--- RESETTING CAPTCHA (LỖI ELSE) ---");
+        setCaptchaToken(null);
+        recaptchaRef.current.reset();
       }
 
     } catch (err) {
@@ -368,6 +384,16 @@ const RegisterForm = ({ onSwitch }) => {
 
       // Kiểm tra nếu backend trả lỗi trùng số điện thoại
       const errorMessage = err.response?.data?.message || "";
+      console.log("--- RESETTING CAPTCHA (LỖI CATCH) ---");
+      setCaptchaToken(null);
+      recaptchaRef.current.reset();
+
+      if (errorMessage.toLowerCase().includes("captcha")) {
+        setMessage({ text: "❌ Xác thực CAPTCHA thất bại. Vui lòng thử lại.", type: "error" });
+        setCaptchaToken(null); // Reset captcha token
+        return;
+      }
+
       if (
         errorMessage.toLowerCase().includes("phone") ||
         errorMessage.toLowerCase().includes("exists") ||
@@ -377,8 +403,9 @@ const RegisterForm = ({ onSwitch }) => {
       } else {
         setMessage({
           text: "❌ Đăng ký thất bại! Vui lòng thử lại.",
-          type: "error",
+          type: "error",          
         });
+        recaptchaRef.current.reset();
       }
     }
   };
@@ -457,6 +484,20 @@ const RegisterForm = ({ onSwitch }) => {
           required
         />
       </div>
+
+      <div className="flex justify-center border-2 border-red-500">
+        <ReCAPTCHA        
+          ref={recaptchaRef}
+          sitekey={RECAPTCHA_SITE_KEY}
+
+          
+          onExpired={() => {
+            console.log("❌ CAPTCHA TOKEN EXPIRED");
+            setCaptchaToken(null);
+          }}
+        />
+      </div>
+
       {message.text && (
         <div
           className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
