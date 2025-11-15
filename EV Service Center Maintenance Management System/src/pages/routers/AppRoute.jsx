@@ -43,6 +43,8 @@ import TechnicianManagement from "../home/TechnicianManagement.jsx";
 // Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
 import Profile from "../home/users/Profile.jsx";
+import VehicleDetail from '../home/users/VehicleDetail.jsx';
+import VehicleListPage from "../home/users/VehicleListPage.jsx";
 // Trang đặt lịch (Booking Page)
 import BookingPage from "../booking/BookingPage.jsx";
 
@@ -69,10 +71,12 @@ function AppRoute() {
 
         {/* Trang cá nhân */}
         <Route path="/profile" element={<Profile />} />
+        <Route path="/vehicle/:vehicleId" element={<VehicleDetail />} />
+        <Route path="/VehicleListPage" element={<VehicleListPage/>} />
 
         {/* Trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} /> {/* ✅ THÊM ROUTE NÀY */}
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler/>} /> {/* ✅ THÊM ROUTE NÀY */}
 
         {/* Technician */}
         <Route path="/technician" element={<TechnicianLayout />}>
@@ -91,7 +95,7 @@ function AppRoute() {
           {/* Trang mặc định sẽ chuyển về dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StaffDashboard />} />
-          <Route path="assignments" element={<StaffAssignments />} />
+          <Route path="assignments" element={<StaffAssignments/>} />
         </Route>
 
 

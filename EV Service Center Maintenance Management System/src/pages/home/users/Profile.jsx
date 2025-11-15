@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, UserCircle } from "lucide-react";
+import { User, Mail, Phone, UserCircle, Edit3, Save, X, Briefcase, MapPin, Calendar, Car } from "lucide-react";
+import API from '../../../../api';
+
+
+const ALL_EMPLOYEE_ROLES = ['staff', 'tech', 'admin'];
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [vehicleLoading, setVehicleLoading] = useState(false);
+
+  const userId = user?.userID;
+  const userRole = user?.role?.toLowerCase() || 'customer';
+  const isEmployee = ALL_EMPLOYEE_ROLES.includes(userRole);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -15,7 +28,36 @@ const Profile = () => {
     }
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
+    if (storedUser) {
+      const role = storedUser.role?.toLowerCase() || 'customer';
+      // PHẠM VI MỚI: isEmployee chỉ dùng để tính toán giá trị khởi tạo
+      const isUserEmployee = ALL_EMPLOYEE_ROLES.includes(role);
+
+      const initialUser = {
+        // Customer fields
+        ...storedUser,
+        role: role,
+        // Employee/Admin specific fields (MOCK DATA)
+        serviceCenter: storedUser.serviceCenter || (isUserEmployee ? 101 : null),
+        shift: storedUser.shift || (isUserEmployee ? 1 : null),
+        address: storedUser.address || '',
+        birth: storedUser.birth || '1990-01-01',
+      };
+
+      setUser(initialUser);
+      // Khởi tạo formData với dữ liệu hiện tại
+      setFormData({
+        name: initialUser.name || '',
+        phone: initialUser.phone || '',
+        gender: initialUser.gender || 'unknown',
+        address: initialUser.address || '',
+        birth: initialUser.birth || '1990-01-01',
+        // Fields đặc thù cho Employee/Admin
+        role: initialUser.role || 'customer',
+        serviceCenter: initialUser.serviceCenter || '',
+        shift: initialUser.shift || '',
+      });
+    }
   }, [navigate]);
 
   if (!user) {
@@ -28,15 +70,199 @@ const Profile = () => {
     );
   }
 
-  const genderText =
-    user.gender === "male"
-      ? "Nam"
-      : user.gender === "female"
-      ? "Nữ"
-      : "Không xác định";
+  const getGenderText = (gender) => {
+    switch (gender?.toLowerCase()) {
+      case "male":
+        return "Nam";
+      case "female":
+        return "Nữ";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    if (!userId) {
+      setLoading(false);
+      setMessage({ type: 'error', text: 'Không tìm thấy ID người dùng để cập nhật.' });
+      return;
+    }
+
+    // 1. Xác định Endpoint dựa trên vai trò (ĐÃ CẬP NHẬT LOGIC ADMIN)
+    let endpointPrefix = '';
+    if (userRole === 'customer') {
+      endpointPrefix = '/api/customer/update';
+    } else if (userRole === 'admin') {
+      endpointPrefix = '/api/admin/update';
+    } else {
+      // staff, tech (Employee chung)
+      endpointPrefix = '/api/employees/update';
+    }
+    const endpoint = `${endpointPrefix}/${userId}`;
+
+    // 2. Chuẩn bị Payload (chỉ gửi những trường thay đổi)
+    const payload = {};
+    let fieldsChanged = 0;
+
+    // Các trường cơ bản (Customer)
+    const fieldsToCompare = ['name', 'phone', 'gender', 'address', 'birth'];
+
+    // Thêm các trường đặc thù của Employee/Admin
+    if (userRole === 'staff' || userRole === 'tech' || userRole === 'admin') {
+      fieldsToCompare.push('role', 'serviceCenter', 'shift');
+    }
+
+    fieldsToCompare.forEach(key => {
+      // So sánh giá trị trong form với giá trị gốc của user
+      if (String(formData[key]) !== String(user[key])) {
+        payload[key] = formData[key];
+        fieldsChanged++;
+      }
+    });
+
+    if (fieldsChanged === 0) {
+      setLoading(false);
+      setEditMode(false);
+      setMessage({ type: 'warning', text: 'Không có thông tin nào được thay đổi.' });
+      return;
+    }
+
+    // 3. Xử lý logic đặc thù cho Employee/Admin (chuyển đổi kiểu dữ liệu)
+    if (isEmployee) {
+      // Đảm bảo các trường số được chuyển đổi đúng kiểu nếu API yêu cầu
+      if (payload.serviceCenter !== undefined) payload.serviceCenter = parseInt(payload.serviceCenter, 10);
+      if (payload.shift !== undefined) payload.shift = parseInt(payload.shift, 10);
+      // API có thể yêu cầu gender phải là chuỗi 'Male', 'Female' thay vì 'male', 'female'
+      if (payload.gender !== undefined) payload.gender = payload.gender.charAt(0).toUpperCase() + payload.gender.slice(1);
+    }
+
+    try {
+      // 4. Thực hiện gọi API
+      await API.patch(endpoint, payload);
+
+      // 5. Xử lý thành công
+      setLoading(false);
+      setEditMode(false);
+      setMessage({ type: 'success', text: `Cập nhật thành công!` });
+
+      // Cập nhật state người dùng và localStorage
+      const updatedUser = { ...user, ...payload };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+    } catch (error) {
+      // 6. Xử lý lỗi
+      setLoading(false);
+      const errorMessage = error.message || 'Lỗi không xác định khi cập nhật hồ sơ.';
+      setMessage({
+        type: 'error',
+        text: `Cập nhật thất bại (${userRole.toUpperCase()} API): ${errorMessage}`,
+      });
+    }
+  };
+
+  const handleNavigateToVehicle = async () => {
+    if (!userId || isEmployee) return; // Chỉ cho Customer
+
+    setVehicleLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      // 1. Vẫn gọi API để kiểm tra xem khách hàng có xe nào không
+      const response = await API.get(`/vehicle/getByCustomerId/${userId}`);
+      const vehicles = response.data?.data;
+
+      if (vehicles && vehicles.length > 0) {
+        navigate(`/VehicleListPage`);
+      } else {
+        setMessage({ type: 'warning', text: 'Bạn chưa có chiếc xe nào được đăng ký.' });
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối.';
+      setMessage({ type: 'error', text: `Không tải được danh sách xe: ${errorMessage}` });
+      console.error("Lỗi tải xe:", error);
+    } finally {
+      setVehicleLoading(false);
+    }
+  };
+
+  // 4. Các hàm xử lý giao diện
+  const startEdit = () => {
+    setFormData({
+      name: user.name || '',
+      phone: user.phone || '',
+      gender: user.gender || 'unknown',
+      address: user.address || '',
+      birth: user.birth || '1990-01-01',
+      role: user.role || 'customer',
+      serviceCenter: user.serviceCenter || '',
+      shift: user.shift || '',
+    });
+    setMessage({ type: '', text: '' });
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    setMessage({ type: '', text: '' });
+  };
+
+  // Chỉ cần kiểm tra name và phone không được rỗng
+  const isFormValid = formData.name?.trim() && formData.phone?.trim();
+
+  // 5. Render chi tiết thông tin
+  const renderDetail = (Icon, label, key, color, type = 'text', readOnly = false) => (
+    <div className="flex items-center gap-3">
+      <div className={`bg-${color}-100 p-3 rounded-xl text-${color}-600`}>
+        <Icon size={20} />
+      </div>
+      <div className="w-full">
+        <p className="text-sm text-gray-500 font-medium">{label}</p>
+        {(editMode && !readOnly) ? (
+          key === 'gender' ? (
+            <select
+              value={formData[key]}
+              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+              className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base font-semibold text-gray-800 bg-white"
+            >
+              <option value="unknown">Không xác định</option>
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+            </select>
+          ) : key === 'role' ? (
+            <select
+              value={formData[key]}
+              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+              className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base font-semibold text-gray-800 bg-white"
+              disabled={userRole === 'admin'} // Admin role thường không được thay đổi
+            >
+              {['customer', 'staff', 'tech', 'admin'].map(r => (
+                <option key={r} value={r}>{r.toUpperCase()}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={type}
+              value={formData[key]}
+              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+              className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base font-semibold text-gray-800"
+              required={key === 'name' || key === 'phone'}
+            />
+          )
+        ) : (
+          <p className="text-base font-semibold text-gray-800">
+            {key === 'gender' ? getGenderText(user[key]) : user[key] || "Không có"}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 py-10">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -47,7 +273,7 @@ const Profile = () => {
         <div className="bg-gradient-to-r from-blue-600 to-indigo-500 p-8 text-center text-white relative">
           <motion.img
             whileHover={{ scale: 1.05 }}
-            src={user.avatar || "/avatar.jpg"}
+            src={user.avatar || "https://placehold.co/100x100/A0BFFF/FFFFFF?text=AV"}
             alt="Avatar"
             className="w-28 h-28 rounded-full border-4 border-white shadow-lg mx-auto mb-4 object-cover"
           />
@@ -55,70 +281,119 @@ const Profile = () => {
             {user.name?.trim() || "Người dùng"}
           </h1>
           <p className="text-sm opacity-90 mt-1">{user.email}</p>
+          <p className="text-xs opacity-70 mt-1">{userRole.toUpperCase()}</p>
+
+          {/* Edit Button */}
+          {!editMode && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={startEdit}
+              className="absolute top-4 right-4 bg-white text-indigo-600 p-2 rounded-full shadow-md hover:bg-indigo-50 transition"
+              aria-label="Chỉnh sửa hồ sơ"
+            >
+              <Edit3 size={20} />
+            </motion.button>
+          )}
         </div>
 
         {/* Body */}
         <div className="p-8 bg-white">
+          {/* Message Box */}
+          {message.text && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-4 mb-6 rounded-xl text-sm font-medium ${message.type === 'success'
+                ? 'bg-green-100 text-green-700'
+                : message.type === 'error'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700'
+                }`}
+            >
+              {message.text}
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                <User size={20} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Tên</p>
-                <p className="text-base font-semibold text-gray-800">
-                  {user.name?.trim() || "Không có"}
-                </p>
-              </div>
-            </div>
+            {renderDetail(User, 'Tên', 'name', 'blue')}
+            {renderDetail(Mail, 'Email', 'email', 'indigo', 'email', true)} {/* Email Read Only */}
+            {renderDetail(Phone, 'Số điện thoại', 'phone', 'emerald', 'tel')}
+            {renderDetail(UserCircle, 'Giới tính', 'gender', 'rose')}
+            {renderDetail(MapPin, 'Địa chỉ', 'address', 'purple')}
+            {renderDetail(Calendar, 'Ngày sinh', 'birth', 'orange', 'date')}
 
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
-                <Mail size={20} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Email</p>
-                <p className="text-base font-semibold text-gray-800">
-                  {user.email || "Không có"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
-                <Phone size={20} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Số điện thoại</p>
-                <p className="text-base font-semibold text-gray-800">
-                  {user.phone || "Không có"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-rose-100 p-3 rounded-xl text-rose-600">
-                <UserCircle size={20} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Giới tính</p>
-                <p className="text-base font-semibold text-gray-800">
-                  {genderText}
-                </p>
-              </div>
-            </div>
+            {/* Các trường đặc thù của Employee/Admin */}
+            {isEmployee && (
+              <>
+                {renderDetail(Briefcase, 'Vai trò', 'role', 'cyan')}
+                {renderDetail(MapPin, 'Trung tâm DV', 'serviceCenter', 'teal', 'number')}
+                {renderDetail(Calendar, 'Ca làm việc', 'shift', 'pink', 'number')}
+              </>
+            )}
           </div>
 
           {/* Action */}
-          <div className="mt-10 flex justify-center">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => navigate("/")}
-              className="bg-blue-600 text-white font-medium px-6 py-2.5 rounded-xl shadow hover:bg-blue-700 transition"
-            >
-              Quay lại trang chủ
-            </motion.button>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+
+            {/* NÚT CHUYỂN HƯỚNG SANG XE (CHỈ HIỂN THỊ CHO CUSTOMER) */}
+            {!isEmployee && !editMode && (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleNavigateToVehicle}
+                disabled={vehicleLoading}
+                className="flex items-center space-x-2 bg-indigo-600 text-white font-medium px-6 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition"
+              >
+                {vehicleLoading ? 'Đang tìm xe...' : (
+                  <>
+                    <Car size={20} />
+                    <span>Xem & Chỉnh sửa Xe</span>
+                  </>
+                )}
+              </motion.button>
+            )}
+
+            {editMode ? (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleUpdate}
+                  disabled={loading || !isFormValid}
+                  className={`flex items-center space-x-2 font-medium px-6 py-2.5 rounded-xl shadow transition ${isFormValid && !loading
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                >
+                  {loading ? 'Đang cập nhật...' : (
+                    <>
+                      <Save size={20} />
+                      <span>Lưu thay đổi</span>
+                    </>
+                  )}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={cancelEdit}
+                  className="flex items-center space-x-2 bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-xl shadow hover:bg-gray-300 transition"
+                  disabled={loading}
+                >
+                  <X size={20} />
+                  <span>Hủy</span>
+                </motion.button>
+              </>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/")}
+                className="bg-blue-600 text-white font-medium px-6 py-2.5 rounded-xl shadow hover:bg-blue-700 transition"
+              >
+                Quay lại trang chủ
+              </motion.button>
+            )}
           </div>
         </div>
       </motion.div>
