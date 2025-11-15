@@ -62,7 +62,7 @@ const BookingPage = ({ onBack }) => {
           model: v.model?.modelName || "Unknown",
           year: v.year,
           licensePlate: v.licensePlate,
-          image: v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
+          image: v.imageUrl || v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
         }));
 
         console.log('formattedVehicles', formattedVehicles);

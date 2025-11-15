@@ -13,6 +13,7 @@ const AddVehicleForm = ({ onBack, onNext }) => {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [vin, setVin] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
   // Gọi API để lấy danh sách mẫu xe khi component mount
   useEffect(() => {
@@ -37,13 +38,13 @@ const AddVehicleForm = ({ onBack, onNext }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedModel || !licensePlate || !vin) {
-      alert(
+    if (!selectedModel || !licensePlate || !vin || !imageFile) {
+      setMessage(
         language === "vi"
-          ? "Vui lòng điền đầy đủ thông tin!"
-          : "Please fill in all fields!"
+          ? "Vui lòng điền đầy đủ thông tin và chọn file ảnh!"
+          : "Please fill in all required fields and select an image file!"
       );
-      return;
+      setMessageType("error")
     }
 
     try {
@@ -52,35 +53,40 @@ const AddVehicleForm = ({ onBack, onNext }) => {
       const customerId = storedUser.userID;
 
       if (!customerId) {
-        alert(
+        setMessage(
           language === "vi"
             ? "Không tìm thấy thông tin khách hàng!"
             : "Customer info not found!"
         );
-        return;
+        setMessageType("error");
       }
 
-      const newVehicle = {
+      const vehicleDTO = {
         customerId,
         licensePlate,
         vin,
         type: "electric",
-        modelID: selectedModel,
+        modelID: parseInt(selectedModel, 10), // Đảm bảo modelID là số nếu API yêu cầu
         mileage: 0,
         lastMaintenanceDate: new Date().toISOString().split("T")[0],
         lastMaintenanceMileage: 0,
         status: true,
       };
-      console.log('newVehicle', newVehicle);
+
+      const formData = new FormData();
+      formData.append("vehicleDTO", JSON.stringify(vehicleDTO));
+      formData.append("image", imageFile);
+
+      console.log('vehicleDTO', vehicleDTO);
 
       // Gọi API tạo xe
-      const response = await API.post("/vehicle/create", newVehicle);
+      const response = await API.post("/vehicle/create", formData);
       console.log(" Tạo xe thành công:", response.data);
 
       setMessage("Thêm xe thành công!");
       setMessageType("success");
 
-      onNext(newVehicle);
+      onNext(response.data); 
     } catch (error) {
       console.error("❌ Lỗi khi thêm xe:", error);
       setMessage("Thêm xe thất bại!");
@@ -106,8 +112,8 @@ const AddVehicleForm = ({ onBack, onNext }) => {
           {message && (
             <div
               className={`p-3 mb-4 rounded-xl text-center font-medium ${messageType === "success"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
                 }`}
             >
               {message}
@@ -163,6 +169,24 @@ const AddVehicleForm = ({ onBack, onNext }) => {
               placeholder="VD: 30A-12345"
               required
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          {/* Ảnh xe */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === "vi" ? "Hình ảnh xe (Bắt buộc)" : "Vehicle Image (Required)"}
+            </label>
+            <input
+              type="file"
+              accept="image/*" // Chỉ chấp nhận file hình ảnh
+              onChange={(e) => {
+                // Lưu file đầu tiên được chọn vào state
+                setImageFile(e.target.files[0] || null);
+              }}
+              required // Bắt buộc phải chọn file
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              // Thêm style cho file input đẹp hơn
+              style={{ padding: '0.75rem 1rem' }}
             />
           </div>
 
