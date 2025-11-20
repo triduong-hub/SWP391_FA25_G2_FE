@@ -94,12 +94,12 @@ const Profile = () => {
     // 1. Xác định Endpoint dựa trên vai trò (ĐÃ CẬP NHẬT LOGIC ADMIN)
     let endpointPrefix = '';
     if (userRole === 'customer') {
-      endpointPrefix = '/api/customer/update';
+      endpointPrefix = '/customer/update';
     } else if (userRole === 'admin') {
-      endpointPrefix = '/api/admin/update';
+      endpointPrefix = '/admin/update';
     } else {
       // staff, tech (Employee chung)
-      endpointPrefix = '/api/employees/update';
+      endpointPrefix = '/employees/update';
     }
     const endpoint = `${endpointPrefix}/${userId}`;
 
