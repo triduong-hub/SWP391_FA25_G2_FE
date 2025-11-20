@@ -48,25 +48,16 @@ const AddVehicleForm = ({ onBack, onNext }) => {
     }
 
     try {
-      // Lấy user ID từ localStorage
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
       const customerId = storedUser.userID;
 
-      if (!customerId) {
-        setMessage(
-          language === "vi"
-            ? "Không tìm thấy thông tin khách hàng!"
-            : "Customer info not found!"
-        );
-        setMessageType("error");
-      }
-
+      // 1. Chuẩn bị Object dữ liệu khớp với VehicleDTO.java
       const vehicleDTO = {
-        customerId,
-        licensePlate,
-        vin,
+        customerId: customerId,
+        licensePlate: licensePlate,
+        vin: vin,
         type: "electric",
-        modelID: parseInt(selectedModel, 10), // Đảm bảo modelID là số nếu API yêu cầu
+        modelID: parseInt(selectedModel, 10), // Backend là Long modelID
         mileage: 0,
         lastMaintenanceDate: new Date().toISOString().split("T")[0],
         lastMaintenanceMileage: 0,
@@ -74,23 +65,39 @@ const AddVehicleForm = ({ onBack, onNext }) => {
       };
 
       const formData = new FormData();
-      formData.append("vehicleDTO", JSON.stringify(vehicleDTO));
-      formData.append("image", imageFile);
 
-      console.log('vehicleDTO', vehicleDTO);
+      // 2. QUAN TRỌNG: Bọc JSON vào Blob để Backend hiểu đây là application/json
+      const jsonBlob = new Blob([JSON.stringify(vehicleDTO)], {
+        type: 'application/json'
+      });
 
-      // Gọi API tạo xe
-      const response = await API.post("/vehicle/create", formData);
-      console.log(" Tạo xe thành công:", response.data);
+      // Append với tên key là "vehicleDTO" (khớp với @RequestPart("vehicleDTO") trong Controller)
+      formData.append("vehicleDTO", jsonBlob);
 
+      // 3. Append file ảnh với tên key là "image" (khớp với @RequestPart("image") trong Controller)
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      console.log("📦 Đang gửi FormData...");
+
+      // 4. Gọi API
+      const response = await API.post("/vehicle/create", formData, {
+        headers: {
+          // Không cần set Content-Type thủ công, Axios/Browser sẽ tự thêm boundary
+          // Nhưng nếu client config cứng JSON thì cần dòng này để override:
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("✅ Tạo xe thành công:", response.data);
       setMessage("Thêm xe thành công!");
       setMessageType("success");
+      onNext(response.data);
 
-      onNext(response.data); 
     } catch (error) {
       console.error("❌ Lỗi khi thêm xe:", error);
-      setMessage("Thêm xe thất bại!");
-      setMessageType("error");
+      // ... xử lý lỗi
     }
   };
 
