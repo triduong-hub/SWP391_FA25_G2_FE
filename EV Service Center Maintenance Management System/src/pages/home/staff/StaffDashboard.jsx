@@ -173,6 +173,15 @@ const StaffDashboard = () => {
     setOrders(updated);
   };
 
+  // Hàm hỗ trợ format ngày để so sánh lọc (YYYY-MM-DD)
+  const getYmd = (date) => {
+    if (!date) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   // Tổng số liệu
   const totalOrders = orders.length;
   const pending = orders.filter((o) => o.status === "Chờ xác nhận").length;
@@ -291,7 +300,7 @@ const StaffDashboard = () => {
                   o.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   o.vehicle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   o.id?.toString().includes(searchTerm);
-                const matchDate = filterDate === "" || o.appointmentDate === filterDate;
+                const matchDate = filterDate === "" || getYmd(o.orderDate) === filterDate;
 
                 return matchStatus && matchBranch && matchSearch && matchDate;
               })
@@ -310,13 +319,19 @@ const StaffDashboard = () => {
                   </td>
 
                   <td className="py-3 px-4 text-xs text-gray-600">
-                    {o.orderDate.toLocaleString('vi-VN', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    <div className="font-medium text-gray-800">
+                        {o.orderDate.toLocaleDateString('vi-VN')}
+                    </div>
+                    <div className="text-[11px] text-gray-500">
+                        {o.orderDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                    
+                    {/* (Tùy chọn) Có thể hiện thêm ngày hẹn nhỏ bên dưới để Staff biết */}
+                    {o.appointmentDate && (
+                        <div className="text-[10px] text-blue-600 mt-1">
+                            Hẹn: {new Date(o.appointmentDate).toLocaleDateString('vi-VN')}
+                        </div>
+                    )}
                   </td>
 
                   <td className="py-3 px-4">{o.branch}</td>

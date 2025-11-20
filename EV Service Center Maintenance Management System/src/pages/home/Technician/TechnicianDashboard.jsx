@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calendar, Clock, Wrench, CheckCircle, FileText,
-    Play, User, Phone, MapPin, XCircle, Activity
+    Play, User, Phone, MapPin, XCircle, Activity, 
+    Search
 } from 'lucide-react';
 import api from '../../../../api'; // ✅ để bạn nối API thật
 import { statusMapServerToUI, statusMapUIToServer } from "../../../utils/statusHelpers";
@@ -14,8 +15,10 @@ const TechnicianDashboard = () => {
     const [noteModal, setNoteModal] = useState(false);
     const [detailModal, setDetailModal] = useState(false);
     const [newNote, setNewNote] = useState('');
+
     const [filterStatus, setFilterStatus] = useState("all");
-    const [filterTechnician, setFilterTechnician] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterDate, setFilterDate] = useState("");
 
     const navigate = useNavigate();
 
@@ -74,6 +77,16 @@ const TechnicianDashboard = () => {
 
     const formatDate = (date, time) => `${new Date(date).toLocaleDateString('vi-VN')} ${time}`;
 
+    const getYmd = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+};
+
     // ---------------- HANDLERS ----------------
     // Khi kỹ thuật viên bấm "Bắt đầu"
     // Khi kỹ thuật viên bấm "Bắt đầu"
@@ -81,7 +94,7 @@ const TechnicianDashboard = () => {
         try {
             // Gọi API backend thật
             await api.put(`/maintenances/${maintenanceID}/set-status/in-progress`);
-            
+
 
             // Cập nhật UI
             setTasks(prev =>
@@ -158,105 +171,89 @@ const TechnicianDashboard = () => {
 
     // ---------------- RENDER ----------------
     return (
-        <div className="w-full">      
+        <div className="w-full">
 
-            {/* FILTER */}
-            <div className="mb-6 flex flex-wrap items-center gap-3">
-                <label className="text-sm font-medium text-gray-700">Lọc theo trạng thái:</label>
-                <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500"
-                >
-                    <option value="all">Tất cả</option>
-                    <option value="pending">Chờ xác nhận</option>
-                    <option value="confirmed">Đã xác nhận</option>
-                    <option value="assigned">Chờ xử lý</option>
-                    <option value="in_progress">Đang thực hiện</option>
-                    <option value="awaiting_customer_approval">Chờ khách xác nhận báo giá</option>
-                    <option value="approved">Đã duyệt báo giá</option>
-                    <option value="waiting_for_payment">Chờ thanh toán</option>
-                    <option value="completed">Hoàn tất</option>
-                    <option value="cancelled">Đã hủy</option>
-                </select>
-
-                {/* Lọc theo tên kỹ thuật viên */}
-                <input
-                    type="text"
-                    value={filterTechnician}
-                    onChange={(e) => setFilterTechnician(e.target.value)}
-                    placeholder="Tìm theo tên nhân viên..."
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:ring-2 focus:ring-green-500"
-                />
-            </div>
-
-
-            {/* STATS */}
+            {/* 📊 STATS CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {/* Công việc hôm nay (cố định) */}
                 <StatCard
                     icon={Calendar}
                     color="blue"
-                    label="Tổng đơn (đã lọc)"
-                    value={
-                        normalizedTasks.filter(task => {
-                            if (filterStatus === "all") return true;
-                            const normalized = (task.status || "")
-                                .toLowerCase()
-                                .replace(/[^a-z0-9]+/g, "_")
-                                .replace(/^_+|_+$/g, "");
-                            return normalized === filterStatus;
-                        }).length
-                    }
+                    label="Tổng việc (đã lọc)"
+                    value={normalizedTasks.filter(task => {
+                        if (filterStatus === "all") return true;
+                        return task.status === filterStatus;
+                    }).length}
                 />
-
-                {/* Tự động hiển thị các trạng thái thật từ dữ liệu */}
-                {/* Luôn hiển thị đủ các trạng thái chính */}
                 {["confirmed", "in_progress", "waiting_for_payment", "completed"].map((status) => {
                     const config = statusConfig[status];
-                    const Icon = config.icon;
-                    const count = statusCounts[status] || 0;
                     return (
                         <StatCard
-                            key={status}
-                            icon={Icon}
-                            color={config.color}
-                            label={config.label}
-                            value={count}
+                            key={status} icon={config.icon} color={config.color}
+                            label={config.label} value={statusCounts[status] || 0}
                         />
                     );
                 })}
-
             </div>
 
+            {/* 🔍 FILTERS (GIAO DIỆN GIỐNG STAFF) */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+                {/* 1. Ô tìm kiếm */}
+                <div className="relative flex-1 min-w-[280px]">
+                    <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Tìm Mã đơn, Biển số, Model, Tên KTV..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 pr-3 py-2 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                </div>
 
+                {/* 2. Lọc trạng thái */}
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="in-progress">Đang thực hiện</option>
+                    <option value="awaiting-customer-approval">Chờ khách duyệt</option>
+                    <option value="approved">Đã duyệt</option>
+                    <option value="waiting-for-payment">Chờ thanh toán</option>
+                    <option value="completed">Hoàn tất</option>
+                </select>
 
+                {/* 3. Lọc ngày (Theo ngày bắt đầu) */}
+                <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+            </div>
 
-            {/* TASK LIST */}
+            {/* 📋 TASK LIST */}
             {normalizedTasks
                 .filter(task => {
-                    const normalizedStatus = (task.status || "")
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "_")
-                        .replace(/^_+|_+$/g, "");
+                    // 1. Lọc trạng thái
+                    const matchStatus = filterStatus === "all" || task.status === filterStatus;
 
-                    const matchStatus =
-                        filterStatus === "all" || normalizedStatus === filterStatus;
+                    // 2. Lọc từ khóa (Mã, Biển số, Model, Tên KTV)
+                    const lowerSearch = searchTerm.toLowerCase();
+                    const matchSearch =
+                        task.maintenanceID?.toString().includes(lowerSearch) ||
+                        task.licensePlate?.toLowerCase().includes(lowerSearch) ||
+                        task.model?.toLowerCase().includes(lowerSearch) ||
+                        task.empName?.toLowerCase().includes(lowerSearch);
 
-                    const matchTechnician =
-                        !filterTechnician ||
-                        (task.empName || "")
-                            .toLowerCase()
-                            .includes(filterTechnician.toLowerCase());
+                    // 3. Lọc ngày (So sánh ngày bắt đầu)
+                    const taskDate = getYmd(task.startTime); // Lấy ngày từ startTime
+                    const matchDate = filterDate === "" || taskDate === filterDate;
 
-                    return matchStatus && matchTechnician;
+                    return matchStatus && matchSearch && matchDate;
                 })
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-
                 .map(task => (
-
-
                     <div
                         key={task.maintenanceID}
                         className={`rounded-2xl p-5 mb-5 border-2 shadow-md hover:shadow-lg transition-all duration-300 ${task.status === "in-progress"
@@ -265,198 +262,100 @@ const TechnicianDashboard = () => {
                                 ? "border-orange-500 bg-orange-50"
                                 : task.status === "completed"
                                     ? "border-green-500 bg-green-50"
-                                    : "border-gray-300 bg-white"
+                                    : "border-gray-200 bg-white"
                             }`}
                     >
                         {/* HEADER */}
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-gray-900 text-lg">
+                            <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                                <Wrench className="w-5 h-5 text-gray-500" />
                                 Bảo trì #{task.maintenanceID}
                             </h3>
-                            <span
-                                className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
-                                    ? "bg-purple-100 text-purple-700"
-                                    : task.status === "waiting-for-payment"
-                                        ? "bg-orange-100 text-orange-700"
-                                        : task.status === "completed"
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-gray-100 text-gray-700"
-                                    }`}
-                            >
-                                {statusMapServerToUI[task.status?.toLowerCase()?.replace(/-/g, " ")] ||
-                                    task.status}
+                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
+                                ? "bg-purple-100 text-purple-700"
+                                : task.status === "waiting-for-payment"
+                                    ? "bg-orange-100 text-orange-700"
+                                    : task.status === "completed"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-blue-100 text-blue-700"
+                                }`}>
+                                {statusMapServerToUI[task.status.replace(/-/g, " ")] || task.status}
                             </span>
                         </div>
 
-                        {/* INFO */}
-                        {/* INFO */}
-                        <div className="text-sm text-gray-700 mb-4 border border-gray-200 rounded-xl overflow-hidden">
+                        {/* INFO GRID */}
+                        <div className="text-sm text-gray-700 mb-4 border border-gray-200 rounded-xl overflow-hidden bg-white">
                             <div className="grid sm:grid-cols-2 divide-x divide-gray-200">
                                 {/* Cột trái */}
-                                <div className="p-3 divide-y divide-gray-200">
-                                    <div className="py-1">
-                                        <p className="font-medium">Kỹ thuật viên:</p>
-                                        <p>{task.empName}</p>
+                                <div className="p-3 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Kỹ thuật viên:</span>
+                                        <span className="font-medium">{task.empName || "Chưa phân công"}</span>
                                     </div>
-                                    <div className="py-1">
-                                        <p className="font-medium">Mẫu xe:</p>
-                                        <p>{task.model}</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Mẫu xe:</span>
+                                        <span className="font-medium">{task.model}</span>
                                     </div>
-                                    <div className="py-1">
-                                        <p className="font-medium">Bắt đầu:</p>
-                                        <p>
-                                            {task.startTime
-                                                ? new Date(task.startTime).toLocaleString("vi-VN")
-                                                : "Chưa bắt đầu"}
-                                        </p>
-                                    </div>
-                                    <div className="py-1">
-                                        <p className="font-medium">Ghi chú:</p>
-                                        <p>{task.notes || "Không có"}</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Ngày đặt:</span>
+                                        <span className="font-medium">
+                                            {task.startTime ? new Date(task.startTime).toLocaleString("vi-VN") : "---"}
+                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Cột phải */}
-                                <div className="p-3 divide-y divide-gray-200">
-                                    <div className="py-1">
-                                        <p className="font-medium">Biển số xe:</p>
-                                        <p>{task.licensePlate}</p>
+                                <div className="p-3 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Biển số:</span>
+                                        <span className="font-bold text-blue-600">{task.licensePlate}</span>
                                     </div>
-                                    <div className="py-1">
-                                        <p className="font-medium">Chi phí:</p>
-                                        <p>{task.cost ? `${task.cost} VND` : "Chưa xác định"}</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Chi phí:</span>
+                                        <span className="font-medium text-green-600">
+                                            {task.cost ? `${task.cost.toLocaleString()} đ` : "---"}
+                                        </span>
                                     </div>
-                                    <div className="py-1">
-                                        <p className="font-medium">Kết thúc:</p>
-                                        <p>
-                                            {task.endTime
-                                                ? new Date(task.endTime).toLocaleString("vi-VN")
-                                                : "Chưa hoàn tất"}
-                                        </p>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Ghi chú:</span>
+                                        <span className="truncate max-w-[150px]" title={task.notes}>{task.notes || "Không có"}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-
                         {/* ACTION BUTTONS */}
-                        {/* <div className="mt-3 flex gap-2">
-                            {["pending", "confirmed"].includes(task.status) && (
-                                <button
-                                    onClick={() => handleStart(task.maintenanceID)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                >
-                                    Bắt đầu
-                                </button>
-                            )}
-
-                            {task.status === "in-progress" && (
-                                <button
-                                    onClick={() => handleComplete(task.maintenanceID)}
-                                    className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                >
-                                    Hoàn tất
-                                </button>
-                            )}
-
-                            {task.status === "waiting-for-payment" && (
-                                <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg text-sm">
-                                    Chờ thanh toán
-                                </span>
-                            )}
-
-                            {task.status === "completed" && (
-                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg text-sm">
-                                    Hoàn tất
-                                </span>
-                            )}
-                        </div> */}
-                        {/* ACTION BUTTONS */}
-                        <div className="mt-3 flex gap-2">
-                            {/* ✅ Khi đã xác nhận (staff phân công xong) */}
+                        <div className="mt-3 flex flex-wrap gap-2">
                             {task.status === "confirmed" && (
-                                <button
-                                    onClick={() => handleStart(task.maintenanceID)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                >
-                                    Bắt đầu
+                                <button onClick={() => handleStart(task.maintenanceID)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                                    <Play size={16} /> Bắt đầu
                                 </button>
                             )}
 
-                            {/* ✅ Khi đang thực hiện */}
                             {task.status === "in-progress" && (
-                                <>
-                                    <button
-                                        onClick={() => navigate(`/technician/quotation/${task.maintenanceID}`)}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                    >
-                                        🧾 Tạo báo giá
-                                    </button>
-                                </>
+                                <button onClick={() => navigate(`/technician/quotation/${task.maintenanceID}`)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                                    <FileText size={16} /> Tạo báo giá
+                                </button>
                             )}
 
-                            {/* ✅ Khi đã báo giá xong, chờ khách xác nhận */}
-                            {task.status === "awaiting_customer_approval" && (
-                                <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                                    <span className="text-yellow-700 font-medium">
-                                        Chờ khách xác nhận báo giá
-                                    </span>
-                                    <button
-                                        onClick={() => navigate(`/quotation/${task.maintenanceID}`)}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                    >
-                                        Xem báo giá
-                                    </button>
-                                </div>
+                            {(task.status === "awaiting-customer-approval" || task.status === "approved") && (
+                                <button onClick={() => navigate(`/quotation/${task.maintenanceID}`)} className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-sm px-4 py-2 rounded-lg shadow-sm border border-indigo-300">
+                                    Xem báo giá
+                                </button>
                             )}
 
-                            {/* ✅ Khi khách đã xác nhận báo giá → kỹ thuật viên thực hiện lại */}
                             {task.status === "approved" && (
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => navigate(`/quotation/${task.maintenanceID}`)}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                    >
-                                        Xem báo giá
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleComplete(task.maintenanceID)}
-                                        className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm"
-                                    >
-                                        Hoàn tất
-                                    </button>
-                                </div>
-                            )}
-
-
-                            {/* ✅ Khi chờ thanh toán */}
-                            {task.status === "waiting-for-payment" && (
-                                <>
-                                    <span className="text-yellow-700 bg-yellow-100 px-3 py-1 rounded-lg text-sm">
-                                        Chờ thanh toán
-                                    </span>
-
-                                </>
-                            )}
-
-                            {/* ✅ Khi hoàn tất */}
-                            {task.status === "completed" && (
-                                <span className="text-green-700 bg-green-100 px-3 py-1 rounded-lg text-sm">
-                                    Hoàn tất
-                                </span>
+                                <button onClick={() => handleComplete(task.maintenanceID)} className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                                    <CheckCircle size={16} /> Hoàn tất
+                                </button>
                             )}
                         </div>
-
-
                     </div>
-
                 ))}
 
-            {/* NOTE MODAL */}
+            {/* NOTE MODAL & DETAIL MODAL (Giữ nguyên như cũ) */}
             {noteModal && selectedTask && (
                 <Modal title="Thêm ghi chú" onClose={() => setNoteModal(false)}>
-                    <p className="mb-3 font-medium text-gray-800">{selectedTask.service}</p>
                     <textarea
                         rows={3}
                         value={newNote}
@@ -467,27 +366,6 @@ const TechnicianDashboard = () => {
                     <div className="flex justify-end mt-4 gap-2">
                         <button onClick={() => setNoteModal(false)} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200">Hủy</button>
                         <button onClick={handleSaveNote} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Lưu</button>
-                    </div>
-                </Modal>
-            )}
-
-            {/* DETAIL MODAL */}
-            {detailModal && selectedTask && (
-                <Modal title="Chi tiết công việc" onClose={() => setDetailModal(false)}>
-                    <div className="text-sm text-gray-700 space-y-2">
-                        <p><strong>Dịch vụ:</strong> {selectedTask.service}</p>
-                        <p><strong>Khách hàng:</strong> {selectedTask.customerName}</p>
-                        <p><strong>Xe:</strong> {selectedTask.vehicle}</p>
-                        <p><strong>Địa điểm:</strong> {selectedTask.location}</p>
-                        <p><strong>Thời gian:</strong> {formatDate(selectedTask.date, selectedTask.time)}</p>
-                        {selectedTask.technicianNotes.length > 0 && (
-                            <div className="mt-3">
-                                <p className="font-semibold text-gray-800 mb-1">Ghi chú kỹ thuật:</p>
-                                {selectedTask.technicianNotes.map((n, i) => (
-                                    <p key={i} className="text-gray-600">{n.time}: {n.note}</p>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </Modal>
             )}
