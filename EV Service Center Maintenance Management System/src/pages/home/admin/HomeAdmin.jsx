@@ -25,6 +25,7 @@ const HomeAdmin = () => {
   const [accountStats, setAccountStats] = useState([]);
   // 📦 Biểu đồ đơn hàng & bảo dưỡng theo tháng
   const [orderStats, setOrderStats] = useState([]);
+  const [technicianPerformance, setTechnicianPerformance] = useState([]);
   const profileRef = useRef();
 
   // ✅ Lấy dữ liệu dashboard từ API
@@ -114,6 +115,35 @@ const HomeAdmin = () => {
     };
     fetchOrderStats();
   }, []);
+
+  useEffect(() => {
+    const fetchTechnicianPerformance = async () => {
+      try {
+        const res = await API.get("/statistics/technician-performance/all-months");
+        console.log("🔧 Hiệu suất kỹ thuật viên:", res.data);
+
+        const reports = res.data.monthlyReports || [];
+
+        // Format từng technician theo từng tháng
+        const formatted = reports.flatMap((report) =>
+          report.allTechnicians.map((tech) => ({
+            month: `${report.month}/${report.year}`,
+            technician: tech.employeeName,
+            count: tech.maintenanceCount
+          }))
+        );
+
+        setTechnicianPerformance(formatted);
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy hiệu suất kỹ thuật viên:", error);
+      }
+    };
+
+    fetchTechnicianPerformance();
+  }, []);
+
+
+
 
 
   // ✅ Đăng xuất
@@ -241,9 +271,9 @@ const HomeAdmin = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="revenue" name="Doanh thu" fill="#10b981" />
-                    <Bar dataKey="expense" name="Chi phí" fill="#3b82f6" />
-                    <Bar dataKey="profit" name="Lợi nhuận" fill="#f59e0b" />
+                    <Bar dataKey="revenue" name="Doanh thu" fill="#4A90E2" />
+                    <Bar dataKey="expense" name="Chi phí" fill="#A0AEC0" />
+                    <Bar dataKey="profit" name="Lợi nhuận" fill="#2D9C68" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -268,7 +298,7 @@ const HomeAdmin = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="fail_count" name="Số lần lỗi" fill="#ef4444" />
+                    <Bar dataKey="fail_count" name="Số lần lỗi" fill="#F56565" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -293,9 +323,9 @@ const HomeAdmin = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="CUSTOMER" name="Khách hàng" fill="#10b981" />
-                    <Bar dataKey="STAFF" name="Nhân viên" fill="#3b82f6" />
-                    <Bar dataKey="TECHNICIAN" name="Kỹ thuật viên" fill="#f59e0b" />
+                    <Bar dataKey="CUSTOMER" name="Khách hàng" fill="#4A90E2" />
+                    <Bar dataKey="STAFF" name="Nhân viên" fill="#A0AEC0" />
+                    <Bar dataKey="TECHNICIAN" name="Kỹ thuật viên" fill="#2D9C68" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -319,12 +349,35 @@ const HomeAdmin = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="orders" name="Đơn hàng" fill="#3b82f6" />
-                    <Bar dataKey="maintenances" name="Bảo dưỡng" fill="#10b981" />
+                    <Bar dataKey="orders" name="Đơn hàng" fill="#4A90E2" />
+                    <Bar dataKey="maintenances" name="Bảo dưỡng" fill="#A0AEC0" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
+            {/* ✅ Biểu đồ hiệu suất kỹ thuật viên */}
+            <div className="mt-10 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Hiệu suất kỹ thuật viên theo tháng
+              </h3>
+
+              {!technicianPerformance.length ? (
+                <p className="text-gray-500">Đang tải biểu đồ...</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={technicianPerformance}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" name="Số bảo dưỡng" fill="#4A90E2" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+
 
 
           </>
@@ -337,44 +390,27 @@ const HomeAdmin = () => {
 
 // ✅ Component nhỏ để hiển thị thẻ thống kê (phiên bản đẹp hơn)
 // ✅ StatCard phiên bản chuyên nghiệp
-const StatCard = ({ title, value, icon, color }) => {
-  // Màu theme động
-  const colors = {
-    emerald: "from-emerald-500 to-green-400",
-    blue: "from-blue-500 to-cyan-400",
-    orange: "from-orange-500 to-amber-400",
-    purple: "from-purple-500 to-pink-400",
-    indigo: "from-indigo-500 to-sky-400",
-    rose: "from-rose-500 to-red-400",
-    gray: "from-gray-500 to-gray-400",
-  };
-
+const StatCard = ({ title, value, icon: Icon }) => {
   return (
-    <div className="relative group">
-      {/* Card chính */}
-      <div className="p-6 rounded-2xl bg-white shadow-md hover:shadow-2xl border border-gray-100 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-        {/* Nền hiệu ứng gradient */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-r ${colors[color]} opacity-0 group-hover:opacity-10 transition duration-500 rounded-2xl`}
-        ></div>
+    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm 
+                    hover:shadow-md transition-all duration-200">
+      <div className="flex items-center justify-between">
 
-        <div className="flex items-center justify-between relative z-10">
-          <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <h3 className="text-3xl font-extrabold text-gray-800 mt-1">
-              {value}
-            </h3>
-          </div>
-          <div
-            className={`p-3 rounded-2xl bg-gradient-to-br ${colors[color]} text-white shadow-lg transform group-hover:scale-110 transition-transform`}
-          >
-            {icon}
-          </div>
+        {/* Text */}
+        <div>
+          <p className="text-sm text-gray-500 font-medium">{title}</p>
+          <h3 className="text-3xl font-bold text-gray-800 mt-1">{value}</h3>
+        </div>
+
+        {/* Icon */}
+        <div className="p-3 rounded-xl bg-gray-100 text-gray-600">
+          {Icon}
         </div>
       </div>
     </div>
   );
 };
+
 
 
 
