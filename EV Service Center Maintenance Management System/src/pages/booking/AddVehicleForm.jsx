@@ -45,6 +45,7 @@ const AddVehicleForm = ({ onBack, onNext }) => {
           : "Please fill in all required fields and select an image file!"
       );
       setMessageType("error")
+      return;
     }
 
     try {
@@ -54,8 +55,8 @@ const AddVehicleForm = ({ onBack, onNext }) => {
       // 1. Chuẩn bị Object dữ liệu khớp với VehicleDTO.java
       const vehicleDTO = {
         customerId: customerId,
-        licensePlate: licensePlate,
-        vin: vin,
+        licensePlate: licensePlate.trim(), //
+        vin: vin.trim(),
         type: "electric",
         modelID: parseInt(selectedModel, 10), // Backend là Long modelID
         mileage: 0,
@@ -157,7 +158,11 @@ const AddVehicleForm = ({ onBack, onNext }) => {
             <input
               type="text"
               value={vin}
-              onChange={(e) => setVin(e.target.value)}
+              onChange={(e) => {
+                setVin(e.target.value);
+                setMessage(""); // clear message
+              }}
+
               placeholder="VD: VF8ABC12345XYZ"
               required
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
