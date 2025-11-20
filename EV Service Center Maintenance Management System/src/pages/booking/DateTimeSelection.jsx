@@ -10,6 +10,9 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]);
+  const [selectedArea, setSelectedArea] = useState('');
+  const [areas, setAreas] = useState([]);
+
 
   const timeSlots = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
@@ -19,9 +22,10 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
       try {
         const response = await API.get('/service-centers/getAll');
         const data = (response.data || []).map((loc) => {
+
           const locId = loc.id || loc.locationID || loc.serviceCenterID; // 🟢 lấy đúng ID dù tên khác nhau
           return {
-            key: locId || uuidv4(), // fallback tạo key nếu không có
+            key: locId || uuidv4(),
             id: locId,
             name:
               language === 'vi'
@@ -32,9 +36,11 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
                 ? loc.address_vi || loc.address
                 : loc.address_en || loc.address,
             phone: loc.phone,
+            area: loc.area || loc.city || loc.province || detectArea(loc.address),
           };
         });
         setLocations(data);
+        setAreas([...new Set(data.map(loc => loc.area))]);
       } catch (error) {
         console.error('Lỗi khi fetch locations:', error);
       }
@@ -49,6 +55,19 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
     const selected = new Date(selectedDate + 'T' + time);
     return selectedDate === now.toISOString().split('T')[0] && selected < now;
   };
+
+  const detectArea = (address) => {
+    if (!address) return 'Khác';
+
+    if (address.includes('Hà Nội')) return 'Hà Nội';
+    if (address.includes('Hồ Chí Minh') || address.includes('TP. Hồ Chí Minh')) return 'TP. Hồ Chí Minh';
+    if (address.includes('Cần Thơ')) return 'Cần Thơ';
+    if (address.includes('Đà Nẵng')) return 'Đà Nẵng';
+    if (address.includes('Cà Mau')) return 'Cà Mau';
+
+    return 'Khác';
+  };
+
 
   // Next step
   const handleNext = () => {
@@ -127,24 +146,41 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
             <MapPin className="w-6 h-6 mr-2 text-emerald-600" />
             {language === 'vi' ? 'Chọn chi nhánh' : 'Select Branch'}
           </h3>
+          {/* SELECT AREA HERE */}
+          <select
+            value={selectedArea}
+            onChange={(e) => setSelectedArea(e.target.value)}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl"
+          >
+            <option value="">
+              {language === 'vi' ? 'Chọn khu vực...' : 'Choose area...'}
+            </option>
+
+            {areas.map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
           <div className="space-y-4">
-            {locations.map((location) => {
-              const selectedKey = selectedLocation ? selectedLocation.key : null;
-              return (
-                <div
-                  key={location.key}
-                  onClick={() => setSelectedLocation(location)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${selectedKey === location.key
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-emerald-200 bg-white'
-                    }`}
-                >
-                  <h4 className="font-bold text-gray-900 mb-1">{location.name}</h4>
-                  <p className="text-gray-600 text-sm mb-2">{location.address}</p>
-                  <p className="text-emerald-600 text-sm font-medium">{location.phone}</p>
-                </div>
-              );
-            })}
+            {locations
+              .filter((loc) => selectedArea === '' || loc.area === selectedArea)
+              .map((location) => {
+
+                const selectedKey = selectedLocation ? selectedLocation.key : null;
+                return (
+                  <div
+                    key={location.key}
+                    onClick={() => setSelectedLocation(location)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${selectedKey === location.key
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-gray-200 hover:border-emerald-200 bg-white'
+                      }`}
+                  >
+                    <h4 className="font-bold text-gray-900 mb-1">{location.name}</h4>
+                    <p className="text-gray-600 text-sm mb-2">{location.address}</p>
+                    <p className="text-emerald-600 text-sm font-medium">{location.phone}</p>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>
