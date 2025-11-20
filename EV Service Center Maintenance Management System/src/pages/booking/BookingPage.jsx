@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Car, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext.jsx';
 import LanguageSwitcher from '../../contexts/LanguageSwitcher.jsx';
@@ -8,6 +8,7 @@ import AddVehicleForm from './AddVehicleForm.jsx';
 import ServiceSelection from './ServiceSelection.jsx';
 import DateTimeSelection from './DateTimeSelection.jsx';
 import BookingConfirmation from './BookingConfirmation.jsx';
+
 // import PaymentForm from './PaymentForm.jsx';
 import API from '../../../api.js';
 
@@ -45,38 +46,37 @@ const BookingPage = ({ onBack }) => {
     paymentMethod: 'cash',
   });
 
+  const fetchVehicles = useCallback(async () => {
+    if (!customerId) return;
+    setLoadingVehicles(true);
+    try {
+      console.log('🔄 Đang tải danh sách xe...');
+      const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
+      const vehicleList = response.data?.data || [];
+
+      const formattedVehicles = vehicleList.map((v) => ({
+        id: v.vehicleID || v.id,
+        brand: v.model?.modelName || "Unknown",
+        model: v.model?.modelName || "Unknown",
+        year: v.year,
+        licensePlate: v.licensePlate,
+        // Logic ưu tiên ảnh xe riêng -> ảnh model -> ảnh mặc định
+        image: v.imageUrl || v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
+      }));
+
+      console.log('✅ Danh sách xe đã tải:', formattedVehicles);
+      setVehicles(formattedVehicles);
+    } catch (error) {
+      console.error('❌ Lỗi khi lấy xe:', error);
+    } finally {
+      setLoadingVehicles(false);
+    }
+  }, [customerId]);
+
   // 🚗 Lấy danh sách xe của khách hàng
   useEffect(() => {
-    if (!customerId) return;
-
-    const fetchVehicles = async () => {
-      try {
-        console.log('🧍‍♂️ Lấy xe theo CustomerId:', customerId);
-        const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
-        const vehicleList = response.data?.data || [];
-        console.log('vehList', vehicleList);
-
-        const formattedVehicles = vehicleList.map((v) => ({
-          id: v.vehicleID || v.id,
-          brand: v.model?.modelName || "Unknown", // Dùng modelName làm brand luôn
-          model: v.model?.modelName || "Unknown",
-          year: v.year,
-          licensePlate: v.licensePlate,
-          image: v.imageUrl || v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
-        }));
-
-        console.log('formattedVehicles', formattedVehicles);
-
-        setVehicles(formattedVehicles);
-      } catch (error) {
-        console.error('❌ Lỗi khi lấy xe:', error);
-      } finally {
-        setLoadingVehicles(false);
-      }
-    };
-
     fetchVehicles();
-  }, [customerId]);
+  }, [fetchVehicles]);
 
   // 🚘 Chọn xe
   const handleVehicleSelect = (vehicle) => {
@@ -170,29 +170,11 @@ const BookingPage = ({ onBack }) => {
                 <AddVehicleForm
                   onBack={() => setCurrentStep(1)}
                   onNext={async () => {
-                    // 🚗 Sau khi thêm xe mới, tải lại danh sách xe
-                    if (!customerId) return;
-
-                    try {
-                      const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
-                      const vehicleList = response.data?.data || [];
-                      const formattedVehicles = vehicleList.map((v) => ({
-                        id: v.vehicleID || v.id,
-                        brand: v.model?.modelName || "Unknown",
-                        model: v.model?.modelName || "Unknown",
-                        year: v.year,
-                        licensePlate: v.licensePlate,
-                        image:
-                          v.model?.imageUrl ||
-                          "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
-                      }));
-
-                      // ✅ Cập nhật danh sách xe và quay về bước chọn xe
-                      setVehicles(formattedVehicles);
-                      setCurrentStep(1);
-                    } catch (error) {
-                      console.error("❌ Lỗi khi reload danh sách xe sau khi thêm:", error);
-                    }
+                    setCurrentStep(1);
+                    
+                    setTimeout(async () => {
+                        await fetchVehicles(); 
+                    }, 3000);
                   }}
                 />
               )}
