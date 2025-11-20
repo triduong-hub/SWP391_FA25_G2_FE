@@ -337,7 +337,7 @@ const Profile = () => {
           <div className="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
 
             {/* NÚT CHUYỂN HƯỚNG SANG XE (CHỈ HIỂN THỊ CHO CUSTOMER) */}
-            {!isEmployee && !editMode && (
+            {userRole === 'customer' && !editMode && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
