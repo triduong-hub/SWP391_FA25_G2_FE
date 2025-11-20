@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, ChevronRight, ArrowLeft, Loader2, Info } from "lucide-react";
+import { Car, ChevronRight, ArrowLeft, Loader2, Info, Trash2, MoreVertical } from "lucide-react";
 
 // Đảm bảo đường dẫn import API của bạn là chính xác
 import API from '../../../../api';
@@ -11,6 +11,7 @@ const VehicleListPage = () => {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [activeMenu, setActiveMenu] = useState(null);
 
     // Hàm tiện ích để lấy Customer ID từ localStorage
     const getCustomerId = () => {
@@ -22,6 +23,12 @@ const VehicleListPage = () => {
             return null;
         }
     };
+
+    useEffect(() => {
+        const handleClickOutside = () => setActiveMenu(null);
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
 
     // Tải danh sách xe khi component được gắn
     useEffect(() => {
@@ -59,10 +66,44 @@ const VehicleListPage = () => {
         fetchVehicles();
     }, []); // Chỉ chạy một lần khi component mount
 
+    const handleDeleteVehicle = async (vehicleId, e) => {
+        e.stopPropagation();
+
+        // Xác nhận trước khi xóa
+        if (!window.confirm("Bạn có chắc chắn muốn xóa chiếc xe này không?")) {
+            setActiveMenu(null);
+            return;
+        }
+
+        try {
+            // Gọi API Delete từ Backend
+            await API.delete(`/vehicle/delete/${vehicleId}`);
+
+            // Cập nhật lại danh sách xe trên giao diện (loại bỏ xe vừa xóa)
+            setVehicles((prev) => prev.filter((v) => v.vehicleID !== vehicleId));
+
+            setMessage({ type: 'success', text: 'Đã xóa xe thành công!' });
+
+            // Tắt thông báo sau 3 giây
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+
+        } catch (error) {
+            console.error("Lỗi khi xóa xe:", error);
+            alert("Xóa thất bại: " + (error.response?.data?.message || error.message));
+        } finally {
+            setActiveMenu(null); // Đóng menu
+        }
+    };
+
     // Hàm xử lý khi nhấp vào một chiếc xe
     const handleVehicleClick = (vehicleId) => {
         // Điều hướng đến trang chi tiết xe (VehicleDetail)
         navigate(`/vehicle/${vehicleId}`);
+    };
+
+    const toggleMenu = (vehicleId, e) => {
+        e.stopPropagation(); // Ngăn không cho click vào thẻ xe
+        setActiveMenu(activeMenu === vehicleId ? null : vehicleId);
     };
 
     // Render giao diện
@@ -116,7 +157,7 @@ const VehicleListPage = () => {
                             >
                                 {/* Hình ảnh xe */}
                                 <img
-                                    src={ vehicle.imageUrl || vehicle.model?.imageUrl || "https://placehold.co/100x60/E2E8F0/94A3B8?text=VINFAST"}
+                                    src={vehicle.imageUrl || vehicle.model?.imageUrl || "https://placehold.co/100x60/E2E8F0/94A3B8?text=VINFAST"}
                                     alt={vehicle.model?.modelName || 'Hình ảnh xe'}
                                     className="w-24 h-16 sm:w-32 sm:h-20 object-cover rounded-lg bg-gray-200"
                                 />
@@ -128,17 +169,41 @@ const VehicleListPage = () => {
                                     </h3>
                                     <p className="text-gray-600 font-medium">{vehicle.licensePlate}</p>
                                     <span className={`mt-1 inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${vehicle.status === false // Giả định status=false là Đang Bảo Dưỡng
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : 'bg-green-100 text-green-800'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-green-100 text-green-800'
                                         }`}>
                                         {vehicle.status === false ? 'Đang Bảo Dưỡng' : 'Sẵn Sàng'}
                                     </span>
                                 </div>
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => toggleMenu(vehicle.vehicleID, e)}
+                                        className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                                    >
+                                        <MoreVertical size={20} />
+                                    </button>
 
-                                {/* Nút điều hướng */}
-                                <div className="text-gray-400">
-                                    <ChevronRight size={24} />
+                                    {/* Dropdown Menu */}
+                                    {activeMenu === vehicle.vehicleID && (
+                                        <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-100 z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                            <button
+                                                onClick={(e) => handleDeleteVehicle(vehicle.vehicleID, e)}
+                                                className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                                            >
+                                                <Trash2 size={16} className="mr-2" />
+                                                Xóa xe
+                                            </button>
+                                            {/* Bạn có thể thêm nút 'Sửa xe' ở đây nếu muốn */}
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* Mũi tên điều hướng (Chỉ hiện khi không mở menu) */}
+                                {activeMenu !== vehicle.vehicleID && (
+                                    <div className="text-gray-300 ml-2">
+                                        <ChevronRight size={24} />
+                                    </div>
+                                )}
                             </motion.div>
                         ))}
                     </div>

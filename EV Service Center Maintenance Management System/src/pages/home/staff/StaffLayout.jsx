@@ -6,6 +6,7 @@ import {
     LogOut,
     User,
     ChevronDown,
+    Users
 } from "lucide-react";
 
 const StaffLayout = () => {
@@ -53,6 +54,11 @@ const StaffLayout = () => {
             label: "Xem Phân công",
             icon: <ClipboardCheck className="w-5 h-5" />
         },
+        {
+            path: "/staff/technicians", 
+            label: "Quản lý Kỹ thuật",
+            icon: <Users className="w-5 h-5" />
+        },
     ];
 
     return (
@@ -81,17 +87,6 @@ const StaffLayout = () => {
                         </NavLink>
                     ))}
                 </nav>
-
-                {/* Đăng xuất
-                <div className="p-3 mt-auto border-t">
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 p-3 w-full rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        <span className="font-medium text-sm">Đăng xuất</span>
-                    </button>
-                </div> */}
             </aside>
 
             {/* Nội dung chính */}

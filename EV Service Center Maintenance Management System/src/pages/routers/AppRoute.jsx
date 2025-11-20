@@ -18,6 +18,7 @@ import TechnicianInventory from "../home/Technician/TechnicianInventory.jsx";
 import StaffDashboard from "../home/staff/StaffDashboard.jsx";
 import StaffLayout from "../home/staff/StaffLayout.jsx";
 import StaffAssignments from "../home/staff/StaffAssignments.jsx";
+import TechnicianStatus from "../home/staff/TechnicianStatus.jsx";
 
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
@@ -99,6 +100,7 @@ function AppRoute() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StaffDashboard />} />
           <Route path="assignments" element={<StaffAssignments/>} />
+          <Route path="technicians" element={<TechnicianStatus />} />
         </Route>
 
 

@@ -40,7 +40,7 @@ const Profile = () => {
         ...storedUser,
         role: role,
         // Employee/Admin specific fields (MOCK DATA)
-        sserviceCenter: storedUser.serviceCenter || '', 
+        serviceCenter: storedUser.serviceCenter || '', 
         shift: storedUser.shift || '',             
         address: storedUser.address || '',
         birth: storedUser.birth || '',
@@ -53,7 +53,7 @@ const Profile = () => {
         phone: initialUser.phone || '',
         gender: initialUser.gender || 'unknown',
         address: initialUser.address || '',
-        birth: initialUser.birth || '1990-01-01',
+        birth: initialUser.birth || '',
         // Fields đặc thù cho Employee/Admin
         role: initialUser.role || 'customer',
         serviceCenter: initialUser.serviceCenter || '',
@@ -241,7 +241,7 @@ const Profile = () => {
       phone: user.phone || '',
       gender: user.gender || 'unknown',
       address: user.address || '',
-      birth: user.birth || '1990-01-01',
+      birth: user.birth || '',
       role: user.role || 'customer',
       serviceCenter: user.serviceCenter || '',
       shift: user.shift || '',

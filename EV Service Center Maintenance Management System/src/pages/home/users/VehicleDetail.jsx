@@ -2,13 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Car, Tag, Zap, Save, X, Edit3, ArrowLeft, Edit2, RotateCw } from "lucide-react";
-
-// ĐÃ QUAY LẠI ĐƯỜNG DẪN 3 CẤP ĐỘ AN TOÀN HƠN (GIẢ ĐỊNH file API nằm ở src/api)
 import API from '../../../../api';
 
 const VehicleDetail = () => {
     const navigate = useNavigate();
-    // Giả định lấy vehicleID từ URL (ví dụ: /vehicle/33)
     const { vehicleId } = useParams();
 
     const [vehicle, setVehicle] = useState(null);
@@ -17,23 +14,19 @@ const VehicleDetail = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
-    const [reloadKey, setReloadKey] = useState(0); // State để kích hoạt useEffect reload
+    const [reloadKey, setReloadKey] = useState(0);
 
-    // Hàm tiện ích để lấy Customer ID từ localStorage
     const getCustomerId = () => {
         try {
             const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
             return storedUser.userID;
         } catch (e) {
-            // Không cần console.error nếu user chưa login hoặc token hết hạn, chỉ cần trả về null
             return null;
         }
     };
 
-    // LOGIC KHÓA CHỈNH SỬA: Dựa trên trường 'status' (Boolean)
     const isUnderMaintenance = vehicle?.status === false;
 
-    // 1. Tải chi tiết xe (ĐÃ SỬA: Sử dụng API danh sách để tránh lỗi 500)
     const fetchVehicle = async () => {
         setLoading(true);
 
@@ -47,16 +40,12 @@ const VehicleDetail = () => {
         }
 
         try {
-            // THAY THẾ: Gọi API đang lỗi (GET /vehicle/33) bằng API đang hoạt động
-            // API hoạt động: GET /vehicle/getByCustomerId/16
             const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
 
-            // Dữ liệu trả về là một MẢNG (danh sách xe)
             const allVehicles = response.data?.data || [];
 
             // 2. Lọc mảng để tìm xe có vehicleId mong muốn
             const vehicleData = allVehicles.find(
-                // Chuyển vehicleId sang String để so sánh an toàn
                 item => String(item.vehicleID) === String(vehicleId)
             );
 
@@ -72,7 +61,7 @@ const VehicleDetail = () => {
             });
             setMessage({ type: 'success', text: 'Tải dữ liệu thành công.' });
         } catch (error) {
-            console.error('❌ Lỗi khi tải chi tiết xe (Sử dụng API List):', error);
+            console.error('Lỗi khi tải chi tiết xe (Sử dụng API List):', error);
             setVehicle(null);
             const errorText = error.response?.data?.message || error.message;
             setMessage({ type: 'error', text: `Không tải được chi tiết xe. (${errorText})` });
@@ -83,7 +72,7 @@ const VehicleDetail = () => {
 
     useEffect(() => {
         fetchVehicle();
-    }, [vehicleId, reloadKey]); // Chạy lại khi ID hoặc reloadKey thay đổi
+    }, [vehicleId, reloadKey]);
 
     // 2. Hàm xử lý cập nhật
     const handleUpdate = async () => {
@@ -105,12 +94,9 @@ const VehicleDetail = () => {
             lastMaintenanceMileage: parseInt(vehicle.lastMaintenanceMileage, 10),
             type: vehicle.type,
             lastMaintenanceDate: vehicle.lastMaintenanceDate,
-            status: vehicle.status, // Giữ nguyên status hiện tại
-
-            // Các trường được chỉnh sửa/được yêu cầu: sử dụng giá trị từ formData
+            status: vehicle.status,
             licensePlate: formData.licensePlate,
             vin: formData.vin,
-            // *** LƯU Ý: Nếu API Update hỗ trợ customerNote, bạn cần thêm nó vào đây:
             // customerNote: formData.customerNote, 
         };
 
@@ -118,19 +104,13 @@ const VehicleDetail = () => {
         const endpoint = `/vehicle/update/${vehicle.vehicleID}`;
 
         try {
-            // 3. Thực hiện gọi API
             await API.patch(endpoint, finalPayload);
-
-            // 4. Xử lý thành công
             setSaving(false);
             setEditMode(false);
             setMessage({ type: 'success', text: `Cập nhật thành công!` });
-
-            // Cập nhật state xe với payload mới (giữ lại customerNote FE)
             setVehicle({ ...vehicle, ...finalPayload, customerNote: formData.customerNote });
 
         } catch (error) {
-            // 5. Xử lý lỗi
             setSaving(false);
             const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định khi cập nhật xe.';
             setMessage({
@@ -165,7 +145,7 @@ const VehicleDetail = () => {
     const isFormValid = formData.licensePlate?.trim() && formData.vin?.trim();
 
 
-    // 4. Render chi tiết thông tin
+    // Render chi tiết thông tin
     const renderDetail = (Icon, label, key, color, type = 'text', readOnly = false) => (
         <div className="flex items-start gap-3">
             <div className={`bg-${color}-100 p-3 rounded-xl text-${color}-600 shrink-0`}>
@@ -268,8 +248,8 @@ const VehicleDetail = () => {
 
                     <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 pt-4">
                         <motion.img
-                            src={vehicle.model?.imageUrl || "https://placehold.co/150x80/29324C/FFFFFF?text=VINFAST"}
-                            alt={`${vehicle.model?.modelName} Vehicle`}
+                            src={vehicle.imageUrl || vehicle.model?.imageUrl || "https://placehold.co/150x80/29324C/FFFFFF?text=VINFAST"}
+                            alt={`${vehicle.model?.modelName || "Xe"} - ${vehicle.licensePlate}`}
                             className="w-full sm:w-60 h-auto rounded-xl object-cover shadow-lg border border-white/30"
                         />
 
@@ -281,12 +261,11 @@ const VehicleDetail = () => {
 
                             <div className="flex items-center space-x-2">
                                 <span className={`px-3 py-1 text-xs font-semibold rounded-full ${isUnderMaintenance
-                                        ? 'bg-yellow-400 text-yellow-900'
-                                        : 'bg-green-400 text-green-900'
+                                    ? 'bg-yellow-400 text-yellow-900'
+                                    : 'bg-green-400 text-green-900'
                                     }`}>
                                     {isUnderMaintenance ? 'Đang Bảo Dưỡng' : 'Sẵn Sàng'}
                                 </span>
-                                <span className="text-sm opacity-80">{vehicle.mileage} km</span>
                             </div>
                         </div>
 
@@ -298,8 +277,8 @@ const VehicleDetail = () => {
                                 onClick={startEdit}
                                 disabled={isUnderMaintenance}
                                 className={`absolute top-4 right-4 p-2 rounded-full shadow-md transition ${isUnderMaintenance
-                                        ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                                        : 'bg-white text-blue-600 hover:bg-indigo-50'
+                                    ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                                    : 'bg-white text-blue-600 hover:bg-indigo-50'
                                     }`}
                                 aria-label="Chỉnh sửa thông tin xe"
                             >
@@ -346,22 +325,22 @@ const VehicleDetail = () => {
                                     <Zap size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 font-medium">Odometer</p>
+                                    <p className="text-sm text-gray-500 font-medium">Số km</p>
                                     <p className="text-base font-semibold text-gray-800">{vehicle.mileage} km</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Ghi chú & Dịch vụ</h3>
-                            {renderNoteDetail(Edit2, 'Ghi chú của khách hàng', 'customerNote', 'purple')}
+                            <h3 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Dịch vụ</h3>
+                            {/* {renderNoteDetail(Edit2, 'Ghi chú của khách hàng', 'customerNote', 'purple')} */}
 
                             <div className="text-sm p-4 bg-gray-50 rounded-xl border border-gray-200">
                                 <p className="font-semibold text-gray-700 mb-2">Trạng thái xe:</p>
                                 <p className={`font-bold ${isUnderMaintenance ? 'text-yellow-700' : 'text-green-700'}`}>
                                     {isUnderMaintenance
-                                        ? '🔒 Đang bảo dưỡng (status: false), không thể chỉnh sửa.'
-                                        : 'Mở (status: true), có thể chỉnh sửa.'}
+                                        ? '🔒 Đang bảo dưỡng, không thể chỉnh sửa.'
+                                        : 'Mở, có thể chỉnh sửa.'}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     Khách hàng: {vehicle.customerName} (ID: {vehicle.customerID})
@@ -380,8 +359,8 @@ const VehicleDetail = () => {
                                     onClick={handleUpdate}
                                     disabled={saving || !isFormValid || isUnderMaintenance}
                                     className={`flex items-center space-x-2 font-medium px-6 py-2.5 rounded-xl shadow transition ${(isFormValid && !saving && !isUnderMaintenance)
-                                            ? 'bg-green-600 text-white hover:bg-green-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}
                                 >
                                     {saving ? 'Đang lưu...' : (

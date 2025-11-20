@@ -16,6 +16,10 @@ const OAuth2RedirectHandler = () => {
         const avatar = searchParams.get('avatar');
         const userID = searchParams.get('userID');
         const refId = searchParams.get('refId');
+        const phone = searchParams.get('phone');
+        const address = searchParams.get('address');
+        const birth = searchParams.get('birth');
+        const gender = searchParams.get('gender');
         
         // console.log('OAuth2 Redirect - Received params:', { token, email, name, role, avatar });
         console.log('OAuth2 Redirect - Received params:', { 
@@ -24,6 +28,7 @@ const OAuth2RedirectHandler = () => {
             name, 
             role, 
             userID, 
+            phone,
             refId 
         });
 
@@ -44,6 +49,8 @@ const OAuth2RedirectHandler = () => {
             //Decode name và avatar
             const decodedName = name ? decodeURIComponent(name) : '';
             const decodedAvatar = avatar ? decodeURIComponent(avatar) : '';
+            const decodedAddress = address ? decodeURIComponent(address) : '';
+            const decodedGender = gender ? decodeURIComponent(gender) : '';
             
             //Tạo userData với ĐẦY ĐỦ thông tin
             const userData = {
@@ -56,7 +63,11 @@ const OAuth2RedirectHandler = () => {
                 pictureUrl: decodedAvatar,
                 id: parseInt(userID),
                 refid: parseInt(refId),  //refId
-                customerId: parseInt(refId)//customerId
+                customerId: parseInt(refId),//customerId
+                phone: phone || '',
+                address: decodedAddress,
+                birth: birth || '',
+                gender: decodedGender
             };
             
             //Lưu user data
