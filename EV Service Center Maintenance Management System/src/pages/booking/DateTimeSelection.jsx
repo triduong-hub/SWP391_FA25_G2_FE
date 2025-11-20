@@ -18,13 +18,6 @@ const DateTimeSelection = ({ onDateTimeSelect, onBack, onNext }) => {
     const fetchLocations = async () => {
       try {
         const response = await API.get('/service-centers/getAll');
-        // const data = (response.data || []).map((loc) => ({
-        //   key: loc.id || loc.locationID || loc.serviceCenterID || uuidv4(),
-        //   id: loc.id || loc.locationID || loc.serviceCenterID,
-        //   name: language === 'vi' ? loc.name_vi || loc.name : loc.name_en || loc.name,
-        //   address: language === 'vi' ? loc.address_vi || loc.address : loc.address_en || loc.address,
-        //   phone: loc.phone,
-        // })); // giống logic ở dưới nhưng chưa đầy đủ
         const data = (response.data || []).map((loc) => {
           const locId = loc.id || loc.locationID || loc.serviceCenterID; // 🟢 lấy đúng ID dù tên khác nhau
           return {
