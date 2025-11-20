@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, UserCircle, Edit3, Save, X, Briefcase, MapPin, Calendar, Car } from "lucide-react";
+import { User, Mail, Phone, UserCircle, Edit3, Save, X, Briefcase, MapPin, Calendar, Car, Clock, Building2 } from "lucide-react";
 import API from '../../../../api';
 
 
-const ALL_EMPLOYEE_ROLES = ['staff', 'tech', 'admin'];
+const ALL_EMPLOYEE_ROLES = ['staff', 'technician', 'admin'];
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
+  const [shifts, setShifts] = useState([]);
+  const [serviceCenters, setServiceCenters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [vehicleLoading, setVehicleLoading] = useState(false);
@@ -38,10 +40,10 @@ const Profile = () => {
         ...storedUser,
         role: role,
         // Employee/Admin specific fields (MOCK DATA)
-        serviceCenter: storedUser.serviceCenter || (isUserEmployee ? 101 : null),
-        shift: storedUser.shift || (isUserEmployee ? 1 : null),
+        sserviceCenter: storedUser.serviceCenter || '', 
+        shift: storedUser.shift || '',             
         address: storedUser.address || '',
-        birth: storedUser.birth || '1990-01-01',
+        birth: storedUser.birth || '',
       };
 
       setUser(initialUser);
@@ -59,6 +61,49 @@ const Profile = () => {
       });
     }
   }, [navigate]);
+  useEffect(() => {
+    if (isEmployee) {
+      const fetchData = async () => {
+        try {
+          // Gọi song song 2 API để tối ưu tốc độ
+          const [shiftRes, centerRes] = await Promise.all([
+            API.get('/shifts/getAll'),
+            API.get('/service-centers/getAll') // Gọi endpoint từ ServiceCenterController
+          ]);
+
+          setShifts(shiftRes.data || []);
+          setServiceCenters(centerRes.data || []);
+        } catch (error) {
+          console.error("Lỗi tải dữ liệu hệ thống:", error);
+        }
+      };
+      fetchData();
+    }
+  }, [isEmployee]);
+
+  // Hàm lấy tên ca từ ID
+  const getShiftName = (shiftId) => {
+    if (!shiftId) return "Chưa phân công";
+    // Tìm trong mảng shifts xem ca nào có ID trùng
+    const foundShift = shifts.find(s => s.shiftID === shiftId);
+    if (foundShift) {
+      // Hiển thị Tên + Giờ (nếu có)
+      const timeStr = foundShift.start_time ? ` (${foundShift.start_time} - ${foundShift.end_time})` : '';
+      return `${foundShift.name}${timeStr}`;
+    }
+    return `Ca số ${shiftId}`; // Fallback nếu chưa load được danh sách
+  };
+
+  const getServiceCenterName = (centerId) => {
+    if (!centerId) return "Chưa phân công";
+    const foundCenter = serviceCenters.find(s => 
+        String(s.serviceCenterID) === String(centerId)
+    );
+
+    if (foundCenter) return foundCenter.name;
+    if (serviceCenters.length === 0) return "Đang tải dữ liệu...";
+    return `Trung tâm #${centerId} (Không tồn tại)`;
+  };
 
   if (!user) {
     return (
@@ -94,7 +139,7 @@ const Profile = () => {
     // 1. Xác định Endpoint dựa trên vai trò (ĐÃ CẬP NHẬT LOGIC ADMIN)
     let endpointPrefix = '';
     if (userRole === 'customer') {
-      endpointPrefix = '/customer/update'; 
+      endpointPrefix = '/customer/update';
     } else if (userRole === 'admin') {
       endpointPrefix = '/admin/update';
     } else {
@@ -111,7 +156,7 @@ const Profile = () => {
     const fieldsToCompare = ['name', 'phone', 'gender', 'address', 'birth'];
 
     // Thêm các trường đặc thù của Employee/Admin
-    if (userRole === 'staff' || userRole === 'tech' || userRole === 'admin') {
+    if (userRole === 'staff' || userRole === 'technician' || userRole === 'admin') {
       fieldsToCompare.push('role', 'serviceCenter', 'shift');
     }
 
@@ -326,9 +371,67 @@ const Profile = () => {
             {/* Các trường đặc thù của Employee/Admin */}
             {isEmployee && (
               <>
-                {renderDetail(Briefcase, 'Vai trò', 'role', 'cyan')}
-                {renderDetail(MapPin, 'Trung tâm DV', 'serviceCenter', 'teal', 'number')}
-                {renderDetail(Calendar, 'Ca làm việc', 'shift', 'pink', 'number')}
+                <div className="col-span-1 sm:col-span-2 border-t border-gray-100 my-2"></div>
+                <h3 className="col-span-1 sm:col-span-2 text-sm font-bold text-gray-400 uppercase tracking-wider">Thông tin công việc</h3>
+
+                {renderDetail(Briefcase, 'Vai trò', 'role', 'cyan', 'text', true)}
+
+                {/* --- KHỐI HIỂN THỊ TRUNG TÂM DỊCH VỤ --- */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-teal-100 p-3 rounded-xl text-teal-600">
+                    <Building2 size={20} />
+                  </div>
+                  <div className="w-full">
+                    <p className="text-sm text-gray-500 font-medium">Trung tâm dịch vụ</p>
+                    {editMode ? (
+                      <select
+                        value={formData.serviceCenter}
+                        onChange={(e) => setFormData({ ...formData, serviceCenter: parseInt(e.target.value) })}
+                        className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 bg-white"
+                      >
+                        <option value="">-- Chọn trung tâm --</option>
+                        {serviceCenters.map(sc => (
+                          // Lưu ý: Dùng serviceCenterID hoặc id tùy vào response API của bạn
+                          <option key={sc.serviceCenterID || sc.id} value={sc.serviceCenterID || sc.id}>
+                            {sc.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-base font-semibold text-gray-800">
+                        {getServiceCenterName(user.serviceCenter)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* --- KHỐI HIỂN THỊ CA LÀM VIỆC --- */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-pink-100 p-3 rounded-xl text-pink-600">
+                    <Clock size={20} />
+                  </div>
+                  <div className="w-full">
+                    <p className="text-sm text-gray-500 font-medium">Ca làm việc</p>
+                    {editMode ? (
+                      <select
+                        value={formData.shift}
+                        onChange={(e) => setFormData({ ...formData, shift: parseInt(e.target.value) })}
+                        className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 bg-white"
+                      >
+                        <option value="">-- Chọn ca --</option>
+                        {shifts.map(s => (
+                          <option key={s.shiftID} value={s.shiftID}>
+                            {s.name} ({s.start_time || s.startTime?.substring(0, 5)} - {s.end_time || s.endTime?.substring(0, 5)})
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-base font-semibold text-gray-800">
+                        {getShiftName(user.shift)}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </>
             )}
           </div>
