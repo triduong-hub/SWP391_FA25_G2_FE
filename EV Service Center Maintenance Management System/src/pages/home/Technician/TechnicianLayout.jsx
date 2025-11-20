@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { Wrench, LogOut, LayoutDashboard, User, ChevronDown } from "lucide-react";
+import { Wrench, LogOut, LayoutDashboard, User, ChevronDown,Package } from "lucide-react";
 
 const TechnicianLayout = () => {
   const navigate = useNavigate();
@@ -37,9 +37,9 @@ const TechnicianLayout = () => {
       icon: <LayoutDashboard className="w-5 h-5" /> 
     },
     { 
-      path: "/technician/components", 
-      label: "Quản lý Phụ tùng", 
-      icon: <Wrench className="w-5 h-5" /> 
+      path: "/technician/inventory", 
+      label: "Kho Linh Kiện", 
+      icon: <Package className="w-5 h-5" /> 
     },
   ];
 

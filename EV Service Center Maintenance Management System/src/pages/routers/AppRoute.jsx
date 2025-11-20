@@ -12,6 +12,7 @@ import OAuth2RedirectHandler from "../login/OAuth2RedirectHandler.jsx"; // ✅ T
 // Trang Technician
 import TechnicianDashboard from "../home/Technician/TechnicianDashboard.jsx";
 import TechnicianLayout from "../home/Technician/TechnicianLayout.jsx";
+import TechnicianInventory from "../home/Technician/TechnicianInventory.jsx";
 
 // Trang Staff
 import StaffDashboard from "../home/staff/StaffDashboard.jsx";
@@ -86,8 +87,10 @@ function AppRoute() {
           {/* Route cho Dashboard */}
           <Route path="dashboard" element={<TechnicianDashboard />} />
 
-          {/* Route cho Phụ tùng */}
-          <Route path="components" element={<Parts />} />
+          {/* Route cho Phụ tùng
+          <Route path="components" element={<Parts />} /> */}
+
+          <Route path="inventory" element={<TechnicianInventory />} />
         </Route>
 
         {/* Staff */}
