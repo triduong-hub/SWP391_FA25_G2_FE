@@ -324,7 +324,7 @@ const TechnicianDashboard = () => {
                                     </div>
                                     <div className="py-1">
                                         <p className="font-medium">Chi phí:</p>
-                                        <p>{task.cost ? `${task.cost} triệu` : "Chưa xác định"}</p>
+                                        <p>{task.cost ? `${task.cost} VND` : "Chưa xác định"}</p>
                                     </div>
                                     <div className="py-1">
                                         <p className="font-medium">Kết thúc:</p>
