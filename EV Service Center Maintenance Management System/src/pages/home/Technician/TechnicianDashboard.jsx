@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Calendar, Clock, Wrench, CheckCircle, FileText,
-    Play, User, Phone, MapPin, XCircle, Activity, 
+    Play, User, Phone, MapPin, XCircle, Activity,
     Search
 } from 'lucide-react';
 import api from '../../../../api'; // ✅ để bạn nối API thật
@@ -25,14 +25,35 @@ const TechnicianDashboard = () => {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const res = await api.get("/maintenances/all");
-                console.log("📦 Dữ liệu bảo trì:", res.data);
+                const storedUser = localStorage.getItem("user");
+                console.log("🔍 1. Raw LocalStorage:", storedUser); // Xem chuỗi JSON gốc
+
+                if (!storedUser) {
+                    console.error("❌ LocalStorage rỗng! Bạn cần kiểm tra lại code trang Login xem đã setItem('user', ...) chưa.");
+                    return;
+                }
+
+                const currentUser = JSON.parse(storedUser);
+                console.log("🔍 2. Parsed User:", currentUser);
+
+                // Lưu ý: Kiểm tra xem biến lưu ID của bạn là employeeID, id, hay userId
+                const technicianId = currentUser.employeeID;
+
+                if (!technicianId) {
+                    console.error("❌ Không tìm thấy ID Kỹ thuật viên (Backend chưa gửi về?)");
+                    return; 
+                }
+
+                // BƯỚC 2: Gọi API lọc theo ID
+                const res = await api.get(`/maintenances/technician/${technicianId}`);
+
+                console.log("Dữ liệu bảo trì của tôi:", res.data);
 
                 const maintenances = Array.isArray(res.data.Maintenances)
                     ? res.data.Maintenances
                     : [];
 
-                // 🟢 Sắp xếp đơn mới nhất nằm đầu tiên
+                // Sắp xếp đơn mới nhất nằm đầu tiên (Giữ nguyên logic cũ)
                 const sortedMaintenances = maintenances.sort(
                     (a, b) =>
                         new Date(b.createdAt || b.startTime || b.maintenanceDate) -
@@ -41,7 +62,7 @@ const TechnicianDashboard = () => {
 
                 setTasks(sortedMaintenances);
             } catch (err) {
-                console.error("❌ Lỗi khi lấy danh sách công việc:", err);
+                console.error(" Lỗi khi lấy danh sách công việc:", err);
             }
         };
 
@@ -78,14 +99,14 @@ const TechnicianDashboard = () => {
     const formatDate = (date, time) => `${new Date(date).toLocaleDateString('vi-VN')} ${time}`;
 
     const getYmd = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date)) return "";
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-};
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        if (isNaN(date)) return "";
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
 
     // ---------------- HANDLERS ----------------
     // Khi kỹ thuật viên bấm "Bắt đầu"
