@@ -43,6 +43,7 @@ import SystemManagement from "../home/SystemManagement.jsx";
 import RevenueManagement from "../home/RevenueManagement.jsx";
 import TechnicianManagement from "../home/TechnicianManagement.jsx";
 import AdminInventory from "../home/admin/AdminInventory.jsx";
+import OrderManagement from "../home/admin/OrderManagement.jsx";
 
 // Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
@@ -103,6 +104,7 @@ function AppRoute() {
           <Route path="dashboard" element={<StaffDashboard />} />
           <Route path="assignments" element={<StaffAssignments/>} />
           <Route path="technicians" element={<TechnicianStatus />} />
+          <Route path="orders" element={<OrderManagement />} />
         </Route>
 
 
@@ -147,6 +149,7 @@ function AppRoute() {
           <Route path="settings" element={<SystemManagement />} />
           <Route path="technician" element={<TechnicianManagement />} />
           <Route path="inventory" element={<AdminInventory />} />
+          <Route path="orders" element={<OrderManagement />} />
           {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
 
         </Route>

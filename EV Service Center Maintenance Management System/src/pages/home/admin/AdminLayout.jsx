@@ -8,7 +8,8 @@ import {
   Calendar,
   Settings,
   LogOut,
-  Package,   // Icon cho Kho linh kiện
+  Package, 
+  ShoppingCart,  // Icon cho Kho linh kiện
   ClipboardList
 } from "lucide-react";
 
@@ -54,6 +55,7 @@ const AdminLayout = () => {
     { path: "inventory", label: "Kho linh kiện", icon: <Package className="w-5 h-5 mr-2" /> },
     // { path: "services", label: "Dịch vụ", icon: <Wrench className="w-5 h-5 mr-2" /> },
     // { path: "quotations", label: "Báo giá", icon: <FileText className="w-5 h-5 mr-2" /> },
+    { path: "orders", label: "Quản lý đơn hàng", icon: <ShoppingCart className="w-5 h-5 mr-2" /> },
     { path: "schedule", label: "Lịch bảo dưỡng", icon: <Calendar className="w-5 h-5 mr-2" /> },
     { path: "staff", label: "Nhân viên", icon: <Users className="w-5 h-5 mr-2" /> },
     { path: "technician", label: "Phân công kĩ thuật viên", icon: <ClipboardList className="w-5 h-5 mr-2" /> },

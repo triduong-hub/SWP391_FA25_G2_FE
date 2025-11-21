@@ -6,7 +6,8 @@ import {
     LogOut,
     User,
     ChevronDown,
-    Users
+    Users,
+    ShoppingCart
 } from "lucide-react";
 
 const StaffLayout = () => {
@@ -67,8 +68,13 @@ const StaffLayout = () => {
     const menuItems = [
         {
             path: "/staff/dashboard",
-            label: "Quản lý Đơn hàng",
+            label: "Trang chủ",
             icon: <LayoutDashboard className="w-5 h-5" />
+        },
+        {
+            path: "/staff/orders",
+            label: "Quản lý đơn hàng",
+            icon: <ShoppingCart className="w-5 h-5" />
         },
         {
             path: "/staff/assignments",

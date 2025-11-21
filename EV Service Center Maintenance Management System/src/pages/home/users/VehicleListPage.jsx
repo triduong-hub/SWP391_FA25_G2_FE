@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Car, ChevronRight, ArrowLeft, Loader2, Info, Trash2, MoreVertical } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ChevronRight, 
+  ArrowLeft, 
+  Loader2, 
+  Info, 
+  Trash2, 
+  MoreVertical, 
+  FileText, 
+  Wrench, 
+  X 
+} from "lucide-react";
 
 // Đảm bảo đường dẫn import API của bạn là chính xác
 import API from '../../../../api';
@@ -12,6 +22,11 @@ const VehicleListPage = () => {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [activeMenu, setActiveMenu] = useState(null);
+
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [selectedHistory, setSelectedHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [selectedPlate, setSelectedPlate] = useState("");
 
     // Hàm tiện ích để lấy Customer ID từ localStorage
     const getCustomerId = () => {
@@ -65,6 +80,30 @@ const VehicleListPage = () => {
 
         fetchVehicles();
     }, []); // Chỉ chạy một lần khi component mount
+
+    // --- HÀM XEM LỊCH SỬ ---
+    const handleViewHistory = async (vehicleId, licensePlate, e) => {
+        e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+        setActiveMenu(null); // Đóng menu dropdown
+        
+        setIsHistoryOpen(true);
+        setLoadingHistory(true);
+        setSelectedPlate(licensePlate);
+        setSelectedHistory([]);
+
+        try {
+            const response = await API.get(`/maintenances/vehicle/${vehicleId}`);
+            setSelectedHistory(response.data.data || []);
+        } catch (error) {
+            console.error("Lỗi khi tải lịch sử bảo dưỡng:", error);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const closeHistoryModal = () => {
+        setIsHistoryOpen(false);
+    };
 
     const handleDeleteVehicle = async (vehicleId, e) => {
         e.stopPropagation();
@@ -185,7 +224,18 @@ const VehicleListPage = () => {
 
                                     {/* Dropdown Menu */}
                                     {activeMenu === vehicle.vehicleID && (
-                                        <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-100 z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                            
+                                            {/* --- NÚT LỊCH SỬ BẢO DƯỠNG --- */}
+                                            <button
+                                                onClick={(e) => handleViewHistory(vehicle.vehicleID, vehicle.licensePlate, e)}
+                                                className="flex items-center w-full px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors text-left border-b border-gray-100"
+                                            >
+                                                <FileText size={16} className="mr-2" />
+                                                Lịch sử bảo dưỡng
+                                            </button>
+
+                                            {/* Nút Xóa */}
                                             <button
                                                 onClick={(e) => handleDeleteVehicle(vehicle.vehicleID, e)}
                                                 className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
@@ -193,7 +243,6 @@ const VehicleListPage = () => {
                                                 <Trash2 size={16} className="mr-2" />
                                                 Xóa xe
                                             </button>
-                                            {/* Bạn có thể thêm nút 'Sửa xe' ở đây nếu muốn */}
                                         </div>
                                     )}
                                 </div>
@@ -210,6 +259,88 @@ const VehicleListPage = () => {
                 )}
 
             </div>
+            {/* --- MODAL LỊCH SỬ BẢO DƯỠNG --- */}
+            <AnimatePresence>
+                {isHistoryOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[85vh]"
+                        >
+                            {/* Modal Header */}
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white">
+                                <div className="flex items-center space-x-2">
+                                    <Wrench className="w-5 h-5" />
+                                    <h3 className="text-lg font-bold">Lịch sử bảo dưỡng - {selectedPlate}</h3>
+                                </div>
+                                <button
+                                    onClick={closeHistoryModal}
+                                    className="p-1 hover:bg-white/20 rounded-full transition"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                {loadingHistory ? (
+                                    <div className="flex justify-center items-center py-10">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    </div>
+                                ) : selectedHistory.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500 flex flex-col items-center">
+                                        <FileText className="w-12 h-12 mb-2 opacity-20" />
+                                        <p>Xe chưa có lịch sử bảo dưỡng nào.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {selectedHistory.map((item) => (
+                                            <div key={item.maintenanceID} className="border rounded-xl p-4 hover:shadow-md transition bg-gray-50">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                                            item.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                                            item.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
+                                                            'bg-gray-200 text-gray-700'
+                                                        }`}>
+                                                            {item.status}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 ml-2">
+                                                            ID: #{item.maintenanceID}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-sm font-bold text-indigo-600">
+                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.cost || 0)}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+                                                    <p><span className="font-medium text-gray-500">Ngày bắt đầu:</span> {new Date(item.startTime).toLocaleDateString('vi-VN')}</p>
+                                                    <p><span className="font-medium text-gray-500">Ngày kết thúc:</span> {item.endTime ? new Date(item.endTime).toLocaleDateString('vi-VN') : '---'}</p>
+                                                    <p className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-500">Mô tả:</span> {item.description}</p>
+                                                    {item.empName && <p className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-500">Kỹ thuật viên:</span> {item.empName}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-4 border-t bg-gray-50 flex justify-end">
+                                <button
+                                    onClick={closeHistoryModal}
+                                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition font-medium text-sm"
+                                >
+                                    Đóng
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
