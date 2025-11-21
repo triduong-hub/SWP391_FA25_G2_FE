@@ -23,6 +23,7 @@ import TechnicianStatus from "../home/staff/TechnicianStatus.jsx";
 // Layout Admin
 import AdminLayout from "../home/admin/AdminLayout.jsx";
 
+
 // Xem báo giá (Customer)
 import CustomerQuotationDetailPage from "../home/users/CustomerQuotationPage.jsx";
 
@@ -41,6 +42,7 @@ import CarManagement from "../home/CarManagement.jsx";
 import SystemManagement from "../home/SystemManagement.jsx";
 import RevenueManagement from "../home/RevenueManagement.jsx";
 import TechnicianManagement from "../home/TechnicianManagement.jsx";
+import AdminInventory from "../home/admin/AdminInventory.jsx";
 
 // Trang chủ (HomePage) và trang cá nhân (Profile)
 import HomePage from "../home/users/HomePage.jsx";
@@ -144,6 +146,7 @@ function AppRoute() {
           <Route path="revenue" element={<RevenueManagement />} />
           <Route path="settings" element={<SystemManagement />} />
           <Route path="technician" element={<TechnicianManagement />} />
+          <Route path="inventory" element={<AdminInventory />} />
           {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
 
         </Route>

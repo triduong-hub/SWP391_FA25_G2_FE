@@ -8,13 +8,16 @@ import {
   Calendar,
   Settings,
   LogOut,
+  Package,   // Icon cho Kho linh kiện
+  ClipboardList
 } from "lucide-react";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // TODO: xóa token / session nếu có
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     navigate("/");
   };
 
@@ -23,6 +26,9 @@ const AdminLayout = () => {
     { path: "users", label: "Người dùng", icon: <Users className="w-5 h-5 mr-2" /> },
     { path: "revenue", label: "Doanh thu", icon: <DollarSign className="w-5 h-5 mr-2" /> },
     { path: "cars", label: "Xe điện", icon: <Car className="w-5 h-5 mr-2" /> },
+    { path: "inventory", label: "Kho linh kiện", icon: <Package className="w-5 h-5 mr-2" /> },
+    // { path: "services", label: "Dịch vụ", icon: <Wrench className="w-5 h-5 mr-2" /> },
+    // { path: "quotations", label: "Báo giá", icon: <FileText className="w-5 h-5 mr-2" /> },
     { path: "schedule", label: "Lịch bảo dưỡng", icon: <Calendar className="w-5 h-5 mr-2" /> },
     { path: "staff", label: "Nhân viên", icon: <Users className="w-5 h-5 mr-2" /> },
     { path: "technician", label: "Phân công kĩ thuật viên", icon: <Calendar className="w-5 h-5 mr-2" /> },
