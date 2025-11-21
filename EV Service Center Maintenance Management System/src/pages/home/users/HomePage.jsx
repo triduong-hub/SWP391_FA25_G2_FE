@@ -122,8 +122,17 @@ const HomePage = () => {
 
     const fetchBookings = async () => {
       try {
-        console.log("📦 Lấy đơn đặt lịch theo CustomerId:", customerId);
-        const response = await API.get(`/bookings/customer/${customerId}`);
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("❌ Chưa có Token, không thể gọi API!");
+            return; 
+        }
+        console.log("📦 Lấy đơn đặt lịch theo CustomerId:", customerId);        
+        const response = await API.get(`/bookings/customer/${customerId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         const bookingList = response.data?.data || response.data || [];
         console.log("✅ Booking data:", bookingList);
         const bookingData = response.data?.data || response.data || {};

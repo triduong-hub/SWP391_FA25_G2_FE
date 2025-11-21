@@ -15,6 +15,7 @@ const PaymentPage = () => {
     useEffect(() => {
         const fetchPaymentQR = async () => {
             try {
+                setLoading(true);
                 let invoiceId;
                 let totalAmount;
                 let existing = null;
@@ -22,60 +23,69 @@ const PaymentPage = () => {
                 // 🔹 1️⃣ Lấy maintenanceId thật dựa theo orderId
                 let maintenanceId = null;
                 try {
+                    console.log("🔍 Đang tìm Maintenance cho Order:", orderId);
+
+                    // URL này khớp với @GetMapping("/{orderId}/maintenance") trong MaintenanceController
                     const res = await API.get(`/maintenances/${orderId}/maintenance`);
-                    console.log("📦 Phản hồi maintenance:", res.data);
 
-                    maintenanceId =
-                        res.data?.maintenanceId || // ✅ đúng key backend trả
-                        res.data?.maintenance_id ||
-                        res.data?.id ||
-                        res.data?.data?.maintenanceId;
+                    console.log("📦 API trả về:", res.data);
 
-                    if (!maintenanceId)
-                        throw new Error("Không tìm thấy maintenanceId từ phản hồi backend.");
+                    // Backend trả về Map trực tiếp, key là "maintenanceId"
+                    maintenanceId = res.data?.maintenanceId;
 
-                    console.log("🧩 Đã tìm thấy maintenanceId:", maintenanceId, "từ orderId:", orderId);
+                    if (!maintenanceId) {
+                        throw new Error("Backend trả về dữ liệu nhưng không có maintenanceId");
+                    }
+                    console.log("✅ Tìm thấy Maintenance ID:", maintenanceId);
+
                 } catch (err) {
-                    console.error("❌ Lỗi khi lấy maintenanceId:", err);
-                    setError("Không thể tìm thấy phiên bảo dưỡng để thanh toán.");
-                    setLoading(false);
-                    return;
+                    console.error("❌ Lỗi lấy Maintenance:", err);
+                    setError("Không tìm thấy thông tin bảo dưỡng cho đơn hàng này.");
+                    return; // Dừng luôn nếu không có maintenanceId
+                }
+
+                try {
+                    // API này bạn đã thêm quyền Customer chưa? (InvoiceController)
+                    const resInv = await API.get(`/invoices/getby/maintenance/${maintenanceId}`);
+                    const existing = resInv.data?.data || resInv.data;
+
+                    if (existing) {
+                        console.log("🔹 Đã tìm thấy hóa đơn cũ:", existing);
+                        // Backend Invoice trả về "invoiceID" (D hoa) hay "invoiceId" (d thường)? 
+                        // Check log để chắc chắn, thường là invoiceID nếu auto-generated từ entity
+                        invoiceId = existing.invoiceID || existing.invoiceId;
+                        totalAmount = existing.totalAmount;
+                    }
+                } catch (err) {
+                    console.log("ℹ️ Chưa có hóa đơn, sẽ tạo mới.");
                 }
 
                 // 🔹 2️⃣ Tìm hóa đơn đã tồn tại theo maintenanceId
-                try {
-                    const res = await API.get("/invoices/getAll");
-                    console.log("📦 Dữ liệu hóa đơn trả về:", res.data);
-                    const allInvoices = res.data?.data || []; // ✅ dữ liệu thật nằm trong data[]
-                    existing = allInvoices.find(
-                        (inv) => Number(inv.maintenanceId) === Number(maintenanceId)
-                    );
-                    if (existing)
-                        console.log("🔹 Đã tìm thấy hóa đơn theo maintenanceId:", existing);
-                } catch (err) {
-                    console.warn("Không thể lấy danh sách hóa đơn:", err);
-                }
-
-                // 🔹 3️⃣ Nếu chưa có hóa đơn thì tạo mới
-                if (!existing) {
-                    // tạo hóa đơn mới
+                if (!invoiceId) {
+                    console.log("📝 Đang tạo hóa đơn mới...");
+                    // ⚠️ LƯU Ý: Bạn phải chắc chắn đã thêm quyền 'customer' cho API này ở Backend InvoiceController
                     const invoiceRes = await API.post("/invoices/create", {
                         maintenanceId: Number(maintenanceId),
                     });
                     console.log("🧾 Hóa đơn mới:", invoiceRes.data);
 
-                    invoiceId =
-                        invoiceRes.data?.invoiceId ||
-                        invoiceRes.data?.id ||
-                        invoiceRes.data?.data?.invoiceId;
-                    totalAmount =
-                        invoiceRes.data?.totalAmount ||
-                        invoiceRes.data?.data?.totalAmount ||
-                        0;
-                } else {
-                    // dùng dữ liệu từ existing nếu hóa đơn đã có
-                    invoiceId = existing.invoiceID || existing.invoiceId || existing.id;
-                    totalAmount = existing.totalAmount || 0;
+                    const newInv = invoiceRes.data?.data || invoiceRes.data;
+                    invoiceId = newInv.invoiceID || newInv.invoiceId;
+                    totalAmount = newInv.totalAmount;
+                }
+                // 🔹 3️⃣ Nếu chưa có hóa đơn thì tạo mới
+                if (!invoiceId) {
+                    console.log("📝 Đang tạo hóa đơn mới cho ID:", maintenanceId);
+
+                    const invoiceRes = await API.post("/invoices/create", {
+                        maintenanceId: Number(maintenanceId), // Đảm bảo là số
+                    });
+
+                    console.log("🧾 Kết quả tạo hóa đơn:", invoiceRes.data);
+
+                    const newInv = invoiceRes.data?.data || invoiceRes.data;
+                    invoiceId = newInv.invoiceID || newInv.invoiceId;
+                    totalAmount = newInv.totalAmount;
                 }
 
 
