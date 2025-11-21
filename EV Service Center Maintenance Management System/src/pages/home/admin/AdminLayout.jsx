@@ -15,10 +15,35 @@ import {
 const AdminLayout = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const role = storedUser.role?.toUpperCase().trim();
+
+    // Nếu role hiện tại KHÔNG PHẢI LÀ ADMIN
+    if (role !== "ADMIN") {
+      console.warn(`Chặn truy cập Admin! User hiện tại là: ${role}`);
+
+      // Đá về đúng trang của role đó
+      if (role === "CUSTOMER") {
+        navigate("/");
+      } else if (role === "STAFF") {
+        navigate("/staff/dashboard");
+      } else if (role === "TECHNICIAN") {
+        navigate("/technician/dashboard");
+      } else {
+        navigate("/login");
+      }
+    }
+  }, [navigate]);
   const handleLogout = () => {
+    // Khi logout thì xóa sạch localStorage để tab khác cũng bị văng ra
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    navigate("/");
+    
+    localStorage.removeItem("customerId");
+    localStorage.removeItem("employeeId"); 
+    localStorage.removeItem("adminId");
+    navigate("/login");
   };
 
   const menuItems = [
@@ -49,10 +74,9 @@ const AdminLayout = () => {
               key={item.path}
               to={`/admin/${item.path}`}
               className={({ isActive }) =>
-                `flex items-center p-2 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-md font-semibold"
-                    : "text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                `flex items-center p-2 rounded-lg transition-all duration-200 ${isActive
+                  ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-md font-semibold"
+                  : "text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
                 }`
               }
             >

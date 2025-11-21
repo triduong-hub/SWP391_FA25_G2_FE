@@ -13,9 +13,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api.js";
-import GoogleIcon from "./GoogleIcon.jsx";
-//import { GoogleLogin } from "@react-oauth/google";
-
 
 const LoginForm = ({ onSwitch }) => {
   const [formData, setFormData] = useState({ phone: "", password: "" });
@@ -50,44 +47,58 @@ const LoginForm = ({ onSwitch }) => {
       const role = data.role?.toLowerCase().trim();
 
       //  Phân loại theo role
-      if (data.role?.toLowerCase() === "admin") {
-        console.log(" Admin đăng nhập");
+      if (role === "admin") {
+        console.log("👮‍♂️ Admin đăng nhập");
+        if (data.adminID) localStorage.setItem("adminId", data.adminID);
         navigate("/admin/home");
-      } else if (data.role?.toLowerCase() === "staff") {
-        console.log('staff đăng nhập');
-        navigate("/staff/dashboard")
-      } else if (data.role?.toLowerCase() === "technician") {
-        console.log('technician đăng nhập');
-        navigate("/technician/dashboard")
-      } else if (data.role?.toLowerCase() === "customer") {
-        console.log(" Customer đăng nhập");
 
-        // Lấy customerId chính xác từ backend
-        const customerId = data.refid || data.id || data.customerId || data.user?.id;
+      } else if (role === "staff") {
+        console.log('👨‍💼 Staff đăng nhập');
+        //LƯU EMPLOYEE ID CHO NHÂN VIÊN
+        if (data.employeeID) {
+          localStorage.setItem("employeeId", data.employeeID);
+          console.log("💾 Saved employeeId:", data.employeeID);
+        }
+        navigate("/staff/dashboard");
+
+      } else if (role === "technician") {
+        console.log('🔧 Technician đăng nhập');
+        //LƯU EMPLOYEE ID CHO KỸ THUẬT VIÊN
+        if (data.employeeID) {
+          localStorage.setItem("employeeId", data.employeeID);
+          console.log("💾 Saved employeeId:", data.employeeID);
+        }
+        navigate("/technician/dashboard");
+
+      } else if (role === "customer") {
+        console.log("👤 Customer đăng nhập");
+
+        //LƯU CUSTOMER ID (Ưu tiên customerID từ backend mới, fallback các trường cũ)
+        const customerId = data.customerID || data.customerId || data.refid || data.id || data.user?.id;
 
         if (customerId) {
           localStorage.setItem("customerId", customerId);
           console.log(" Saved customerId:", customerId);
-        } //else {
-        // console.warn(" Không tìm thấy customerId:", data);
-        // }
+        } else {
+          console.warn(" Không tìm thấy customerId trong response!");
+        }
 
         navigate("/");
+
       } else {
-        console.warn(" Vai trò không xác định:", data.role);
+        console.warn(" Vai trò không xác định:", role);
         alert("Không xác định được loại tài khoản!");
       }
+
     } catch (err) {
       console.error("Lỗi đăng nhập:", err);
       setMessage({
-        text: err.response?.data?.message || "❌ Sai số điện thoại hoặc mật khẩu!",
+        text: err.response?.data?.message || " Sai số điện thoại hoặc mật khẩu!",
         type: "error",
       });
     }
-
   };
 
-  //THAY ĐỔI: Dùng redirect thay vì GoogleLogin component
   const handleGoogleLogin = () => {
     // Redirect đến Spring Security OAuth2 endpoint
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
@@ -188,103 +199,6 @@ const LoginForm = ({ onSwitch }) => {
       </p>
     </>
   );
-
-  // return (
-  //   <>
-  //     <div className="flex justify-center mb-4">
-  //       <GoogleLogin
-  //         onSuccess={async (credentialResponse) => {
-  //           console.log("Google token:", credentialResponse.credential);
-  //           try {
-  //             const response = await api.post("/auth/google", {
-  //               token: credentialResponse.credential,
-  //             });
-
-  //             const data = response.data;
-  //             localStorage.setItem("token", data.token);
-  //             localStorage.setItem("user", JSON.stringify(data));
-
-  //             const role = data.role?.toLowerCase();
-  //             if (role === "admin") navigate("/admin/home");
-  //             else if (role === "staff") navigate("/staffdash");
-  //             else if (role === "technician") navigate("/techniciandash");
-  //             else navigate("/");
-
-  //           } catch (err) {
-  //             console.error("Google login error:", err);
-  //             alert("Đăng nhập Google thất bại!");
-  //           }
-  //         }}
-  //         onError={() => console.log("Google Login Failed")}
-  //         useOneTap
-  //       />
-  //     </div>
-
-
-  //     <div className="flex items-center my-6">
-  //       <div className="flex-1 border-t border-gray-200"></div>
-  //       <span className="px-4 text-sm text-gray-500 bg-white">hoặc</span>
-  //       <div className="flex-1 border-t border-gray-200"></div>
-  //     </div>
-
-  //     <form onSubmit={handleSubmit} className="space-y-4">
-  //       <div className="relative">
-  //         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-  //         <input
-  //           type="tel"
-  //           name="phone"
-  //           placeholder="Số điện thoại"
-  //           value={formData.phone}
-  //           onChange={handleInputChange}
-  //           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-  //           required
-  //         />
-  //       </div>
-
-  //       <div className="relative">
-  //         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-  //         <input
-  //           type={showPassword ? "text" : "password"}
-  //           name="password"
-  //           placeholder="Mật khẩu"
-  //           value={formData.password}
-  //           onChange={handleInputChange}
-  //           className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-  //           required
-  //         />
-  //         <button
-  //           type="button"
-  //           onClick={() => setShowPassword(!showPassword)}
-  //           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-  //         >
-  //           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-  //         </button>
-  //       </div>
-  //       {message.text && (
-  //         <div
-  //           className={`text-center font-semibold ${message.type === "success" ? "text-green-600" : "text-red-600"
-  //             }`}
-  //         >
-  //           {message.text}
-  //         </div>
-  //       )}
-  //       <button
-  //         type="submit"
-  //         className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-lg"
-  //       >
-  //         <span>Đăng nhập</span>
-  //         <ArrowRight className="w-5 h-5" />
-  //       </button>
-  //     </form>
-
-  //     <p className="text-sm text-gray-600 text-center mt-6">
-  //       Chưa có tài khoản?{" "}
-  //       <button onClick={onSwitch} className="text-emerald-600 hover:underline">
-  //         Đăng ký ngay
-  //       </button>
-  //     </p>
-  //   </>
-  // );
 };
 
 // --- RegisterForm giữ nguyên (chỉ sửa nhỏ nếu cần) ---

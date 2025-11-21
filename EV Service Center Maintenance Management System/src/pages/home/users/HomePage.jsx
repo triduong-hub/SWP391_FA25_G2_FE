@@ -64,6 +64,21 @@ const HomePage = () => {
   // }, []);
 
   useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const role = storedUser.role?.toUpperCase().trim();
+
+    // Nếu có user, nhưng KHÔNG PHẢI CUSTOMER, thì điều phối ngay lập tức
+    if (role && role !== "CUSTOMER") {
+        console.warn(`⚠️ User không phải Customer! Điều phối về Dashboard: ${role}`);
+        
+        if (role === "ADMIN") navigate("/admin/home");
+        else if (role === "STAFF") navigate("/staff/dashboard");
+        else if (role === "TECHNICIAN") navigate("/technician/dashboard"); 
+        // Không cần else navigate("/login"), vì logic check token ở dưới sẽ lo.
+    }
+  }, [navigate]);
+
+  useEffect(() => {
   const token = localStorage.getItem("token");
   const storedUser = localStorage.getItem("user");
   
@@ -283,6 +298,13 @@ const HomePage = () => {
                         setIsLoggedIn(false);
                         setUser(null);
                         localStorage.removeItem("token");
+                        
+                        // Cập nhật Logout để xóa sạch ID định danh
+                        localStorage.removeItem("user");
+                        localStorage.removeItem("customerId");
+                        localStorage.removeItem("employeeId");
+                        localStorage.removeItem("adminId");
+
                         navigate("/login");
                         setShowMenu(false);
                       }}

@@ -33,7 +33,7 @@ const AdminInventory = () => {
         minQuantity: 5,
         supplierName: "",
         image: null, 
-        serviceCenterId: "", // ✅ Trường quan trọng: Chọn kho
+        serviceCenterId: "", 
     });
     const [previewImage, setPreviewImage] = useState("");
 
@@ -41,21 +41,20 @@ const AdminInventory = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            // 1. Lấy danh sách Service Centers (để nạp vào Dropdown)
+            // 1. Lấy danh sách Service Centers 
             const resCenters = await api.get("/service-centers/getAll");
             setServiceCenters(Array.isArray(resCenters.data) ? resCenters.data : []);
 
-            // 2. Lấy TOÀN BỘ linh kiện (Admin tổng)
+            // 2. Lấy TOÀN BỘ linh kiện
             const resComponents = await api.get("/components/getAll");
             let data = Array.isArray(resComponents.data) ? resComponents.data : [];
             
-            // ✅ Sắp xếp: ID lớn nhất (mới nhất) lên đầu để cố định vị trí
+            //Sắp xếp: ID lớn nhất (mới nhất)
             data.sort((a, b) => b.componentID - a.componentID);
             
             setComponents(data);
         } catch (err) {
             console.error("❌ Lỗi tải dữ liệu:", err);
-            // Nếu API service-center chưa chạy, set mảng rỗng để không crash trang
             setServiceCenters([]); 
             setComponents([]);
         } finally {
@@ -95,7 +94,6 @@ const AdminInventory = () => {
             minQuantity: comp.minQuantity,
             supplierName: comp.supplierName || "",
             image: null,
-            // ✅ Lấy ID chi nhánh hiện tại của linh kiện
             serviceCenterId: comp.serviceCenterID || (serviceCenters.length > 0 ? serviceCenters[0].serviceCenterID : "")
         });
         setPreviewImage(comp.imageUrl);
@@ -140,11 +138,7 @@ const AdminInventory = () => {
             data.append("quantity", formData.quantity);
             data.append("minQuantity", formData.minQuantity);
             data.append("supplierName", formData.supplierName);
-            
-            // ✅ Gửi ServiceCenterID (DTO field: serviceCenterID)
             data.append("serviceCenterID", formData.serviceCenterId);
-
-            // ✅ Gửi file ảnh (nếu người dùng chọn ảnh mới)
             if (formData.image instanceof File) {
                 data.append("image", formData.image);
             }

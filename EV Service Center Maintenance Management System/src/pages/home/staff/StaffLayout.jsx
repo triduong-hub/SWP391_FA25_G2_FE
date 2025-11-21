@@ -27,6 +27,21 @@ const StaffLayout = () => {
     }, []);
 
     useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const role = storedUser.role?.toUpperCase().trim();
+
+        // Nếu không phải STAFF thì đá về đúng chỗ
+        if (role !== "STAFF") {
+            console.warn(`Chặn truy cập Staff! User hiện tại là: ${role}`);
+
+            if (role === "ADMIN") navigate("/admin/home");
+            else if (role === "TECHNICIAN") navigate("/technician/dashboard");
+            else if (role === "CUSTOMER") navigate("/");
+            else navigate("/login");
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setShowProfileMenu(false);
@@ -39,9 +54,15 @@ const StaffLayout = () => {
     }, [profileRef]);
 
     const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
-    };
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    
+    localStorage.removeItem("customerId");
+    localStorage.removeItem("employeeId");
+    localStorage.removeItem("adminId");
+
+    navigate("/login");
+  };
 
     const menuItems = [
         {
@@ -55,7 +76,7 @@ const StaffLayout = () => {
             icon: <ClipboardCheck className="w-5 h-5" />
         },
         {
-            path: "/staff/technicians", 
+            path: "/staff/technicians",
             label: "Quản lý Kỹ thuật",
             icon: <Users className="w-5 h-5" />
         },
