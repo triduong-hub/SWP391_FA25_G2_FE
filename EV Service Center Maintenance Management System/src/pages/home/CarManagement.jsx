@@ -44,6 +44,7 @@ const CarManagement = () => {
   const [selectedHistory, setSelectedHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedPlate, setSelectedPlate] = useState("");
+  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterModel, setFilterModel] = useState("All");
@@ -161,7 +162,7 @@ const CarManagement = () => {
         customerNote: editFormData.customerNote
       };
 
-      await API.patch(`/vehicle/update/${editingCar.vehicleID}`, finalPayload);
+      await api.put(`/vehicle/update/${editingCar.vehicleID}`, finalPayload);
 
       // Cập nhật UI ngay lập tức
       setCars((prevCars) =>
@@ -176,10 +177,41 @@ const CarManagement = () => {
       closeEditModal();
 
     } catch (error) {
+      console.group("🔴 CHI TIẾT LỖI UPDATE");
+      console.error("Message:", error.message);
+      console.error("Response Data:", error.response?.data);
+      console.error("Status Code:", error.response?.status);
+      console.groupEnd();
       console.error("Lỗi cập nhật:", error);
       alert("Cập nhật thất bại: " + (error.response?.data?.message || "Lỗi không xác định"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // 1. Xử lý khi đang gõ (Cho phép gõ thoải mái để không bị đơ phím)
+  const handleMileageChange = (e) => {
+    const value = e.target.value;
+    setEditFormData({ ...editFormData, mileage: value });
+  };
+
+  // 2. Xử lý khi click ra ngoài (Kiểm tra và Reset nếu sai)
+  const handleMileageBlur = () => {
+    const currentVal = Number(editFormData.mileage);
+
+    if (editFormData.mileage === "" || isNaN(currentVal) || currentVal < 0) {
+      alert("Số Km không hợp lệ! Hệ thống sẽ đặt lại giá trị cũ.");
+      setEditFormData({
+        ...editFormData,
+        mileage: vehicle.mileage
+      });
+    }
+  };
+
+  // 3. Chặn các ký tự đặc biệt của input number (e, +, -)
+  const handleKeyDown = (e) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
     }
   };
 
@@ -408,10 +440,13 @@ const CarManagement = () => {
                 </label>
                 <input
                   type="number"
+                  min="0" // Hỗ trợ trình duyệt hiện mũi tên tăng giảm từ 0
                   value={editFormData.mileage}
-                  onChange={(e) => setEditFormData({ ...editFormData, mileage: e.target.value })}
+                  onChange={handleMileageChange} // Hàm xử lý nhập
+                  onBlur={handleMileageBlur}     // Hàm xử lý reset khi nhập sai
+                  onKeyDown={handleKeyDown}      // Hàm chặn ký tự e, -, +
                   disabled={isUnderMaintenance}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition ${isUnderMaintenance ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition ${isUnderMaintenance ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
                     }`}
                 />
               </div>
