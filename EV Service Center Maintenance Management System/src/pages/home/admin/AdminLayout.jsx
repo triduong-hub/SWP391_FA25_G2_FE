@@ -53,7 +53,6 @@ const AdminLayout = () => {
     { path: "revenue", label: "Doanh thu", icon: <DollarSign className="w-5 h-5 mr-2" /> },
     { path: "cars", label: "Xe điện", icon: <Car className="w-5 h-5 mr-2" /> },
     { path: "inventory", label: "Kho linh kiện", icon: <Package className="w-5 h-5 mr-2" /> },
-    // { path: "services", label: "Dịch vụ", icon: <Wrench className="w-5 h-5 mr-2" /> },
     // { path: "quotations", label: "Báo giá", icon: <FileText className="w-5 h-5 mr-2" /> },
     { path: "orders", label: "Quản lý đơn hàng", icon: <ShoppingCart className="w-5 h-5 mr-2" /> },
     { path: "models", label: "Mẫu xe", icon: <Car className="w-5 h-5 mr-2" /> },

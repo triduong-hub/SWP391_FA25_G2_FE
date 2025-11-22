@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { User, Mail, Phone, UserCircle, Edit3, Save, X, Briefcase, MapPin, Calendar, Car, Clock, Building2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Mail, Phone, UserCircle, Edit3, Save, X, Briefcase, MapPin, Calendar, Car, Clock, Building2, Award, ChevronRight } from "lucide-react";
 import API from '../../../../api';
 
 
@@ -12,11 +12,17 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
+  
+  // Data States
   const [shifts, setShifts] = useState([]);
+  const [certifications, setCertifications] = useState([]);
   const [serviceCenters, setServiceCenters] = useState([]);
+  
+  // UI States
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [vehicleLoading, setVehicleLoading] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false); 
 
   const userId = user?.userID;
   const userRole = user?.role?.toLowerCase() || 'customer';
@@ -40,8 +46,8 @@ const Profile = () => {
         ...storedUser,
         role: role,
         // Employee/Admin specific fields (MOCK DATA)
-        serviceCenter: storedUser.serviceCenter || '', 
-        shift: storedUser.shift || '',             
+        serviceCenter: storedUser.serviceCenter || '',
+        shift: storedUser.shift || '',
         address: storedUser.address || '',
         birth: storedUser.birth || '',
       };
@@ -61,25 +67,36 @@ const Profile = () => {
       });
     }
   }, [navigate]);
+
   useEffect(() => {
-    if (isEmployee) {
+    if (isEmployee && user) {
       const fetchData = async () => {
         try {
-          // Gọi song song 2 API để tối ưu tốc độ
-          const [shiftRes, centerRes] = await Promise.all([
+          const reqs = [
             API.get('/shifts/getAll'),
-            API.get('/service-centers/getAll') // Gọi endpoint từ ServiceCenterController
-          ]);
+            API.get('/service-centers/getAll')
+          ];
 
-          setShifts(shiftRes.data || []);
-          setServiceCenters(centerRes.data || []);
+          // Nếu là technician, thêm request lấy chứng chỉ vào vị trí thứ 3 (index 2)
+          if (userRole === 'technician' && userId) {
+            reqs.push(API.get(`/ev-certifications/employee/${userId}`));
+          }
+          const results = await Promise.all(reqs);
+
+          // Gán dữ liệu cơ bản
+          setShifts(results[0]?.data || []);
+          setServiceCenters(results[1]?.data || []);
+          if (results[2]) {
+            setCertifications(results[2].data || []);
+          }
+
         } catch (error) {
-          console.error("Lỗi tải dữ liệu hệ thống:", error);
+          console.error("Lỗi tải dữ liệu profile:", error);
         }
       };
       fetchData();
     }
-  }, [isEmployee]);
+  }, [isEmployee, userRole, userId, user]);
 
   // Hàm lấy tên ca từ ID
   const getShiftName = (shiftId) => {
@@ -96,8 +113,8 @@ const Profile = () => {
 
   const getServiceCenterName = (centerId) => {
     if (!centerId) return "Chưa phân công";
-    const foundCenter = serviceCenters.find(s => 
-        String(s.serviceCenterID) === String(centerId)
+    const foundCenter = serviceCenters.find(s =>
+      String(s.serviceCenterID) === String(centerId)
     );
 
     if (foundCenter) return foundCenter.name;
@@ -157,7 +174,7 @@ const Profile = () => {
 
     // Thêm các trường đặc thù của Employee/Admin
     if (userRole === 'staff' || userRole === 'technician' || userRole === 'admin') {
-      fieldsToCompare.push('role', 'serviceCenter', 'shift');
+      fieldsToCompare.push('serviceCenter', 'shift');
     }
 
     fieldsToCompare.forEach(key => {
@@ -276,18 +293,7 @@ const Profile = () => {
               <option value="unknown">Không xác định</option>
               <option value="male">Nam</option>
               <option value="female">Nữ</option>
-            </select>
-          ) : key === 'role' ? (
-            <select
-              value={formData[key]}
-              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-              className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base font-semibold text-gray-800 bg-white"
-              disabled={userRole === 'admin'} // Admin role thường không được thay đổi
-            >
-              {['customer', 'staff', 'tech', 'admin'].map(r => (
-                <option key={r} value={r}>{r.toUpperCase()}</option>
-              ))}
-            </select>
+            </select>          
           ) : (
             <input
               type={type}
@@ -306,200 +312,192 @@ const Profile = () => {
     </div>
   );
 
+  // --- MODAL COMPONENT ---
+  const CertificationModal = () => (
+    <AnimatePresence>
+      {showCertModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[80vh] flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="bg-indigo-600 p-4 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Award size={20} /> Chứng chỉ EV & Kỹ năng
+              </h3>
+              <button onClick={() => setShowCertModal(false)} className="hover:bg-white/20 p-1 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable */}
+            <div className="p-4 overflow-y-auto">
+               {certifications.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Chưa có dữ liệu chứng chỉ.</p>
+              ) : (
+                <div className="space-y-3">
+                  {certifications.map((cert) => (
+                    <div key={cert.certificationID} className={`p-4 rounded-xl border-l-4 bg-gray-50 ${cert.active ? 'border-l-green-500' : 'border-l-red-500'}`}>
+                       <div className="flex justify-between mb-1">
+                          <span className="font-bold text-gray-800">{cert.certificateName}</span>
+                          {cert.active 
+                            ? <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">Hiệu lực</span>
+                            : <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">Hết hạn</span>
+                          }
+                       </div>
+                       <div className="text-sm text-gray-600 grid grid-cols-2 gap-2 mt-2">
+                          <p>Cấp bởi: <span className="font-semibold">{cert.issuedBy}</span></p>
+                          <p>Level: <span className="font-semibold text-indigo-600">{cert.level}</span></p>
+                          <p className="text-xs text-gray-500">Ngày cấp: {cert.issuedDate}</p>
+                          <p className="text-xs text-gray-500">Hết hạn: {cert.expirationDate}</p>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="p-4 border-t bg-gray-50 text-right">
+               <button onClick={() => setShowCertModal(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300">
+                 Đóng
+               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 py-10">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
         className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-100"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-500 p-8 text-center text-white relative">
-          <motion.img
-            whileHover={{ scale: 1.05 }}
+          <img
             src={user.avatar || "https://placehold.co/100x100/A0BFFF/FFFFFF?text=AV"}
             alt="Avatar"
             className="w-28 h-28 rounded-full border-4 border-white shadow-lg mx-auto mb-4 object-cover"
           />
-          <h1 className="text-2xl font-bold tracking-tight">
-            {user.name?.trim() || "Người dùng"}
-          </h1>
-          <p className="text-sm opacity-90 mt-1">{user.email}</p>
-          <p className="text-xs opacity-70 mt-1">{userRole.toUpperCase()}</p>
+          <h1 className="text-2xl font-bold">{user.name}</h1>
+          <p className="text-sm opacity-90">{user.email}</p>
+          <p className="text-xs opacity-70 uppercase mt-1">{userRole}</p>
 
-          {/* Edit Button */}
           {!editMode && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={startEdit}
-              className="absolute top-4 right-4 bg-white text-indigo-600 p-2 rounded-full shadow-md hover:bg-indigo-50 transition"
-              aria-label="Chỉnh sửa hồ sơ"
-            >
+            <button onClick={startEdit} className="absolute top-4 right-4 bg-white text-indigo-600 p-2 rounded-full shadow-md hover:bg-indigo-50">
               <Edit3 size={20} />
-            </motion.button>
+            </button>
           )}
         </div>
 
         {/* Body */}
         <div className="p-8 bg-white">
-          {/* Message Box */}
           {message.text && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 mb-6 rounded-xl text-sm font-medium ${message.type === 'success'
-                ? 'bg-green-100 text-green-700'
-                : message.type === 'error'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700'
-                }`}
-            >
+            <div className={`p-4 mb-6 rounded-xl text-sm font-medium ${message.type === 'success' ? 'bg-green-100 text-green-700' : message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
               {message.text}
-            </motion.div>
+            </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {renderDetail(User, 'Tên', 'name', 'blue')}
-            {renderDetail(Mail, 'Email', 'email', 'indigo', 'email', true)} {/* Email Read Only */}
+            {renderDetail(Mail, 'Email', 'email', 'indigo', 'email', true)}
             {renderDetail(Phone, 'Số điện thoại', 'phone', 'emerald', 'tel')}
             {renderDetail(UserCircle, 'Giới tính', 'gender', 'rose')}
             {renderDetail(MapPin, 'Địa chỉ', 'address', 'purple')}
             {renderDetail(Calendar, 'Ngày sinh', 'birth', 'orange', 'date')}
 
-            {/* Các trường đặc thù của Employee/Admin */}
             {isEmployee && (
               <>
                 <div className="col-span-1 sm:col-span-2 border-t border-gray-100 my-2"></div>
                 <h3 className="col-span-1 sm:col-span-2 text-sm font-bold text-gray-400 uppercase tracking-wider">Thông tin công việc</h3>
-
+                
                 {renderDetail(Briefcase, 'Vai trò', 'role', 'cyan', 'text', true)}
 
-                {/* --- KHỐI HIỂN THỊ TRUNG TÂM DỊCH VỤ --- */}
                 <div className="flex items-center gap-3">
-                  <div className="bg-teal-100 p-3 rounded-xl text-teal-600">
-                    <Building2 size={20} />
-                  </div>
+                  <div className="bg-teal-100 p-3 rounded-xl text-teal-600"><Building2 size={20} /></div>
                   <div className="w-full">
                     <p className="text-sm text-gray-500 font-medium">Trung tâm dịch vụ</p>
                     {editMode ? (
-                      <select
-                        value={formData.serviceCenter}
-                        onChange={(e) => setFormData({ ...formData, serviceCenter: parseInt(e.target.value) })}
-                        className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 bg-white"
-                      >
-                        <option value="">-- Chọn trung tâm --</option>
-                        {serviceCenters.map(sc => (
-                          // Lưu ý: Dùng serviceCenterID hoặc id tùy vào response API của bạn
-                          <option key={sc.serviceCenterID || sc.id} value={sc.serviceCenterID || sc.id}>
-                            {sc.name}
-                          </option>
-                        ))}
+                      <select value={formData.serviceCenter} onChange={(e) => setFormData({ ...formData, serviceCenter: e.target.value })} className="w-full border rounded p-1">
+                         <option value="">-- Chọn --</option>
+                         {serviceCenters.map(s => <option key={s.serviceCenterID} value={s.serviceCenterID}>{s.name}</option>)}
                       </select>
-                    ) : (
-                      <p className="text-base font-semibold text-gray-800">
-                        {getServiceCenterName(user.serviceCenter)}
-                      </p>
-                    )}
+                    ) : <p className="font-semibold">{getServiceCenterName(user.serviceCenter)}</p>}
                   </div>
                 </div>
 
-                {/* --- KHỐI HIỂN THỊ CA LÀM VIỆC --- */}
                 <div className="flex items-center gap-3">
-                  <div className="bg-pink-100 p-3 rounded-xl text-pink-600">
-                    <Clock size={20} />
-                  </div>
+                  <div className="bg-pink-100 p-3 rounded-xl text-pink-600"><Clock size={20} /></div>
                   <div className="w-full">
                     <p className="text-sm text-gray-500 font-medium">Ca làm việc</p>
                     {editMode ? (
-                      <select
-                        value={formData.shift}
-                        onChange={(e) => setFormData({ ...formData, shift: parseInt(e.target.value) })}
-                        className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 bg-white"
-                      >
-                        <option value="">-- Chọn ca --</option>
-                        {shifts.map(s => (
-                          <option key={s.shiftID} value={s.shiftID}>
-                            {s.name} ({s.start_time || s.startTime?.substring(0, 5)} - {s.end_time || s.endTime?.substring(0, 5)})
-                          </option>
-                        ))}
+                      <select value={formData.shift} onChange={(e) => setFormData({ ...formData, shift: e.target.value })} className="w-full border rounded p-1">
+                         <option value="">-- Chọn --</option>
+                         {shifts.map(s => <option key={s.shiftID} value={s.shiftID}>{s.name}</option>)}
                       </select>
-                    ) : (
-                      <p className="text-base font-semibold text-gray-800">
-                        {getShiftName(user.shift)}
-                      </p>
-                    )}
+                    ) : <p className="font-semibold">{getShiftName(user.shift)}</p>}
                   </div>
                 </div>
+
+                {/* SỬA 3: Đưa nút bấm vào ĐÚNG VỊ TRÍ bên trong grid */}
+                {userRole === 'technician' && (
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-center gap-3 cursor-pointer group"
+                    onClick={() => setShowCertModal(true)}
+                  >
+                    <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <Award size={20} />
+                    </div>
+                    <div className="w-full flex justify-between items-center pr-2">
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium group-hover:text-indigo-600">Chứng chỉ EV</p>
+                        <p className="font-bold text-gray-800">
+                          {certifications.length > 0 ? `${certifications.length} Chứng chỉ` : 'Chưa có'}
+                        </p>
+                      </div>
+                      <ChevronRight size={18} className="text-gray-400 group-hover:text-indigo-600" />
+                    </div>
+                  </motion.div>
+                )}
               </>
             )}
           </div>
 
-          {/* Action */}
+          {/* Action Buttons */}
           <div className="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-
-            {/* NÚT CHUYỂN HƯỚNG SANG XE (CHỈ HIỂN THỊ CHO CUSTOMER) */}
             {userRole === 'customer' && !editMode && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleNavigateToVehicle}
-                disabled={vehicleLoading}
-                className="flex items-center space-x-2 bg-indigo-600 text-white font-medium px-6 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition"
-              >
-                {vehicleLoading ? 'Đang tìm xe...' : (
-                  <>
-                    <Car size={20} />
-                    <span>Xem & Chỉnh sửa Xe</span>
-                  </>
-                )}
-              </motion.button>
+               <button onClick={handleNavigateToVehicle} className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-700">
+                 <Car size={20} /> Xe của tôi
+               </button>
             )}
 
             {editMode ? (
               <>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleUpdate}
-                  disabled={loading || !isFormValid}
-                  className={`flex items-center space-x-2 font-medium px-6 py-2.5 rounded-xl shadow transition ${isFormValid && !loading
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                >
-                  {loading ? 'Đang cập nhật...' : (
-                    <>
-                      <Save size={20} />
-                      <span>Lưu thay đổi</span>
-                    </>
-                  )}
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={cancelEdit}
-                  className="flex items-center space-x-2 bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-xl shadow hover:bg-gray-300 transition"
-                  disabled={loading}
-                >
-                  <X size={20} />
-                  <span>Hủy</span>
-                </motion.button>
+                <button onClick={handleUpdate} disabled={loading} className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-xl hover:bg-green-700">
+                  <Save size={20} /> Lưu
+                </button>
+                <button onClick={cancelEdit} disabled={loading} className="flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-2 rounded-xl hover:bg-gray-300">
+                  <X size={20} /> Hủy
+                </button>
               </>
             ) : (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/")}
-                className="bg-blue-600 text-white font-medium px-6 py-2.5 rounded-xl shadow hover:bg-blue-700 transition"
-              >
-                Quay lại trang chủ
-              </motion.button>
+              <button onClick={() => navigate("/")} className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700">
+                Trang chủ
+              </button>
             )}
           </div>
         </div>
       </motion.div>
+
+      <CertificationModal />
     </div>
   );
 };
