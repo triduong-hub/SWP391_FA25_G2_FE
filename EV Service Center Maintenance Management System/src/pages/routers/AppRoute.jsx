@@ -109,6 +109,7 @@ function AppRoute() {
           <Route path="assignments" element={<StaffAssignments/>} />
           <Route path="technicians" element={<TechnicianStatus />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="vehicles" element={<CarManagement />} />
         </Route>
 
 

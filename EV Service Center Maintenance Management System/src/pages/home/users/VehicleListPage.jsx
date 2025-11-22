@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ChevronRight, 
-  ArrowLeft, 
-  Loader2, 
-  Info, 
-  Trash2, 
-  MoreVertical, 
-  FileText, 
-  Wrench, 
-  X 
+import {
+    ChevronRight,
+    ArrowLeft,
+    Loader2,
+    Info,
+    Trash2,
+    MoreVertical,
+    FileText,
+    Wrench,
+    X
 } from "lucide-react";
 
-// Đảm bảo đường dẫn import API của bạn là chính xác
 import API from '../../../../api';
 
 const VehicleListPage = () => {
@@ -36,6 +35,37 @@ const VehicleListPage = () => {
         } catch (e) {
             console.error("Lỗi parse user từ localStorage:", e);
             return null;
+        }
+    };
+
+    const getStatusDetails = (status) => {
+        // Chuyển về chữ thường để so sánh cho chính xác
+        const normalizedStatus = status ? status.toLowerCase() : '';
+
+        switch (normalizedStatus) {
+            case 'completed':
+            case 'hoàn thành':
+                return { label: 'Hoàn thành', style: 'bg-green-100 text-green-700' };
+
+            case 'in_progress':
+            case 'processing':
+            case 'đang bảo dưỡng':
+            case 'đang thực hiện':
+                return { label: 'Đang thực hiện', style: 'bg-blue-100 text-blue-700' };
+
+            case 'pending':
+            case 'waiting':
+            case 'chờ xử lý':
+                return { label: 'Chờ xử lý', style: 'bg-yellow-100 text-yellow-800' };
+
+            case 'cancelled':
+            case 'canceled':
+            case 'đã hủy':
+                return { label: 'Đã hủy', style: 'bg-red-100 text-red-700' };
+
+            default:
+                // Trường hợp không xác định thì hiển thị nguyên gốc
+                return { label: status, style: 'bg-gray-200 text-gray-700' };
         }
     };
 
@@ -83,9 +113,9 @@ const VehicleListPage = () => {
 
     // --- HÀM XEM LỊCH SỬ ---
     const handleViewHistory = async (vehicleId, licensePlate, e) => {
-        e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
-        setActiveMenu(null); // Đóng menu dropdown
-        
+        e.stopPropagation();
+        setActiveMenu(null);
+
         setIsHistoryOpen(true);
         setLoadingHistory(true);
         setSelectedPlate(licensePlate);
@@ -225,7 +255,7 @@ const VehicleListPage = () => {
                                     {/* Dropdown Menu */}
                                     {activeMenu === vehicle.vehicleID && (
                                         <div className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                            
+
                                             {/* --- NÚT LỊCH SỬ BẢO DƯỠNG --- */}
                                             <button
                                                 onClick={(e) => handleViewHistory(vehicle.vehicleID, vehicle.licensePlate, e)}
@@ -263,7 +293,7 @@ const VehicleListPage = () => {
             <AnimatePresence>
                 {isHistoryOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
@@ -296,34 +326,54 @@ const VehicleListPage = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {selectedHistory.map((item) => (
-                                            <div key={item.maintenanceID} className="border rounded-xl p-4 hover:shadow-md transition bg-gray-50">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                                            item.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                                            item.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-gray-200 text-gray-700'
-                                                        }`}>
-                                                            {item.status}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500 ml-2">
-                                                            ID: #{item.maintenanceID}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-sm font-bold text-indigo-600">
-                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.cost || 0)}
-                                                    </div>
-                                                </div>
+                                        {selectedHistory.map((item) => {
+                                            // Gọi hàm lấy thông tin trạng thái
+                                            const statusInfo = getStatusDetails(item.status);
 
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
-                                                    <p><span className="font-medium text-gray-500">Ngày bắt đầu:</span> {new Date(item.startTime).toLocaleDateString('vi-VN')}</p>
-                                                    <p><span className="font-medium text-gray-500">Ngày kết thúc:</span> {item.endTime ? new Date(item.endTime).toLocaleDateString('vi-VN') : '---'}</p>
-                                                    <p className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-500">Mô tả:</span> {item.description}</p>
-                                                    {item.empName && <p className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-500">Kỹ thuật viên:</span> {item.empName}</p>}
+                                            return (
+                                                <div key={item.maintenanceID} className="border rounded-xl p-4 hover:shadow-md transition bg-gray-50">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            {/* Hiển thị trạng thái đã dịch */}
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusInfo.style}`}>
+                                                                {statusInfo.label}
+                                                            </span>
+
+                                                            <span className="text-xs text-gray-500 ml-2">
+                                                                ID: #{item.maintenanceID}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Giá tiền */}
+                                                        <div className="text-sm font-bold text-indigo-600">
+                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.cost || 0)}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+                                                        <p>
+                                                            <span className="font-medium text-gray-500">Ngày bắt đầu:</span>{' '}
+                                                            {item.startTime ? new Date(item.startTime).toLocaleDateString('vi-VN') : '---'}
+                                                        </p>
+                                                        <p>
+                                                            <span className="font-medium text-gray-500">Ngày kết thúc:</span>{' '}
+                                                            {item.endTime ? new Date(item.endTime).toLocaleDateString('vi-VN') : '---'}
+                                                        </p>
+                                                        <p className="col-span-1 sm:col-span-2">
+                                                            <span className="font-medium text-gray-500">Mô tả:</span>{' '}
+                                                            {item.description
+                                                                ? item.description.replace('Maintenance for services:', '').trim()
+                                                                : 'Không có mô tả'}
+                                                        </p>
+                                                        {item.empName && (
+                                                            <p className="col-span-1 sm:col-span-2">
+                                                                <span className="font-medium text-gray-500">Kỹ thuật viên:</span> {item.empName}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

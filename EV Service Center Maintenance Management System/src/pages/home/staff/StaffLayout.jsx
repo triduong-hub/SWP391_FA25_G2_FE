@@ -7,7 +7,8 @@ import {
     User,
     ChevronDown,
     Users,
-    ShoppingCart
+    ShoppingCart,
+    Car
 } from "lucide-react";
 
 const StaffLayout = () => {
@@ -75,6 +76,11 @@ const StaffLayout = () => {
             path: "/staff/orders",
             label: "Quản lý đơn hàng",
             icon: <ShoppingCart className="w-5 h-5" />
+        },
+        {
+            path: "/staff/vehicles",
+            label: "Quản lý xe",
+            icon: <Car className="w-5 h-5" />
         },
         {
             path: "/staff/assignments",
