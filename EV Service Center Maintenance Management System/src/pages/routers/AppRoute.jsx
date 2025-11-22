@@ -66,6 +66,10 @@ import QuotationPage from "../home/Technician/QuotationPage.jsx";
 // Xem báo giá
 import QuotationDetailPage from "../home/Technician/QuotationDetailPage.jsx";
 
+import ModelList from "../home/admin/ModelList.jsx";
+import ServiceList from "../home/admin/ServicesList.jsx";
+
+
 function AppRoute() {
   return (
     //  Toàn bộ Route được bao trong LanguageProvider
@@ -138,6 +142,9 @@ function AppRoute() {
 
 
 
+
+
+
         {/* Các route trong Admin */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="home" element={<HomeAdmin />} />
@@ -150,6 +157,9 @@ function AppRoute() {
           <Route path="technician" element={<TechnicianManagement />} />
           <Route path="inventory" element={<AdminInventory />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="models" element={<ModelList />} />
+          <Route path="services" element={<ServiceList />} />
+
           {/* <Route path="assignments" element={<TechnicianManagement />} /> */}
 
         </Route>
