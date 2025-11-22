@@ -91,7 +91,11 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
       if (res.status === 200 || res.status === 201) {
         setSuccess(true); //  hiển thị trang thành công
         localStorage.setItem('bookingData', JSON.stringify(bookingData));
-
+        setTimeout(() => {
+          if (onNext) {
+            onNext(); // Gọi hàm chuyển trang của cha sau 2.5 giây
+          }
+        }, 2500);
         // Sau 2.5s tự động gọi onNext (nếu có)
       }
     } catch (err) {
@@ -151,12 +155,12 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
             <div className="flex items-center space-x-4">
               <img
                 src={bookingData.vehicle.image}
-                alt={`${bookingData.vehicle.brand} ${bookingData.vehicle.model}`}
+                alt={`${bookingData.vehicle.model}`}
                 className="w-20 h-20 object-cover rounded-xl"
               />
               <div>
                 <h4 className="font-bold text-gray-900">
-                  {bookingData.vehicle.brand} {bookingData.vehicle.model}
+                  {bookingData.vehicle.model}
                 </h4>
                 <p className="text-gray-600">
                   {language === 'vi' ? 'Năm' : 'Year'}: {bookingData.vehicle.year}
@@ -196,7 +200,7 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
             <div className="border-t border-gray-200 pt-3 mt-3">
               <div className="flex justify-between items-center font-bold text-lg">
                 <span>{language === 'vi' ? 'Tổng cộng' : 'Total'}</span>
-                <span className="text-emerald-600">
+                <span className="text-emerald-600 tabular-nums">
                   {formatPrice(getTotalPrice())}
                 </span>
               </div>
@@ -299,6 +303,7 @@ const BookingConfirmation = ({ bookingData, setBookingData, onBack, onNext }) =>
       <div className="flex space-x-4">
         <button
           onClick={onBack}
+          disabled={loading}
           className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center space-x-2"
         >
           <ArrowLeft className="w-5 h-5" />

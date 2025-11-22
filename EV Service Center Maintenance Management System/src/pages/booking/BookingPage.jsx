@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Car, ArrowLeft } from 'lucide-react';
+import { Car, ArrowLeft, CheckCircle, X } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext.jsx';
 import LanguageSwitcher from '../../contexts/LanguageSwitcher.jsx';
 import BookingSteps from './BookingSteps.jsx';
@@ -30,6 +30,8 @@ const BookingPage = ({ onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [vehicles, setVehicles] = useState([]);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
+
+  const [notification, setNotification] = useState(null);
 
   // 📦 Dữ liệu booking tạm thời
   const [bookingData, setBookingData] = useState({
@@ -154,6 +156,20 @@ const BookingPage = ({ onBack }) => {
 
         {/* Nội dung chính */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8">
+
+          {notification && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center justify-between animate-fade-in-down ${notification.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800'
+              }`}>
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <span className="font-medium">{notification.message}</span>
+              </div>
+              <button onClick={() => setNotification(null)} className="hover:bg-green-200 p-1 rounded-full transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           {loadingVehicles ? (
             <p className="text-center text-gray-500">Đang tải xe...</p>
           ) : (
@@ -169,12 +185,14 @@ const BookingPage = ({ onBack }) => {
               {currentStep === 2 && (
                 <AddVehicleForm
                   onBack={() => setCurrentStep(1)}
-                  onNext={async () => {
+                  onNext={async (newVehicleData) => {
                     setCurrentStep(1);
-                    
-                    setTimeout(async () => {
-                        await fetchVehicles(); 
-                    }, 3000);
+                    setNotification({
+                      type: 'success',
+                      message: language === 'vi' ? 'Thêm xe thành công!' : 'Vehicle added successfully!'
+                    });
+                    setTimeout(() => setNotification(null), 5000);
+                    await fetchVehicles();
                   }}
                 />
               )}

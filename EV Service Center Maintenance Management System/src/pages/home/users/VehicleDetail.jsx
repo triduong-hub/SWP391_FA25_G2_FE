@@ -57,6 +57,7 @@ const VehicleDetail = () => {
             setFormData({
                 licensePlate: vehicleData.licensePlate || '',
                 vin: vehicleData.vin || '',
+                mileage: vehicleData.mileage || 0,
                 customerNote: vehicleData.customerNote || '',
             });
             setMessage({ type: 'success', text: 'Tải dữ liệu thành công.' });
@@ -90,7 +91,7 @@ const VehicleDetail = () => {
             // Trường bắt buộc từ API update
             customerId: parseInt(vehicle.customerID, 10),
             modelID: parseInt(vehicle.model.modelID, 10),
-            mileage: parseInt(vehicle.mileage, 10),
+            mileage: parseInt(formData.mileage || 0, 10),
             lastMaintenanceMileage: parseInt(vehicle.lastMaintenanceMileage, 10),
             type: vehicle.type,
             lastMaintenanceDate: vehicle.lastMaintenanceDate,
@@ -130,6 +131,7 @@ const VehicleDetail = () => {
         setFormData({
             licensePlate: vehicle.licensePlate || '',
             vin: vehicle.vin || '',
+            mileage: vehicle.mileage || 0,
             customerNote: vehicle.customerNote || '',
         });
         setMessage({ type: '', text: '' });
@@ -142,7 +144,7 @@ const VehicleDetail = () => {
     };
 
     // Chỉ cần kiểm tra biển số và VIN không được rỗng
-    const isFormValid = formData.licensePlate?.trim() && formData.vin?.trim();
+    const isFormValid = formData.licensePlate?.trim() && formData.vin?.trim() && formData.mileage >= 0;
 
 
     // Render chi tiết thông tin
@@ -324,9 +326,24 @@ const VehicleDetail = () => {
                                 <div className="bg-orange-100 p-3 rounded-xl text-orange-600 shrink-0">
                                     <Zap size={20} />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 font-medium">Số km</p>
-                                    <p className="text-base font-semibold text-gray-800">{vehicle.mileage} km</p>
+                                <div className="w-full">
+                                    <p className="text-sm text-gray-500 font-medium">Số km hiện tại</p>
+                                    {editMode && !isUnderMaintenance ? (
+                                        <div className="flex items-center mt-1">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={formData.mileage}
+                                                onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
+                                                className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base font-semibold text-gray-800"
+                                            />
+                                            <span className="ml-2 text-gray-500 font-medium">km</span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-base font-semibold text-gray-800">
+                                            {new Intl.NumberFormat('vi-VN').format(vehicle.mileage)} km
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
