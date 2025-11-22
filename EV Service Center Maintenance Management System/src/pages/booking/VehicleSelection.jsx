@@ -1,11 +1,10 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Plus, Wrench, AlertCircle } from "lucide-react"; // Thêm icon Wrench, AlertCircle
 import { useLanguage } from "../../contexts/LanguageContext";
 
 const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
   const { language } = useLanguage();
   const defaultImg = "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg";
-  console.log('vehicles', vehicles);
 
   return (
     <div className="space-y-6">
@@ -21,65 +20,91 @@ const VehicleSelection = ({ vehicles, onVehicleSelect, onAddNewVehicle }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {vehicles.map((vehicle, index) => (
-          <div
-            key={vehicle.id || vehicle.licensePlate || index} // ✅ key duy nhất
-            onClick={() => onVehicleSelect(vehicle)}
-            className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-emerald-200 group"
-          >
-            <img
-              src={
-                (() => {
-                  // ✅ Ưu tiên các field ảnh có thể có trong dữ liệu API
-                  const img =
-                    vehicle.image ||
-                    vehicle.imageURL ||
-                    vehicle.modelImage ||
-                    vehicle.model?.image ||
-                    "";
+        {vehicles.map((vehicle, index) => {
+          // 🛠️ Logic kiểm tra trạng thái bảo dưỡng
+          // Giả sử: status === false là đang bảo dưỡng/không sẵn sàng
+          const isUnderMaintenance = vehicle.status === false; 
 
-                  // Nếu không có ảnh → dùng ảnh mặc định
-                  if (!img) return defaultImg;
+          return (
+            <div
+              key={vehicle.id || vehicle.licensePlate || index}
+              onClick={() => {
+                // ⛔ Nếu đang bảo dưỡng thì không cho click chọn
+                if (!isUnderMaintenance) {
+                  onVehicleSelect(vehicle);
+                }
+              }}
+              className={`relative rounded-2xl p-6 shadow-lg transition-all duration-300 border group
+                ${isUnderMaintenance
+                  ? "bg-gray-50 border-yellow-400 cursor-not-allowed opacity-90" // Style cho xe đang bảo dưỡng
+                  : "bg-white border-gray-100 hover:border-emerald-200 hover:shadow-xl cursor-pointer" // Style cho xe sẵn sàng
+                }
+              `}
+            >
+              {/* 🏷️ BADGE TRẠNG THÁI BẢO DƯỠNG */}
+              {isUnderMaintenance && (
+                <div className="absolute top-4 right-4 z-10 flex items-center space-x-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-full shadow-sm border border-yellow-200">
+                  <Wrench className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase tracking-wide">
+                    {language === "vi" ? "Đang bảo dưỡng" : "Under Maintenance"}
+                  </span>
+                </div>
+              )}
 
-                  // Nếu là link đầy đủ (Cloudinary, S3, …) → dùng luôn
-                  if (img.startsWith("http")) return img;
+              <img
+                src={
+                  (() => {
+                    const img =
+                      vehicle.image ||
+                      vehicle.imageURL ||
+                      vehicle.modelImage ||
+                      vehicle.model?.image ||
+                      "";
 
-                  // Nếu chỉ là đường dẫn tương đối → tự ghép với baseURL backend
-                  return `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}${img}`;
-                })()
-              }
-              alt={`${vehicle.brand || "Car"} ${vehicle.model || ""}`}
-              onError={(e) => (e.target.src = defaultImg)}
-              className="w-full h-48 object-cover rounded-xl mb-4 group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-gray-900">
-                {(() => {
-                  const brand = vehicle.brand?.trim() || "";
-                  const model = vehicle.model?.trim() || "";
-                  // ⚙️ Nếu model đã bắt đầu bằng brand thì chỉ hiển thị model
-                  if (
-                    brand &&
-                    model &&
-                    model.toLowerCase().startsWith(brand.toLowerCase())
-                  ) {
-                    return model;
-                  }
-                  return `${brand} ${model}`.trim() || "Unknown";
-                })()}
-              </h3>
+                    if (!img) return defaultImg;
+                    if (img.startsWith("http")) return img;
+                    return `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}${img}`;
+                  })()
+                }
+                alt={`${vehicle.brand} ${vehicle.model}`}
+                onError={(e) => (e.target.src = defaultImg)}
+                className={`w-full h-48 object-cover rounded-xl mb-4 transition-transform duration-300 
+                  ${isUnderMaintenance ? "grayscale-[30%]" : "group-hover:scale-105"}
+                `}
+              />
 
-              {/* <p className="text-gray-600">
-                {language === "vi" ? "Năm sản xuất" : "Year"}:{" "}
-                {vehicle.year || "—"}
-              </p> */}
-              <p className="text-gray-600">
-                {language === "vi" ? "Biển số" : "License Plate"}:{" "}
-                {vehicle.licensePlate || "—"}
-              </p>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center justify-between">
+                  <span>
+                    {(() => {
+                      const brand = vehicle.brand?.trim() || "";
+                      const model = vehicle.model?.trim() || "";
+                      if (brand && model && model.toLowerCase().startsWith(brand.toLowerCase())) {
+                        return model;
+                      }
+                      return `${brand} ${model}`.trim() || "Unknown";
+                    })()}
+                  </span>
+                </h3>
+
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-600">
+                    {language === "vi" ? "Biển số" : "License Plate"}:{" "}
+                    <span className="font-semibold text-gray-800">{vehicle.licensePlate || "—"}</span>
+                  </p>
+                  
+                  {/* Nếu đang bảo dưỡng, hiện thêm dòng cảnh báo nhỏ bên dưới */}
+                  {isUnderMaintenance && (
+                    <span className="text-xs text-yellow-600 flex items-center">
+                       <AlertCircle className="w-3 h-3 mr-1" />
+                       {language === "vi" ? "Không thể chọn" : "Unavailable"}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* 🆕 Thêm xe mới */}
         <div

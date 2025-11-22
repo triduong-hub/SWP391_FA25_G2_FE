@@ -52,28 +52,31 @@ const BookingPage = ({ onBack }) => {
     if (!customerId) return;
     setLoadingVehicles(true);
     try {
-      console.log('🔄 Đang tải danh sách xe...');
-      const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
-      const vehicleList = response.data?.data || [];
+        console.log('🔄 Đang tải danh sách xe...');
+        const response = await API.get(`/vehicle/getByCustomerId/${customerId}`);
+        const vehicleList = response.data?.data || [];
 
-      const formattedVehicles = vehicleList.map((v) => ({
-        id: v.vehicleID || v.id,
-        brand: v.model?.modelName || "Unknown",
-        model: v.model?.modelName || "Unknown",
-        year: v.year,
-        licensePlate: v.licensePlate,
-        // Logic ưu tiên ảnh xe riêng -> ảnh model -> ảnh mặc định
-        image: v.imageUrl || v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
-      }));
+        const formattedVehicles = vehicleList.map((v) => ({
+            id: v.vehicleID || v.id,
+            brand: v.model?.modelName || "Unknown",
+            model: v.model?.modelName || "Unknown",
+            year: v.year,
+            licensePlate: v.licensePlate,
+            
+            // 👇 QUAN TRỌNG: Bổ sung dòng này để lấy trạng thái từ Backend
+            status: v.status, 
+            
+            image: v.imageUrl || v.model?.imageUrl || "https://res.cloudinary.com/dq5skmidv/image/upload/v1761475245/VF3_hhgnvh.jpg",
+        }));
 
-      console.log('✅ Danh sách xe đã tải:', formattedVehicles);
-      setVehicles(formattedVehicles);
+        console.log('✅ Danh sách xe đã tải:', formattedVehicles);
+        setVehicles(formattedVehicles);
     } catch (error) {
-      console.error('❌ Lỗi khi lấy xe:', error);
+        console.error('❌ Lỗi khi lấy xe:', error);
     } finally {
-      setLoadingVehicles(false);
+        setLoadingVehicles(false);
     }
-  }, [customerId]);
+}, [customerId]);
 
   // 🚗 Lấy danh sách xe của khách hàng
   useEffect(() => {
