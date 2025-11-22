@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { statusMapServerToUI } from "../../../utils/statusHelpers";
+import Swal from "sweetalert2";
 import {
     Calendar,
     Search,
@@ -55,33 +57,71 @@ const OrderManagement = () => {
 
     // Xử lý Hủy đơn / No-Show
     const handleCancelOrder = async (orderId) => {
-        if (window.confirm("Xác nhận khách không tới hoặc hủy đơn này? Trạng thái sẽ chuyển thành Cancelled.")) {
+        const result = await Swal.fire({
+            title: 'Xác nhận hủy đơn?',
+            text: "Trạng thái đơn sẽ chuyển thành 'Đã hủy'.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#10B981', // màu xanh emerald
+            cancelButtonColor: '#EF4444', // màu đỏ
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (result.isConfirmed) {
             try {
                 await bookingService.cancelBookingByAdmin(orderId);
-                alert("Đã hủy đơn hàng thành công!");
-                fetchBookings(); // Refresh list
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: 'Đã hủy đơn hàng.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                fetchBookings(); // refresh danh sách
             } catch (error) {
-                console.error("Cancel failed:", error);
-                alert(error.response?.data?.message || "Lỗi khi hủy đơn hàng.");
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error.response?.data?.message || 'Lỗi khi hủy đơn hàng.',
+                    icon: 'error',
+                });
             }
         }
     };
 
+
+    const statusFilters = [
+        { key: "All", label: "Tất cả" },
+        { key: "Pending", label: "Chờ xác nhận" },
+        { key: "Confirmed", label: "Đã xác nhận" },
+        { key: "In Progress", label: "Đang thực hiện" },
+        { key: "Completed", label: "Hoàn tất" },
+        { key: "Cancelled", label: "Đã hủy" },
+    ];
+
     // Render Badge trạng thái
     const getStatusBadge = (status) => {
+        const viStatus = statusMapServerToUI[status.toLowerCase()] || status; // chuyển sang lowercase nếu server trả về chữ thường
+
         const styles = {
-            Pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-            Confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-            "In Progress": "bg-purple-100 text-purple-800 border-purple-200",
-            Completed: "bg-green-100 text-green-800 border-green-200",
-            Cancelled: "bg-red-100 text-red-800 border-red-200",
+            "Chờ xác nhận": "bg-yellow-100 text-yellow-800 border-yellow-200",
+            "Đã xác nhận": "bg-blue-100 text-blue-800 border-blue-200",
+            "Đang thực hiện": "bg-purple-100 text-purple-800 border-purple-200",
+            "Chờ khách xác nhận báo giá": "bg-purple-50 text-purple-800 border-purple-200",
+            "Đã duyệt": "bg-blue-50 text-blue-800 border-blue-200",
+            "Chờ thanh toán": "bg-yellow-50 text-yellow-800 border-yellow-200",
+            "Hoàn tất": "bg-green-100 text-green-800 border-green-200",
+            "Khách đã xác nhận": "bg-purple-100 text-purple-800 border-purple-200",
+            "processing": "bg-gray-100 text-gray-800 border-gray-200",
         };
+
         return (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[status] || "bg-gray-100"}`}>
-                {status}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[viStatus] || "bg-gray-100"}`}>
+                {viStatus}
             </span>
         );
     };
+
 
     return (
         <div className="space-y-6">
@@ -102,16 +142,16 @@ const OrderManagement = () => {
             {/* Filters & Search */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex items-center gap-2 overflow-x-auto">
-                    {["All", "Pending", "Confirmed", "In Progress", "Completed", "Cancelled"].map((status) => (
+                    {statusFilters.map(s => (
                         <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterStatus === status
+                            key={s.key}
+                            onClick={() => setFilterStatus(s.key)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterStatus === s.key
                                 ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
                                 : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent"
                                 }`}
                         >
-                            {status}
+                            {s.label}
                         </button>
                     ))}
                 </div>
