@@ -64,15 +64,13 @@ const ModelList = () => {
 
     try {
       const formData = new FormData();
-
-      // Tạo object modelDTO
-      const modelDTO = { modelName: form.modelName };
-      formData.append("modelDTO", JSON.stringify(modelDTO));
-
-      // Nếu có file mới thì append
-      if (form.imageFile) formData.append("image", form.imageFile);
+      formData.append("modelName", form.modelName);
+      if (form.imageFile) {
+        formData.append("image", form.imageFile);
+      }
 
       if (isEditing) {
+        // Gửi ID qua URL để khớp với backend
         await API.put(`/model/update/${form.modelID}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -91,6 +89,8 @@ const ModelList = () => {
       showToast("Lỗi khi lưu model!", "error");
     }
   };
+
+
 
   // Edit
   const handleEdit = (m) => {
