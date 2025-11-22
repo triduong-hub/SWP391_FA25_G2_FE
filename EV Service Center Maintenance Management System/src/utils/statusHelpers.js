@@ -8,6 +8,7 @@ export const statusMapServerToUI = {
   "waiting for payment": "Chờ thanh toán",
   "completed": "Hoàn tất",
   "processing": "Khách đã xác nhận",
+   "cancelled": "Đã hủy",   // <- thêm dòng này
 };
 
 
@@ -19,4 +20,5 @@ export const statusMapUIToServer = {
   daduyet: "approved",
   hoanthanh: "waiting-for-payment", // khi kỹ thuật viên ấn "Hoàn tất"
   thanhtoan: "completed",          // khi khách hàng thanh toán
+  huydon: "cancelled"
 };

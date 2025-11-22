@@ -395,51 +395,72 @@ export default function QuotationPage() {
                         )}
                     </div>
 
-                    <h2 className="text-xl font-semibold text-gray-700 mb-3">
-                        ⚙️ Linh kiện thay thế
-                    </h2>
-                    <div className="space-y-3">
+                    <h2 className="text-xl font-semibold text-gray-700 mb-3">⚙️ Linh kiện thay thế</h2>
+
+                    {/* Header */}
+                    <div className="grid grid-cols-4 text-sm font-semibold bg-gray-100 border rounded-t-lg">
+                        <div className="p-3 border-r">Linh kiện</div>
+                        <div className="p-3 border-r">Số lượng</div>
+                        <div className="p-3 border-r">Giá</div>
+                        <div className="p-3 text-right">Thành tiền</div>
+                    </div>
+
+                    {/* Rows */}
+                    <div className="space-y-0">
                         {parts.map((part, index) => (
                             <div
                                 key={index}
-                                className="grid grid-cols-4 gap-3 items-center border p-3 rounded-lg"
+                                className="grid grid-cols-4 border border-t-0 rounded-b-lg"
                             >
-                                <select
-                                    value={part.componentID}
-                                    onChange={(e) =>
-                                        handlePartChange(index, "componentID", e.target.value)
-                                    }
-                                    className="border rounded-lg p-2 w-full"
-                                >
-                                    <option value="">-- Chọn linh kiện --</option>
-                                    {components.map((c) => (
-                                        <option key={c.componentID} value={c.componentID}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                {/* Linh kiện */}
+                                <div className="border-r p-2">
+                                    <select
+                                        value={part.componentID}
+                                        onChange={(e) =>
+                                            handlePartChange(index, "componentID", e.target.value)
+                                        }
+                                        className="border rounded-lg p-2 w-full"
+                                    >
+                                        <option value="">-- Chọn linh kiện --</option>
+                                        {components.map((c) => (
+                                            <option key={c.componentID} value={c.componentID}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={part.quantity}
-                                    onChange={(e) =>
-                                        handlePartChange(index, "quantity", +e.target.value)
-                                    }
-                                    className="border rounded-lg p-2 w-full"
-                                />
-                                <input
-                                    type="number"
-                                    value={part.price}
-                                    readOnly
-                                    className="border rounded-lg p-2 w-full bg-gray-100"
-                                />
-                                <span className="text-right font-semibold text-green-600">
+                                {/* Số lượng */}
+                                <div className="border-r p-2">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={part.quantity}
+                                        onChange={(e) =>
+                                            handlePartChange(index, "quantity", +e.target.value)
+                                        }
+                                        className="border rounded-lg p-2 w-full"
+                                    />
+                                </div>
+
+                                {/* Giá */}
+                                <div className="border-r p-2">
+                                    <input
+                                        type="number"
+                                        value={part.price}
+                                        readOnly
+                                        className="border rounded-lg p-2 w-full bg-gray-100"
+                                    />
+                                </div>
+
+                                {/* Thành tiền */}
+                                <div className="p-2 text-right font-semibold text-green-600">
                                     {(part.quantity * part.price).toLocaleString()} ₫
-                                </span>
+                                </div>
                             </div>
                         ))}
                     </div>
+
 
                     <button
                         onClick={handleAddPart}
