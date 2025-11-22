@@ -174,7 +174,7 @@ const TechnicianStatus = () => {
 
                         {/* Footer Card */}
                         <div className="flex justify-between items-center text-xs text-gray-400 pt-2">
-                            <span>Tổng đơn: {tech.totalJobs}</span>
+                            
                             <span className={tech.currentCount > 0 ? "text-green-500 flex items-center gap-1" : "text-gray-400"}>
                                 <span className={`w-2 h-2 rounded-full ${tech.currentCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`}></span>
                                 {tech.currentCount > 0 ? "Đang bận" : "Sẵn sàng"}

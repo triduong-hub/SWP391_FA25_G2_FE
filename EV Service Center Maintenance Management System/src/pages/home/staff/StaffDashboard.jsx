@@ -371,7 +371,7 @@ const StaffDashboard = () => {
                     >
                       <UserRoundPlus size={18} />
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => handleConfirmOrder(o.id)}
                       className="text-green-600 hover:text-green-800"
                       title="Xác nhận đơn"
@@ -384,7 +384,7 @@ const StaffDashboard = () => {
                       title="Xóa đơn"
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))}

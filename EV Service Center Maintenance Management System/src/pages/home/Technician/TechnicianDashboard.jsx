@@ -41,7 +41,7 @@ const TechnicianDashboard = () => {
 
                 if (!technicianId) {
                     console.error("❌ Không tìm thấy ID Kỹ thuật viên (Backend chưa gửi về?)");
-                    return; 
+                    return;
                 }
 
                 // BƯỚC 2: Gọi API lọc theo ID
@@ -89,12 +89,13 @@ const TechnicianDashboard = () => {
         );
     };
 
-    const normalizedTasks = tasks.map((t) => {
-        return {
-            ...t,
-            status: t.status ? t.status.toLowerCase().replace(/\s+/g, "-") : "",
-        };
-    });
+    const normalizedTasks = tasks.map((t) => ({
+        ...t,
+        status: t.status
+            ? t.status.toLowerCase().replace(/\s+/g, "-").replace(/_/g, "-")
+            : "",
+    }));
+
 
     const formatDate = (date, time) => `${new Date(date).toLocaleDateString('vi-VN')} ${time}`;
 
@@ -292,16 +293,21 @@ const TechnicianDashboard = () => {
                                 <Wrench className="w-5 h-5 text-gray-500" />
                                 Bảo trì #{task.maintenanceID}
                             </h3>
-                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
-                                ? "bg-purple-100 text-purple-700"
-                                : task.status === "waiting-for-payment"
-                                    ? "bg-orange-100 text-orange-700"
-                                    : task.status === "completed"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-blue-100 text-blue-700"
-                                }`}>
-                                {statusMapServerToUI[task.status.replace(/-/g, " ")] || task.status}
+                            <span
+                                className={`px-3 py-1 text-xs font-semibold rounded-full ${task.status === "in-progress"
+                                        ? "bg-purple-100 text-purple-700"
+                                        : task.status === "waiting-for-payment"
+                                            ? "bg-orange-100 text-orange-700"
+                                            : task.status === "completed"
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-blue-100 text-blue-700"
+                                    }`}
+                            >
+                                {statusMapServerToUI[task.status.replace(/-/g, "_")]
+                                    || statusMapServerToUI[task.status.replace(/-/g, " ")]
+                                    || task.status}
                             </span>
+
                         </div>
 
                         {/* INFO GRID */}

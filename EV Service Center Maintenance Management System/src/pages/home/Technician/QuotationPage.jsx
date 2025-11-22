@@ -67,9 +67,12 @@ export default function QuotationPage() {
 
     //  Tính tổng tiền
     useEffect(() => {
-        const totalPrice = parts.reduce((sum, p) => sum + p.quantity * p.price, 0);
+        const totalPrice = parts
+            .filter(p => Number(p.componentID) > 0)
+            .reduce((sum, p) => sum + p.quantity * p.price, 0);
         setTotal(totalPrice);
     }, [parts]);
+
 
     //  Xử lý chọn linh kiện
     const handlePartChange = (index, field, value) => {
@@ -94,16 +97,22 @@ export default function QuotationPage() {
 
     //  Hàm gửi linh kiện trước khi báo giá
     const handleSendComponents = async () => {
-        if (parts.length === 0 || !parts.some(p => p.componentID)) {
-            setMessage(" Vui lòng chọn ít nhất một linh kiện!");
-            setMessageType("error");
-            return;
+        const validParts = parts.filter(p => Number(p.componentID) > 0);
+
+        // ❗ Nếu không có linh kiện → vẫn cho xác nhận
+        if (validParts.length === 0) {
+            setMessage("xác nhận thành công!");
+            setMessageType("success");
+            setPartsSent(true);   // 🔥 QUAN TRỌNG
+            return;               // ⛔ KHÔNG GỬI API
         }
 
+        // Nếu có linh kiện thì gửi API bình thường
         try {
             setIsSendingParts(true);
+
             await Promise.all(
-                parts.map((p) =>
+                validParts.map((p) =>
                     api.post(`/maintenances/${jobId}/components`, {
                         componentId: Number(p.componentID),
                         quantity: Number(p.quantity),
@@ -112,17 +121,19 @@ export default function QuotationPage() {
                 )
             );
 
-            setMessage(" Gửi linh kiện thành công!");
+            setMessage("Gửi linh kiện thành công!");
             setMessageType("success");
             setPartsSent(true);
+
         } catch (err) {
             console.error(err);
-            setMessage(" Gửi linh kiện thất bại, vui lòng thử lại!");
+            setMessage("Gửi linh kiện thất bại, vui lòng thử lại!");
             setMessageType("error");
         } finally {
             setIsSendingParts(false);
         }
     };
+
 
 
     const handleSaveChecklist = async (maintenanceID, checklistItems) => {
@@ -184,18 +195,20 @@ export default function QuotationPage() {
                 0
             );
 
+            const validParts = parts.filter(p => Number(p.componentID) > 0);
+
             const quotationData = {
                 maintenanceId: Number(jobId),
                 checklist: checklist.map((c) => ({
                     checkListId: c.checkListId,
                     status: c.status || "none",
                 })),
-                parts: parts.map((p) => ({
+                parts: validParts.map((p) => ({
                     componentID: Number(p.componentID),
                     quantity: Number(p.quantity),
                     price: Number(p.price),
                 })),
-                totalAmount: totalPrice, //  Không dùng state total
+                totalAmount: validParts.reduce((sum, p) => sum + Number(p.quantity) * Number(p.price), 0),
             };
 
             console.log("📦 Parts:", parts);
