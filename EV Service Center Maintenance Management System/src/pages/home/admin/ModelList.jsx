@@ -3,13 +3,36 @@ import API from "../../../../api";
 
 const ModelList = () => {
   const [models, setModels] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // Popup xác nhận xóa
+  const [confirmDelete, setConfirmDelete] = useState({
+    show: false,
+    id: null,
+  });
+
   const [form, setForm] = useState({
     modelID: null,
     modelName: "",
-    imageFile: null, // file mới upload
-    imagePreview: "", // preview ảnh
+    imageFile: null,
+    imagePreview: "",
   });
-  const [isEditing, setIsEditing] = useState(false);
+
+  // SHOW TOAST (tự ẩn sau 2 giây)
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(
+      () => setToast({ show: false, message: "", type: "success" }),
+      2000
+    );
+  };
 
   // Load danh sách model
   const loadModels = async () => {
@@ -18,6 +41,7 @@ const ModelList = () => {
       setModels(res.data);
     } catch (err) {
       console.error(err);
+      showToast("Không thể tải danh sách!", "error");
     }
   };
 
@@ -31,76 +55,123 @@ const ModelList = () => {
     setIsEditing(false);
   };
 
-  // Submit form
+  // Submit
   const handleSubmit = async () => {
     if (!form.modelName.trim()) {
-      alert("Vui lòng nhập tên model.");
+      showToast("Vui lòng nhập tên model!", "warning");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("modelName", form.modelName);
-    if (form.imageFile) {
-      formData.append("image", form.imageFile); // file upload
-    }
-
     try {
+      const formData = new FormData();
+      formData.append("modelName", form.modelName);
+      if (form.imageFile) {
+        formData.append("image", form.imageFile);
+      }
+
       if (isEditing) {
+        // Gửi ID qua URL để khớp với backend
         await API.put(`/model/update/${form.modelID}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        alert("Cập nhật thành công!");
+        showToast("Cập nhật thành công!", "success");
       } else {
         await API.post("/model/create", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        alert("Thêm model thành công!");
+        showToast("Thêm model thành công!", "success");
       }
+
       resetForm();
       loadModels();
     } catch (err) {
-      console.error("PUT/POST lỗi:", err);
-      alert("Lưu model thất bại!");
+      console.error(err);
+      showToast("Lỗi khi lưu model!", "error");
     }
   };
 
-  // Edit model
+
+
+  // Edit
   const handleEdit = (m) => {
     setForm({
       modelID: m.modelID,
       modelName: m.modelName,
-      imageFile: null,         // chưa đổi file
-      imagePreview: m.imageUrl, // preview ảnh
+      imageFile: null,
+      imagePreview: m.imageUrl,
     });
     setIsEditing(true);
   };
 
-  // Delete model
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn chắc chắn muốn xóa model này?")) return;
+  // Xóa
+  const openDeleteConfirm = (id) => {
+    setConfirmDelete({ show: true, id });
+  };
 
+  const confirmDeleteAction = async () => {
     try {
-      await API.delete(`/model/delete/${id}`);
-      alert("Xóa thành công!");
+      await API.delete(`/model/delete/${confirmDelete.id}`);
+      showToast("Xóa thành công!", "success");
       loadModels();
     } catch (err) {
       console.error(err);
+      showToast("Lỗi khi xóa!", "error");
     }
+    setConfirmDelete({ show: false, id: null });
   };
 
-  // Khi chọn file mới
+  // Chọn file ảnh
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setForm({ ...form, imageFile: file, imagePreview: URL.createObjectURL(file) });
+      setForm({
+        ...form,
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file),
+      });
     }
   };
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">
-        Quản lý Model xe 
-      </h2>
+
+      {/* TOAST */}
+      {toast.show && (
+        <div
+          className={`fixed top-5 right-5 px-4 py-2 rounded-lg shadow-lg text-white z-50 transition-all
+            ${toast.type === "success" ? "bg-green-600" : ""}
+            ${toast.type === "error" ? "bg-red-600" : ""}
+            ${toast.type === "warning" ? "bg-yellow-500" : ""}
+          `}
+        >
+          {toast.message}
+        </div>
+      )}
+
+      {/* POPUP CONFIRM DELETE */}
+      {confirmDelete.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-80 shadow-lg text-center">
+            <h3 className="text-lg font-semibold mb-4">Bạn có chắc muốn xóa?</h3>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={confirmDeleteAction}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Xóa
+              </button>
+              <button
+                onClick={() => setConfirmDelete({ show: false, id: null })}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <h2 className="text-xl font-bold mb-4">Quản lý Model xe</h2>
 
       {/* FORM */}
       <div className="mb-6 bg-gray-100 p-4 rounded">
@@ -108,7 +179,6 @@ const ModelList = () => {
           {isEditing ? "Chỉnh sửa Model" : "Thêm Model mới"}
         </h3>
 
-        {/* Tên model */}
         <input
           className="border p-2 w-full mb-2"
           placeholder="Tên Model"
@@ -116,14 +186,13 @@ const ModelList = () => {
           onChange={(e) => setForm({ ...form, modelName: e.target.value })}
         />
 
-        {/* File input ảnh */}
+        {/* File input luôn hiển thị */}
         <input
           type="file"
           className="border p-2 w-full mb-2"
           onChange={handleFileChange}
         />
 
-        {/* Preview ảnh */}
         {form.imagePreview && (
           <img
             src={form.imagePreview}
@@ -165,11 +234,7 @@ const ModelList = () => {
               <td className="p-2 border">{m.modelID}</td>
               <td className="p-2 border">{m.modelName}</td>
               <td className="p-2 border">
-                <img
-                  src={m.imageUrl}
-                  alt=""
-                  className="w-20 h-auto rounded"
-                />
+                <img src={m.imageUrl} alt="" className="w-20 h-auto rounded" />
               </td>
               <td className="p-2 border flex gap-2">
                 <button
@@ -179,7 +244,7 @@ const ModelList = () => {
                   Sửa
                 </button>
                 <button
-                  onClick={() => handleDelete(m.modelID)}
+                  onClick={() => openDeleteConfirm(m.modelID)}
                   className="px-3 py-1 bg-red-500 text-white rounded"
                 >
                   Xóa
