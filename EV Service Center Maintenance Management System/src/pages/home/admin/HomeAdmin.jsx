@@ -124,16 +124,23 @@ const HomeAdmin = () => {
 
         const reports = res.data.monthlyReports || [];
 
-        // Format từng technician theo từng tháng
-        const formatted = reports.flatMap((report) =>
-          report.allTechnicians.map((tech) => ({
-            month: `${report.month}/${report.year}`,
-            technician: tech.employeeName,
-            count: tech.maintenanceCount
-          }))
-        );
+        // Nhóm theo tháng, mỗi tháng thành một object
+        const grouped = {};
 
-        setTechnicianPerformance(formatted);
+        reports.forEach((report) => {
+          const key = `${report.month}/${report.year}`;
+
+          if (!grouped[key]) grouped[key] = { month: key };
+
+          report.allTechnicians.forEach((t) => {
+            grouped[key][t.employeeName] = t.maintenanceCount;
+          });
+        });
+
+        const finalData = Object.values(grouped);
+        console.log("📊 Dữ liệu sau format:", finalData);
+
+        setTechnicianPerformance(finalData);
       } catch (error) {
         console.error("❌ Lỗi khi lấy hiệu suất kỹ thuật viên:", error);
       }
@@ -371,10 +378,21 @@ const HomeAdmin = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" name="Số bảo dưỡng" fill="#4A90E2" />
+
+                    {Object.keys(technicianPerformance[0])
+                      .filter((key) => key !== "month")
+                      .map((techName, index) => (
+                        <Bar
+                          key={techName}
+                          dataKey={techName}
+                          name={techName}
+                          fill={["#4A90E2", "#2D9C68", "#A0AEC0", "#F6C344"][index % 4]}
+                        />
+                      ))}
                   </BarChart>
                 </ResponsiveContainer>
               )}
+
             </div>
 
 

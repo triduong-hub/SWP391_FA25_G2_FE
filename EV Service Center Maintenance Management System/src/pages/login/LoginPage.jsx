@@ -172,6 +172,16 @@ const LoginForm = ({ onSwitch }) => {
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
+        <div className="flex justify-end mt-1">
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="text-sm text-emerald-600 hover:underline"
+          >
+            Quên mật khẩu?
+          </button>
+        </div>
+
 
         {message.text && (
           <div
