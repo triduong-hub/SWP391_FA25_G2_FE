@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import api from "../../../../api"; 
 import { toast } from "react-toastify"; 
+import AIMinStock from "../components/AIMinStock";
 
 const AdminInventory = () => {
     // --- STATE ---
@@ -179,16 +180,20 @@ const AdminInventory = () => {
 
     // --- FILTER LOGIC ---
     const filteredComponents = components.filter((item) => {
-        const term = searchTerm.toLowerCase();
-        const matchSearch =
-            item.name?.toLowerCase().includes(term) ||
-            item.code?.toLowerCase().includes(term) ||
-            item.serviceCenterName?.toLowerCase().includes(term); // Tìm theo tên chi nhánh
-        
-        const matchType = filterType === "all" || item.type === filterType;
-        const matchServiceCenter = filterServiceCenter === "all" || item.serviceCenterID == filterServiceCenter;
-        return matchSearch && matchType;
-    });
+    const term = searchTerm.toLowerCase();
+
+    const matchSearch =
+        item.name?.toLowerCase().includes(term) ||
+        item.code?.toLowerCase().includes(term) ||
+        item.serviceCenterName?.toLowerCase().includes(term);
+
+    const matchType = filterType === "all" || item.type === filterType;
+    const matchServiceCenter =
+        filterServiceCenter === "all" ||
+        String(item.serviceCenterID) === String(filterServiceCenter);
+
+    return matchSearch && matchType && matchServiceCenter;
+});
 
     const componentTypes = ["all", ...new Set(components.map((c) => c.type).filter(Boolean))];
 
@@ -571,6 +576,7 @@ const AdminInventory = () => {
                 </div>,
                 document.body
             )}
+            <AIMinStock />
         </div>
     );
 };

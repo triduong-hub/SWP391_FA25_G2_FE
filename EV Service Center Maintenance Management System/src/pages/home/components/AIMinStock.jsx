@@ -56,7 +56,7 @@ const AIMinStock = () => {
       {/* Floating AI Button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center"
+        className="fixed bottom-10 right-10 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center"
       >
         <Bot className="w-6 h-6" />
       </button>
