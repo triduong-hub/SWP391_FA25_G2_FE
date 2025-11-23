@@ -1,39 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-import api from "../../../api"; // đường dẫn đến file axios config
+import api from "../../../api"; // your axios config
 
 const PaymentSuccess = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ hook điều hướng
+  const navigate = useNavigate();
   const [updateStatus, setUpdateStatus] = useState("loading");
 
-
   useEffect(() => {
-    // 📌 Đọc query params từ URL
     const queryParams = new URLSearchParams(location.search);
     const status = queryParams.get("status");
     const cancel = queryParams.get("cancel");
-    const paymentLinkId = queryParams.get("id"); // ✅ đây là paymentLinkId thực tế
+    const paymentLinkId = queryParams.get("id"); // <-- PayOS id is paymentLinkId
     const orderCode = queryParams.get("orderCode");
 
     console.log("🔍 PayOS redirect data:", { status, cancel, paymentLinkId, orderCode });
 
-    // ✅ Chỉ cập nhật khi thanh toán thành công
-    // ✅ Kiểm tra kết quả thanh toán
+    // Only update when payment is successful and paymentLinkId exists
     if (status?.toUpperCase() === "PAID" && cancel === "false" && paymentLinkId) {
       updatePaymentStatus(paymentLinkId);
     } else if (cancel === "true" || status?.toUpperCase() === "CANCELLED") {
       console.warn("🚫 Người dùng đã hủy thanh toán.");
-      // ⏳ Delay nhỏ cho UI hiển thị rồi quay lại home
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
+      setTimeout(() => navigate("/"), 1500);
     }
-
   }, [location]);
 
-  // 📡 Gọi API backend để update trạng thái thanh toán
+  // Call backend to update payment status
   const updatePaymentStatus = async (paymentLinkId) => {
     try {
       const res = await api.put(`/payment/update-status/success/${paymentLinkId}`);
@@ -44,7 +36,6 @@ const PaymentSuccess = () => {
       setUpdateStatus("error");
     }
   };
-
 
   return (
     <div className="text-center mt-10">
@@ -66,7 +57,6 @@ const PaymentSuccess = () => {
         </p>
       )}
 
-      {/*  Nút quay lại trang chủ */}
       <button
         onClick={() => navigate("/")}
         className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-all"
@@ -75,7 +65,6 @@ const PaymentSuccess = () => {
       </button>
     </div>
   );
-
 };
 
 export default PaymentSuccess;
