@@ -145,7 +145,7 @@ const UserManagement = () => {
               <th className="px-4 py-3">Tên</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Số điện thoại</th>
-              <th className="px-4 py-3 text-center">Hành động</th>
+              {/* <th className="px-4 py-3 text-center">Hành động</th> */}
             </tr>
           </thead>
           <tbody>
@@ -166,7 +166,7 @@ const UserManagement = () => {
                   <td className="px-4 py-2 text-gray-600">{user.email}</td>
                   <td className="px-4 py-2 text-gray-600">{user.phone}</td>
                   <td className="px-4 py-2 flex justify-center space-x-3">
-                    <button
+                    {/* <button
                       onClick={() => {
                         setEditingUser(user);
                         setFormData({
@@ -185,7 +185,7 @@ const UserManagement = () => {
                       className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg shadow"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))
