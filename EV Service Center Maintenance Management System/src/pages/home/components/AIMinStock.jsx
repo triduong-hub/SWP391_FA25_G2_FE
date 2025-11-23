@@ -5,6 +5,7 @@ import api from "../../../../api";
 const AIMinStock = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [partCode, setPartCode] = useState("");
+  const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -22,11 +23,18 @@ const AIMinStock = () => {
       return;
     }
 
+    if (!days || days <= 0) {
+      setError("Vui lòng nhập số ngày hợp lệ (>0).");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const res = await api.get(`/ai/parts/suggested-min/${partCode}`);
+      const res = await api.get(
+        `/ai/parts/suggested-min/${partCode}?days=${days}`
+      );
       setResult(res.data);
     } catch (err) {
       console.error(err);
@@ -56,7 +64,7 @@ const AIMinStock = () => {
       {/* Floating AI Button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center"
+        className="fixed bottom-10 right-10 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center"
       >
         <Bot className="w-6 h-6" />
       </button>
@@ -86,6 +94,17 @@ const AIMinStock = () => {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nhập <strong>số ngày</strong> để gợi ý tồn tối thiểu:
+            </label>
+            <input
+              type="number"
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+              min={1}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
             <button
               onClick={fetchSuggestion}
               disabled={loading}
@@ -110,6 +129,9 @@ const AIMinStock = () => {
                   📊 Kết quả đề xuất
                 </h3>
                 <p className="text-sm mb-1">
+                  <strong>Số lượng hiện tại:</strong> {result.currentQuantity}
+                </p>
+                <p className="text-sm mb-1">
                   <strong>Min hiện tại:</strong> {result.currentMin}
                 </p>
                 <p className="text-sm mb-1">
@@ -129,7 +151,14 @@ const AIMinStock = () => {
                 <div className="mt-3 p-3 bg-green-50 rounded-lg flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
                   <p className="font-medium text-green-700">
-                    Gợi ý tồn tối thiểu: {result.suggestedMin}
+                    Gợi ý tồn nên có: {result.suggestedMin}
+                  </p>
+                </div>
+                <div className="mt-3 p-3 bg-yellow-50 rounded-lg flex items-center">
+                  <CheckCircle className="w-5 h-5 text-yellow-600 mr-2" />
+                  <p className="font-medium text-yellow-700">
+                    Gợi ý tồn nên có theo <strong>{days}</strong> ngày:{" "}
+                    {result.suggestedMinBasedOnDays}
                   </p>
                 </div>
                 {/*
