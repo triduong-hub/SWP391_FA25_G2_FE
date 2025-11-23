@@ -151,13 +151,13 @@ const AIMinStock = () => {
                 <div className="mt-3 p-3 bg-green-50 rounded-lg flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
                   <p className="font-medium text-green-700">
-                    Gợi ý tồn tối thiểu: {result.suggestedMin}
+                    Gợi ý tồn nên có: {result.suggestedMin}
                   </p>
                 </div>
                 <div className="mt-3 p-3 bg-yellow-50 rounded-lg flex items-center">
                   <CheckCircle className="w-5 h-5 text-yellow-600 mr-2" />
                   <p className="font-medium text-yellow-700">
-                    Gợi ý tồn tối thiểu theo <strong>{days}</strong> ngày:{" "}
+                    Gợi ý tồn nên có theo <strong>{days}</strong> ngày:{" "}
                     {result.suggestedMinBasedOnDays}
                   </p>
                 </div>
