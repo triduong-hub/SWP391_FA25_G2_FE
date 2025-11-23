@@ -21,8 +21,8 @@ const PaymentSuccess = () => {
 
     // ✅ Chỉ cập nhật khi thanh toán thành công
     // ✅ Kiểm tra kết quả thanh toán
-    if (status?.toUpperCase() === "PAID" && cancel === "false" && paymentLinkId) {
-      updatePaymentStatus(paymentLinkId);
+    if (status?.toUpperCase() === "PAID" && cancel === "false" && orderCode) {
+       updatePaymentStatus(orderCode);
     } else if (cancel === "true" || status?.toUpperCase() === "CANCELLED") {
       console.warn("🚫 Người dùng đã hủy thanh toán.");
       // ⏳ Delay nhỏ cho UI hiển thị rồi quay lại home
@@ -34,9 +34,9 @@ const PaymentSuccess = () => {
   }, [location]);
 
   // 📡 Gọi API backend để update trạng thái thanh toán
-  const updatePaymentStatus = async (paymentLinkId) => {
+  const updatePaymentStatus = async (orderCode) => {
     try {
-      const res = await api.put(`/payment/update-status/success/${paymentLinkId}`);
+      const res = await api.put(`/payment/update-status-by-order/${orderCode}`);
       console.log("✅ Cập nhật thành công:", res.data);
       setUpdateStatus("success");
     } catch (error) {
